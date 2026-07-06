@@ -8,7 +8,19 @@ set(KISSFFT_TEST OFF CACHE BOOL "Disable KissFFT tests" FORCE)
 
 set(KISSFFT_STATIC ON CACHE BOOL "Build static library" FORCE)
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/../FenixEngine/src/Engine ${CMAKE_BINARY_DIR}/out/Engine)
+# add_subdirectory(${CMAKE_SOURCE_DIR}/../FenixEngine/src/Engine ${CMAKE_BINARY_DIR}/out/Engine)
+
+if(NOT TARGET Engine)
+    message(STATUS "Engine target not found. Looking for engine source...")
+    
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../FenixEngine/CMakeLists.txt")
+        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../FenixEngine" FenixEngine)
+    # elif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/FenixEngine/CMakeLists.txt")
+    #     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/FenixEngine" FenixEngine)
+    else()
+        message(FATAL_ERROR "FenixEngine not found!")
+    endif()
+endif()
 
 set(IMGUI_DIR ../FenixEngine/external/imgui)
 
