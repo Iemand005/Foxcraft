@@ -10,7 +10,7 @@ set(KISSFFT_STATIC ON CACHE BOOL "Build static library" FORCE)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/../FenixEngine/src/Engine ${CMAKE_BINARY_DIR}/out/Engine)
 
-set(IMGUI_DIR ../../../external/imgui)
+set(IMGUI_DIR ../FenixEngine/external/imgui)
 
 file(GLOB_RECURSE IMGUI_SOURCE_FILES
 	${IMGUI_DIR}/imgui.cpp
