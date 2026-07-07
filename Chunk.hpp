@@ -2,6 +2,7 @@
 #pragma once
 
 #include <memory>
+#include <iostream>
 
 #include <Primitives.hpp>
 
@@ -16,7 +17,7 @@ enum class BlockType : short {
 class Chunk {
 private:
     std::vector<BlockType> blocks;
-    static constexpr int WIDTH = 16, HEIGHT = 20, DEPTH = 16;
+    static constexpr int WIDTH = 16, HEIGHT = 128, DEPTH = 16;
 
 public:
     Chunk() : blocks(WIDTH * HEIGHT * DEPTH, BlockType::Air) {
@@ -72,7 +73,9 @@ public:
     }
 
     fe::Mesh GenerateMesh() {
-        fe::Mesh mesh;
+        std::vector<fe::Vertex> allVertices;
+        std::vector<unsigned int> allIndices;
+
         int blockCount = 0;
         int faceCount = 0;
 
@@ -92,23 +95,32 @@ public:
                             visibleFaces.push_back(direction);
                             faceCount++;
                         }
+                    }
+
+                    if(!visibleFaces.empty()) {
+                        fe::Mesh cubeMesh = fe::Primitives::GenerateCube(visibleFaces, 1.0f);
+
+                        // place cube centered at integer block position (so it occupies [x,x+1] etc)
+                        glm::vec3 offset = glm::vec3(x + 0.5f, y + 0.5f, z + 0.5f);
+
+                        unsigned int vertexOffset = allVertices.size();
+
+                        for(auto &v : cubeMesh.vertices) {
+                            fe::Vertex vv = v;
+                            vv.position += offset;
+                            allVertices.push_back(vv);
                         }
 
-                        if(!visibleFaces.empty()) {
-                            std::cout << "Block at (" << x << "," << y << "," << z
-                            << ") has " << visibleFaces.size() << " visible faces\n";
-
-                            fe::Mesh cubeMesh = fe::Primitives::GenerateCube(visibleFaces, 1.0f);
-                            std::cout << "  Generated mesh: " << cubeMesh.vertices.size()
-                            << " verts, " << cubeMesh.indices.size() << " indices\n";
-
-                            // ... rest of merge code
+                        for(auto idx : cubeMesh.indices) {
+                            allIndices.push_back(static_cast<unsigned int>(idx) + vertexOffset);
                         }
+                    }
                 }
             }
         }
 
         std::cout << "Total blocks: " << blockCount << ", faces: " << faceCount << std::endl;
-        return mesh;
+
+        return fe::Mesh(allVertices, allIndices);
     }
 };
