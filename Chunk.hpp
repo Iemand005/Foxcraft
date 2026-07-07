@@ -30,7 +30,7 @@ public:
     }
 
     BlockType GetBlock(glm::vec3 pos) const {
-        return GetBlock((int)pos.x, (int)pos.y, pos.z);
+        return GetBlock(static_cast<int>(pos.x), static_cast<int>(pos.y), static_cast<int>(pos.z));
     }
 
     void SetBlock(int x, int y, int z, BlockType type) {
