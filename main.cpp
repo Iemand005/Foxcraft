@@ -126,13 +126,13 @@ int WINAPI WinMain(
   try
   {
     LogToFile("Creating game instance...");
-    Cake game;
+    Foxcraft game;
 
     LogToFile("Activating screensaver mode...");
-    game.ActivateScreenSaverMode(mode, previewHwnd);
+    Foxcraft.ActivateScreenSaverMode(mode, previewHwnd);
 
     LogToFile("Running game...");
-    game.Run();
+    Foxcraft.Run();
 
     LogToFile("Game exited normally");
   }

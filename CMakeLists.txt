@@ -8,6 +8,8 @@ set(KISSFFT_TEST OFF CACHE BOOL "Disable KissFFT tests" FORCE)
 
 set(KISSFFT_STATIC ON CACHE BOOL "Build static library" FORCE)
 
+set(ENGINE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../FenixEngine")
+
 # add_subdirectory(${CMAKE_SOURCE_DIR}/../FenixEngine/src/Engine ${CMAKE_BINARY_DIR}/out/Engine)
 
 if(NOT TARGET Engine)
@@ -44,13 +46,13 @@ add_executable(Foxcraft
 
 target_include_directories(Foxcraft PRIVATE
 	include
-	../..
-	../../../include
-	../../../external
-	../../../external/imgui
-	../../../external/kissfft
-	../../../external/SDL/include
-	../../Engine
+	${ENGINE_DIR}
+	${ENGINE_DIR}/include
+	${ENGINE_DIR}/external
+	${ENGINE_DIR}/external/imgui
+	${ENGINE_DIR}/external/kissfft
+	${ENGINE_DIR}/external/SDL/include
+	${ENGINE_DIR}/src/Engine
 )
 
 target_link_libraries(Foxcraft PRIVATE
