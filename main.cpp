@@ -54,85 +54,13 @@ int WINAPI WinMain(
   int
 )
 {
-  LogToFile("=== Screensaver started ===");
-  LogToFile(std::string("Command line: ") + (lpCmdLine ? lpCmdLine : "(null)"));
-
-  ScreenSaverMode mode = ScreenSaverMode::Window;
-  HWND previewHwnd = nullptr;
-
-  std::string cmd = lpCmdLine ? lpCmdLine : "";
-  std::string cur;
-
-  for (char c : cmd)
-  {
-    if (c == ' ')
-    {
-      if (!cur.empty())
-      {
-        if (_stricmp(cur.c_str(), "/s") == 0)
-          mode = ScreenSaverMode::Fullscreen;
-        else if (_stricmp(cur.c_str(), "/c") == 0)
-          mode = ScreenSaverMode::Config;
-        else if (_stricmp(cur.c_str(), "/p") == 0)
-          mode = ScreenSaverMode::Preview;
-        else if (mode == ScreenSaverMode::Preview)
-        {
-          // Parse the window handle safely
-          try
-          {
-            unsigned long long handle = std::stoull(cur);
-            previewHwnd = (HWND)handle;
-          }
-          catch (const std::exception& e)
-          {
-            OutputDebugStringA("Failed to parse preview window handle: ");
-            OutputDebugStringA(e.what());
-            OutputDebugStringA("\n");
-          }
-        }
-        cur.clear();
-      }
-    }
-    else
-    {
-      cur += c;
-    }
-  }
-
-  if (!cur.empty())
-  {
-    if (_stricmp(cur.c_str(), "/s") == 0)
-      mode = ScreenSaverMode::Fullscreen;
-    else if (_stricmp(cur.c_str(), "/c") == 0)
-      mode = ScreenSaverMode::Config;
-    else if (_stricmp(cur.c_str(), "/p") == 0)
-      mode = ScreenSaverMode::Preview;
-    else if (mode == ScreenSaverMode::Preview)
-    {
-      try
-      {
-        unsigned long long handle = std::stoull(cur);
-        previewHwnd = (HWND)handle;
-      }
-      catch (const std::exception& e)
-      {
-        OutputDebugStringA("Failed to parse preview window handle: ");
-        OutputDebugStringA(e.what());
-        OutputDebugStringA("\n");
-      }
-    }
-  }
-
   try
   {
-    LogToFile("Creating game instance...");
+    LogToFile("Creating Foxcraft game instance...");
     Foxcraft game;
 
-    LogToFile("Activating screensaver mode...");
-    Foxcraft.ActivateScreenSaverMode(mode, previewHwnd);
-
     LogToFile("Running game...");
-    Foxcraft.Run();
+    game.Run();
 
     LogToFile("Game exited normally");
   }
