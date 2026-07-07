@@ -86,44 +86,6 @@ public:
 		this->player = std::make_shared<fe::Character>();
 		this->scene->AddObject(player);
 
-		fe::UVRect cakeTopBtmUV;
-		cakeTopBtmUV.u0 = 1.0f / 16.0f;
-		cakeTopBtmUV.u1 = 15.0f / 16.0f;
-		cakeTopBtmUV.v0 = 1.0f / 16.0f;
-		cakeTopBtmUV.v1 = 15.0f / 16.0f;
-
-		fe::UVRect cakeSideUV;
-		cakeSideUV.u0 = 1.0f / 16.0f;
-		cakeSideUV.u1 = 15.0f / 16.0f;
-		cakeSideUV.v0 = 0.0f / 16.0f;
-		cakeSideUV.v1 = 8.0f / 16.0f;
-
-		fe::CubeUVs cakeUVs;
-
-
-		cakeUVs.top = cakeUVs.bottom = cakeTopBtmUV;
-		cakeUVs.front = cakeUVs.back = cakeUVs.left = cakeUVs.right = cakeSideUV;
-
-		auto planeMesh = fe::Primitives::GenerateCube({fe::PlaneDirection::Top}, cakeUVs);
-		planeMesh.loadTexture("resources/textures/cake_top.png", fe::TextureScaling::Nearest);
-
-		auto sideMesh = fe::Primitives::GenerateCube({fe::PlaneDirection::Front, fe::PlaneDirection::Left, fe::PlaneDirection::Right, fe::PlaneDirection::Back}, cakeUVs);
-		sideMesh.loadTexture("resources/textures/cake_side.png", fe::TextureScaling::Nearest);
-
-		auto bottomMesh = fe::Primitives::GenerateCube({fe::PlaneDirection::Bottom}, cakeUVs);
-		bottomMesh.loadTexture("resources/textures/cake_bottom.png", fe::TextureScaling::Nearest);
-		bottomMesh.hasTransparency = true;
-
-		auto CAKEObject = std::make_shared<fe::Object>(planeMesh);
-		CAKEObject->meshes.push_back(sideMesh);
-		CAKEObject->meshes.push_back(bottomMesh);
-
-		CAKEObject->name = "Cake";
-		CAKEObject->state.position.y = 0.25f;
-		CAKEObject->state.scale.x = CAKEObject->state.scale.z = 14.0f / 16.0f;
-		CAKEObject->state.scale.y = 0.5f;
-		this->scene->AddObject(CAKEObject);
-
 		AddMonoBlock("resources/textures/dirt.png");
 		AddMonoBlock("resources/textures/dirt.png", {1, 0, 0});
 
