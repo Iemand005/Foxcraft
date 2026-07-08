@@ -44,9 +44,9 @@ public:
                 for(int z = 0; z < DEPTH; z++) {
                     if (y < 30) {
                         SetBlock(x, y, z, BlockType::Dirt);
-                    } else if (condition)
+                    } else if (y < 31)
                     {
-                        /* code */
+                        SetBlock(x, y, z, BlockType::Grass);
                     }
                     
                 }
