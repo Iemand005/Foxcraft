@@ -93,6 +93,17 @@ public:
 		<< " Indices: " << mesh.indices.size() << std::endl;
 		mesh.loadTexture("resources/textures/dirt.png", fe::TextureScaling::Nearest);
 
+		std::vector<std::string> blocks = {
+			"textures/dirt.png",
+			"textures/grass_side.png",
+			"textures/grass_top.png",
+			"textures/stone.png",
+			"textures/bedrock.png" 
+		};
+
+		mesh.loadTextureArray(blocks, TextureScaling::Nearest);
+
+
 		auto cubeObject = std::make_shared<fe::Object>(mesh);
 
 		cubeObject->name = "Chunk";
