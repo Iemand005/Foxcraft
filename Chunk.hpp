@@ -113,8 +113,12 @@ public:
                         unsigned int vertexOffset = allVertices.size();
 
                         for(auto &v : cubeMesh.vertices) {
-                            fe::VertexArray vv = v;
-                            vv.position += offset;
+
+                            fe::VertexArray vv;
+                            vv.normal  = v.normal;
+                            vv.position = v.position + offset;
+                            // vv.position += offset;
+                            vv.texCoord = glm::vec3(v.uv.x, v.uv.y, 0);
                             allVertices.push_back(vv);
                         }
 
