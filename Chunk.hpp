@@ -80,16 +80,16 @@ public:
     }
 
     int GetBlockLayer(BlockType type, fe::PlaneDirection direction) {
-         if (block == BlockType::Grass) {
-			if (v.normal.y > 0.5f) {
-				layer = LAYER_GRASS_TOP;    // Bovenkant (Normaal wijst omhoog: 0, 1, 0)
-			} else if (v.normal.y < -0.5f) {
-				layer = LAYER_DIRT;         // Onderkant (Normaal wijst omlaag: 0, -1, 0)
+         if (type == BlockType::Grass) {
+			if (direction == fe::PlaneDirection::Top) {
+				return 1;
+			} else if (direction == fe::PlaneDirection::Bottom) {
+				return 2;
 			} else {
-				layer = LAYER_GRASS_SIDE;   // Zijkanten (Normaal wijst horizontaal: X of Z)
+				return 3;
 			}
 		}
-		else if (block == BlockType::Dirt) {
+		else if (type == BlockType::Dirt) {
 			return 0;
 		}
     }
