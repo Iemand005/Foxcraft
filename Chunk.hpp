@@ -79,8 +79,19 @@ public:
         return neighbor == BlockType::Air;
     }
 
-    int GetBlockLayer(BlockType type) {
-        
+    int GetBlockLayer(BlockType type, fe::PlaneDirection direction) {
+         if (block == BlockType::Grass) {
+			if (v.normal.y > 0.5f) {
+				layer = LAYER_GRASS_TOP;    // Bovenkant (Normaal wijst omhoog: 0, 1, 0)
+			} else if (v.normal.y < -0.5f) {
+				layer = LAYER_DIRT;         // Onderkant (Normaal wijst omlaag: 0, -1, 0)
+			} else {
+				layer = LAYER_GRASS_SIDE;   // Zijkanten (Normaal wijst horizontaal: X of Z)
+			}
+		}
+		else if (block == BlockType::Dirt) {
+			return 0;
+		}
     }
 
     fe::MeshArray GenerateMesh() {
