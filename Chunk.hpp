@@ -133,7 +133,14 @@ public:
 							vv.normal  = v.normal;
 							vv.position = v.position + offset;
 							// vv.position += offset;
-							float layer = 0;
+							fe::PlaneDirection direction = fe::PlaneDirection::Front;
+							if (v.normal.y > 0.5f) {
+								direction = fe::PlaneDirection::Top;
+							} else if (v.normal.y < -0.5f) {
+								direction = fe::PlaneDirection::Bottom;
+							}
+							
+							float layer = GetBlockLayer(block, direction);
 							vv.texCoord = glm::vec3(v.uv.x, v.uv.y, layer);
 							allVertices.push_back(vv);
 						}
