@@ -61,9 +61,6 @@ public:
 	float motionAmount = 1.2f;
 	float tunnelRoundness = 0.0f;
 	float animationSpeed = 1.0f;
-	float turnStrength = 1.0f;
-	float twistStrength = 1.0f;
-	float swirlStrength = 1.0f;
 	float farPlane = 500.0f;
 	bool freeCamera = false;
 	float freeCamSpeed = 15.0f;
