@@ -79,6 +79,10 @@ public:
         return neighbor == BlockType::Air;
     }
 
+    int GetBlockLayer(BlockType type) {
+        
+    }
+
     fe::MeshArray GenerateMesh() {
         std::vector<fe::VertexArray> allVertices;
         std::vector<unsigned int> allIndices;
@@ -118,7 +122,8 @@ public:
                             vv.normal  = v.normal;
                             vv.position = v.position + offset;
                             // vv.position += offset;
-                            vv.texCoord = glm::vec3(v.uv.x, v.uv.y, 0);
+                            float layer = 0;
+                            vv.texCoord = glm::vec3(v.uv.x, v.uv.y, layer);
                             allVertices.push_back(vv);
                         }
 
