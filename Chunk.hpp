@@ -42,8 +42,13 @@ public:
         for(int x = 0; x < WIDTH; x++) {
             for(int y = 0; y < HEIGHT; y++) {
                 for(int z = 0; z < DEPTH; z++) {
-                    if (y < 30) {{}}
-                    SetBlock(x, y, z, BlockType::Dirt);
+                    if (y < 30) {
+                        SetBlock(x, y, z, BlockType::Dirt);
+                    } else if (condition)
+                    {
+                        /* code */
+                    }
+                    
                 }
             }
         }
