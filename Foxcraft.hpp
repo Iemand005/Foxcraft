@@ -95,8 +95,8 @@ public:
 
 		std::vector<std::string> blocks = {
 			"resources/textures/dirt.png",
-			"resources/textures/grass_top.png",
-			"resources/textures/cake_side.png",
+			"resources/textures/grass_carried.png",
+			"resources/textures/grass_side_carried.png",
 			"resources/textures/cake_bottom.png" 
 			"resources/textures/cake_top.png" 
 		};
