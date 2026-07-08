@@ -91,7 +91,7 @@ public:
 		fe::Mesh mesh = chunk.GenerateMesh();
 		std::cout << "Vertices: " << mesh.vertices.size()
 		<< " Indices: " << mesh.indices.size() << std::endl;
-		mesh.loadTexture("resources/textures/dirt.png", fe::TextureScaling::Nearest);
+		// mesh.loadTexture("resources/textures/dirt.png", fe::TextureScaling::Nearest);
 
 		std::vector<std::string> blocks = {
 			"textures/dirt.png",
@@ -101,7 +101,7 @@ public:
 			"textures/bedrock.png" 
 		};
 
-		mesh.loadTextureArray(blocks, TextureScaling::Nearest);
+		mesh.loadTextureArray(blocks, fe::TextureScaling::Nearest);
 
 
 		auto cubeObject = std::make_shared<fe::Object>(mesh);
