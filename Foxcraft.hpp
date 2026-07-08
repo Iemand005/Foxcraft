@@ -86,7 +86,7 @@ public:
 		AddMonoBlock("resources/textures/dirt.png", {1, 0, 0});
 
 
-	chunk.Generate();
+		chunk.Generate();
 
 		fe::Mesh mesh = chunk.GenerateMesh();
 		std::cout << "Vertices: " << mesh.vertices.size()
