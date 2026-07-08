@@ -84,14 +84,15 @@ public:
 			if (direction == fe::PlaneDirection::Top) {
 				return 1;
 			} else if (direction == fe::PlaneDirection::Bottom) {
-				return 2;
+				return 0;
 			} else {
-				return 3;
+				return 2;
 			}
 		}
 		else if (type == BlockType::Dirt) {
 			return 0;
 		}
+		return 0;
 	}
 
 	fe::MeshArray GenerateMesh() {
