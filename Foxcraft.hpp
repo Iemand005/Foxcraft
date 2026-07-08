@@ -60,7 +60,6 @@ public:
 	float cameraSpeed = 1.0f;
 	float motionAmount = 1.2f;
 	float tunnelRoundness = 0.0f;
-	float haustraStrength = 0.6f;
 	float animationSpeed = 1.0f;
 	float turnStrength = 1.0f;
 	float twistStrength = 1.0f;
@@ -89,13 +88,6 @@ public:
 		AddMonoBlock("resources/textures/dirt.png");
 		AddMonoBlock("resources/textures/dirt.png", {1, 0, 0});
 
-		/*for(int x = 0; x < 16; x++) {
-			for(int y = 0; y < 20; y++) {
-				for(int z = 0; z < 16; z++) {
-					AddMonoBlock("resources/textures/dirt.png", {x, y, z});
-				}
-			}
-		}*/
 
 	chunk.Generate();
 
@@ -236,13 +228,6 @@ public:
 		while (!window->ShouldClose()) {
 
 			ProcessInput();
-
-			elapsedTime += baseSpeedElapsedTime;
-
-			float colorR = sin(elapsedTime * bgColorFreq) * 0.5f + 0.5f;
-			float colorG = sin(elapsedTime * bgColorFreq + 2.094f) * 0.5f + 0.5f;
-			float colorB = sin(elapsedTime * bgColorFreq + 4.189f) * 0.5f + 0.5f;
-			SetClearColor(colorR, colorG, colorB);
 
 
 			if (freeCamera) {
