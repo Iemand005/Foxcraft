@@ -94,11 +94,11 @@ public:
 		// mesh.loadTexture("resources/textures/dirt.png", fe::TextureScaling::Nearest);
 
 		std::vector<std::string> blocks = {
-			"textures/dirt.png",
-			"textures/grass_side.png",
-			"textures/grass_top.png",
-			"textures/stone.png",
-			"textures/bedrock.png" 
+			"resources/textures/dirt.png",
+			"resources/textures/grass_side.png",
+			"resources/textures/grass_top.png",
+			"resources/textures/stone.png",
+			"resources/textures/bedrock.png" 
 		};
 
 		mesh.loadTextureArray(blocks, fe::TextureScaling::Nearest);

@@ -82,4 +82,3 @@ if(MSVC)
 endif()
 
 set_property(TARGET Foxcraft PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-# set_target_properties(Foxcraft PROPERTIES SUFFIX ".scr")
