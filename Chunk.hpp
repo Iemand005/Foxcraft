@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include <Primitives.hpp>
+#include <MeshArray.hpp>
 
 enum class BlockType : short {
     Air = 0,
@@ -78,8 +79,8 @@ public:
         return neighbor == BlockType::Air;
     }
 
-    fe::Mesh GenerateMesh() {
-        std::vector<fe::Vertex> allVertices;
+    fe::MeshArray GenerateMesh() {
+        std::vector<fe::VertexArray> allVertices;
         std::vector<unsigned int> allIndices;
 
         int blockCount = 0;
@@ -112,7 +113,7 @@ public:
                         unsigned int vertexOffset = allVertices.size();
 
                         for(auto &v : cubeMesh.vertices) {
-                            fe::Vertex vv = v;
+                            fe::VertexArray vv = v;
                             vv.position += offset;
                             allVertices.push_back(vv);
                         }
@@ -127,6 +128,6 @@ public:
 
         std::cout << "Total blocks: " << blockCount << ", faces: " << faceCount << std::endl;
 
-        return fe::Mesh(allVertices, allIndices);
+        return fe::MeshArray(allVertices, allIndices);
     }
 };
