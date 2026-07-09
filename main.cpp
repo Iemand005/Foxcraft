@@ -35,15 +35,6 @@ int main() {
 
 	std::cout << "Hiii" << std::endl;
 
-	Foxcraft game;
-
-	game.Run();
-	return 0;
-}
-
-#ifdef _WIN32
-
-int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR lpCmdLine, int) {
 	try {
 		LogToFile("Creating Foxcraft game instance...");
 		Foxcraft game;
@@ -59,6 +50,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR lpCmdLine, int) {
 	}
 
 	return 0;
+}
+
+#ifdef _WIN32
+
+int WINAPI WinMain() {
+	return main();
 }
 
 #endif
