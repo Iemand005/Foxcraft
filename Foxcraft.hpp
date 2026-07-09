@@ -105,7 +105,7 @@ public:
 			auto cubeObject = std::make_shared<fe::Object>(mesh);
 
 			cubeObject->name = "Chunk";
-			// cubeObject->state.position = chunk->position;
+			cubeObject->state.position = chunk->GetWorldPosition();
 			this->scene->AddObject(cubeObject);
 		}
 	}
