@@ -304,6 +304,8 @@ public:
 
 			ProcessInput();
 
+			chunkManager->Update(2);
+
 			if (!freeCamera) {
 				SyncCameraToPlayer();
 			}
