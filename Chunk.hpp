@@ -120,9 +120,8 @@ public:
 		std::vector<fe::VertexArray> allVertices;
 		std::vector<unsigned int> allIndices;
 
-		// Pre-allocate to reduce reallocations (rough estimates)
-		allVertices.reserve(WIDTH * HEIGHT * DEPTH * 4);  // ~4 vertices per visible block
-		allIndices.reserve(WIDTH * HEIGHT * DEPTH * 6);   // ~6 indices per visible face
+		allVertices.reserve(WIDTH * HEIGHT * DEPTH * 4);
+		allIndices.reserve(WIDTH * HEIGHT * DEPTH * 6); 
 
 		int blockCount = 0;
 		int faceCount = 0;
@@ -136,7 +135,7 @@ public:
 					blockCount++;
 
 					std::vector<fe::PlaneDirection> visibleFaces;
-					visibleFaces.reserve(6);  // Reserve for max 6 faces
+					visibleFaces.reserve(6);
 					
 					for(auto direction : {fe::PlaneDirection::Front, fe::PlaneDirection::Back,
 						fe::PlaneDirection::Left, fe::PlaneDirection::Right,
@@ -150,7 +149,6 @@ public:
 					if(!visibleFaces.empty()) {
 						fe::Mesh cubeMesh = fe::Primitives::GenerateCube(visibleFaces, 1.0f);
 
-						// place cube centered at integer block position (so it occupies [x,x+1] etc)
 						glm::vec3 offset = glm::vec3(x + 0.5f, y + 0.5f, z + 0.5f);
 
 						unsigned int vertexOffset = allVertices.size();
@@ -160,7 +158,6 @@ public:
 							fe::VertexArray vv;
 							vv.normal  = v.normal;
 							vv.position = v.position + offset;
-							// vv.position += offset;
 							fe::PlaneDirection direction = fe::PlaneDirection::Front;
 							if (v.normal.y > 0.5f) {
 								direction = fe::PlaneDirection::Top;
