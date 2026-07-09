@@ -56,18 +56,50 @@ public:
 
 	void Generate() {
 		float heightAmplitude = 6.0f;
-		float heightFrequency = 0.15f;
+		float heightFrequency = 0.03f;
 		float heightOffset = 24.0f;
 
-		for(int x = 0; x < WIDTH; x++) {
-			for(int z = 0; z < DEPTH; z++) {
-				float waveHeight = heightOffset +
-					glm::perlin(glm::vec2((position.x * WIDTH + x) * heightFrequency,
-						(position.y * DEPTH + z) * heightFrequency * 1.3f)) * heightAmplitude;
-				int maxHeight = static_cast<int>(std::round(waveHeight));
+		const int octaves = 4;
+		const float persistence = 0.5f;
+		const float lacunarity = 2.0f; 
 
-				for(int y = 0; y < HEIGHT; y++) {
-					if (y < maxHeight - 1) {
+		for (int x = 0; x < WIDTH; x++) {
+			for (int z = 0; z < DEPTH; z++) {
+				float worldX = position.x * WIDTH + x;
+				float worldZ = position.y * DEPTH + z;
+
+				float noiseSum = 0.0f;
+				float amplitude = 1.0f;
+				float frequency = heightFrequency;
+				float maxAmplitude = 0.0f;
+
+				for (int o = 0; o < octaves; o++) {
+					noiseSum += glm::perlin(glm::vec2(worldX * frequency, worldZ * frequency)) * amplitude;
+					maxAmplitude += amplitude;
+					amplitude *= persistence;
+					frequency *= lacunarity;
+				}
+
+				float normalizedNoise = noiseSum / maxAmplitude;
+				float waveHeight = heightOffset + normalizedNoise * heightAmplitude;
+				int maxHeight = std::clamp(static_cast<int>(std::round(waveHeight)), 1, HEIGHT - 1);
+
+				float bedrockNoise = glm::perlin(glm::vec2(worldX * 0.25f, worldZ * 0.25f));
+				int bedrockThickness = std::clamp(
+					1 + static_cast<int>((bedrockNoise * 0.5f + 0.5f) * 3.0f), 1, 3);
+
+				int stoneEnd = std::max(bedrockThickness, maxHeight - 4);
+
+				for (int y = 0; y < HEIGHT; y++) {
+					if (y < bedrockThickness) {
+						float holeNoise = glm::perlin(glm::vec3(worldX * 0.6f, y * 0.6f, worldZ * 0.6f));
+						if (holeNoise > 0.35f && y > 0) {
+							continue; // hole - leave as air
+						}
+						SetBlock(x, y, z, BlockType::Bedrock);
+					} else if (y < stoneEnd) {
+						SetBlock(x, y, z, BlockType::Stone);
+					} else if (y < maxHeight - 1) {
 						SetBlock(x, y, z, BlockType::Dirt);
 					} else if (y == maxHeight - 1) {
 						SetBlock(x, y, z, BlockType::Grass);
