@@ -304,7 +304,7 @@ public:
 
 			ProcessInput();
 
-			chunkManager->Update(2);
+			chunkManager->Update(2, this->physicsEngine.get(), this->scene.get());
 
 			if (!freeCamera) {
 				SyncCameraToPlayer();
