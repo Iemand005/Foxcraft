@@ -19,6 +19,7 @@ class Chunk {
 private:
 	std::vector<BlockType> blocks;
 	static constexpr int WIDTH = 16, HEIGHT = 128, DEPTH = 16;
+	std::vec2 position;
 
 public:
 	Chunk() : blocks(WIDTH * HEIGHT * DEPTH, BlockType::Air) {
@@ -33,6 +34,10 @@ public:
 
 	BlockType GetBlock(glm::vec3 pos) const {
 		return GetBlock(static_cast<int>(pos.x), static_cast<int>(pos.y), static_cast<int>(pos.z));
+	}
+
+	glm::vec2 GetPosition() {
+		
 	}
 
 	void SetBlock(int x, int y, int z, BlockType type) {
