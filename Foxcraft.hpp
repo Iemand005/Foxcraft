@@ -98,8 +98,8 @@ public:
 			this->player->physicsObject->SetPosition(this->player->state.position);
 		}
 
-		AddMonoBlock("resources/textures/dirt.png");
-		AddMonoBlock("resources/textures/dirt.png", {1, 0, 0});
+		// AddMonoBlock("resources/textures/dirt.png");
+		// AddMonoBlock("resources/textures/dirt.png", {1, 0, 0});
 
 		UpdateLoadedChunks();
 	}
