@@ -155,15 +155,15 @@ public:
 
 		mesh.loadTextureArray(blocks, fe::TextureScaling::Nearest);
 
-		auto cubeObject = std::make_shared<fe::Object>(mesh);
-		cubeObject->name = "Chunk";
-		cubeObject->state.position = chunk->GetWorldPosition();
-		if (cubeObject->physicsObject) {
-			cubeObject->physicsObject->SetPosition(cubeObject->state.position);
+		auto chunkObject = std::make_shared<fe::Object>(mesh);
+		chunkObject->name = "Chunk";
+		chunkObject->state.position = chunk->GetWorldPosition();
+		if (chunkObject->physicsObject) {
+			chunkObject->physicsObject->SetPosition(chunkObject->state.position);
 		}
-		this->scene->AddObject(cubeObject);
+		this->scene->AddObject(chunkObject);
 
-		chunkObjects[chunkIndex] = cubeObject;
+		chunkObjects[chunkIndex] = chunkObject;
 		chunksLoaded[chunkIndex] = true;
 	}
 

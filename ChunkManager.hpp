@@ -140,7 +140,8 @@ private:
     }
 
     void RemoveFromScene(std::shared_ptr<Chunk> chunk) {
-        // chunk->state = ChunkState::Unloading;
+        chunk->state = ChunkState::Unloading;
+		// scene->RemoveObject(chunk->)
         // if (chunk->sceneNode) scene->RemoveNode(chunk->sceneNode);
         // if (chunk->vao) glDeleteVertexArrays(1, &chunk->vao);
         // if (chunk->vbo) glDeleteBuffers(1, &chunk->vbo);
