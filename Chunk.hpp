@@ -16,6 +16,7 @@ enum class BlockType : short {
 	Dirt = 2,
 	Grass = 3,
 	Cobblestone = 4,
+	Bedrock = 5,
 };
 
 class Chunk {
@@ -100,7 +101,7 @@ public:
 		return neighbor == BlockType::Air;
 	}
 
-	int GetBlockLayer(BlockType type, fe::PlaneDirection direction) {
+	int GetBlockTextureLayer(BlockType type, fe::PlaneDirection direction) {
 		if (type == BlockType::Grass) {
 			if (direction == fe::PlaneDirection::Top) {
 				return 1;
@@ -109,9 +110,12 @@ public:
 			} else {
 				return 2;
 			}
-		}
-		else if (type == BlockType::Dirt) {
+		} else if (type == BlockType::Dirt) {
 			return 0;
+		} else if (type == BlockType::Stone) {
+			return 3;
+		} else if (type == BlockType::Bedrock) {
+			return 4;
 		}
 		return 0;
 	}
@@ -165,7 +169,7 @@ public:
 								direction = fe::PlaneDirection::Bottom;
 							}
 							
-							float layer = GetBlockLayer(block, direction);
+							float layer = GetBlockTextureLayer(block, direction);
 							vv.texCoord = glm::vec3(v.uv.x, v.uv.y, layer);
 							allVertices.push_back(vv);
 						}

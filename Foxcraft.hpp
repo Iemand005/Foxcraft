@@ -147,6 +147,8 @@ public:
 			"resources/textures/dirt.png",
 			"resources/textures/grass_carried.png",
 			"resources/textures/grass_side_carried.png",
+			"resources/textures/bedrock.png",
+			"resources/textures/stone.png",
 			"resources/textures/cake_bottom.png",
 			"resources/textures/cake_top.png"
 		};
