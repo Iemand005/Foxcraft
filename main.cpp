@@ -54,7 +54,7 @@ int main() {
 
 #ifdef _WIN32
 
-int WINAPI WinMain() {
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR lpCmdLine, int) {
 	return main();
 }
 
