@@ -29,7 +29,7 @@ class Foxcraft : public fe::EditableGame {
 public:
 
 	bool showDebugUI = false;
-	bool physicsGravityEnabled = true;
+	
 	bool useRectangularPlayerHitbox = true;
 
 	std::vector<glm::vec3> path;
@@ -365,24 +365,13 @@ public:
 		if (!showDebugUI) return;
 		BeginFrame();
 
-		ImGui::Begin("Foxcraft Debug");
-		{
-			if (ImGui::Button(physicsGravityEnabled ? "Disable Gravity" : "Enable Gravity")) {
-				physicsGravityEnabled = !physicsGravityEnabled;
-				if (this->player) {
-					this->player->gravityEnabled = physicsGravityEnabled;
-				}
-				if (physicsGravityEnabled) {
-					if (physicsEngine) physicsEngine->EnableGravity();
-				} else {
-					if (physicsEngine) physicsEngine->DisableGravity();
-				}
-			}
+		// ImGui::Begin("Foxcraft Debug");
+		// {
 
-			if (ImGui::Checkbox("Rectangular player hitbox", &useRectangularPlayerHitbox)) {
-				RebuildPlayerPhysicsBody();
-			}
-		}
+		// 	if (ImGui::Checkbox("Rectangular player hitbox", &useRectangularPlayerHitbox)) {
+		// 		RebuildPlayerPhysicsBody();
+		// 	}
+		// }
 		ImGui::End();
 
 		DrawDebugUI();
