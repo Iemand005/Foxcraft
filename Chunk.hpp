@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <cmath>
 #include <memory>
 #include <iostream>
 
@@ -32,7 +33,7 @@ public:
 			return BlockType::Air;
 		return blocks[x * HEIGHT * DEPTH + y * DEPTH + z];
 	}
-	
+
 	void SetBlock(int x, int y, int z, BlockType type) {
 		blocks[x * HEIGHT * DEPTH + y * DEPTH + z] = type;
 	}
@@ -51,16 +52,21 @@ public:
 
 
 	void Generate() {
+		float heightAmplitude = 6.0f;
+		float heightFrequency = 0.15f;
+		float heightOffset = 24.0f;
+
 		for(int x = 0; x < WIDTH; x++) {
-			for(int y = 0; y < HEIGHT; y++) {
-				for(int z = 0; z < DEPTH; z++) {
-					if (y < 30) {
+			for(int z = 0; z < DEPTH; z++) {
+				float waveHeight = heightOffset + std::sin((position.x * WIDTH + x) * heightFrequency) * heightAmplitude + std::sin((position.y * DEPTH + z) * heightFrequency * 1.3f) * (heightAmplitude * 0.5f);
+				int maxHeight = static_cast<int>(std::round(waveHeight));
+
+				for(int y = 0; y < HEIGHT; y++) {
+					if (y < maxHeight - 1) {
 						SetBlock(x, y, z, BlockType::Dirt);
-					} else if (y < 31)
-					{
+					} else if (y == maxHeight - 1) {
 						SetBlock(x, y, z, BlockType::Grass);
 					}
-					
 				}
 			}
 		}
