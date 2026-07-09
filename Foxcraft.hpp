@@ -72,8 +72,8 @@ public:
 
 		LoadShaders("resources/shaders/VertexShader.glsl", "resources/shaders/FragmentShader.glsl");
 
-		for (int y = 0; y < 2; y++)
-			for (int x = 0; x < 2; x++)
+		for (int y = 0; y < 20; y++)
+			for (int x = 0; x < 20; x++)
 				chunks.push_back(std::make_shared<Chunk>(x, y));
 		
 
