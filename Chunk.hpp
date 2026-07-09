@@ -32,7 +32,10 @@ public:
 			return BlockType::Air;
 		return blocks[x * HEIGHT * DEPTH + y * DEPTH + z];
 	}
-
+	void SetBlock(int x, int y, int z, BlockType type) {
+		blocks[x * HEIGHT * DEPTH + y * DEPTH + z] = type;
+	}
+		
 	BlockType GetBlock(glm::vec3 pos) const {
 		return GetBlock(static_cast<int>(pos.x), static_cast<int>(pos.y), static_cast<int>(pos.z));
 	}
@@ -45,9 +48,6 @@ public:
 		return {position.x * WIDTH, 0, position.y * DEPTH};
 	}
 
-	void SetBlock(int x, int y, int z, BlockType type) {
-		blocks[x * HEIGHT * DEPTH + y * DEPTH + z] = type;
-	}
 
 	void Generate() {
 		for(int x = 0; x < WIDTH; x++) {
