@@ -74,7 +74,7 @@ public:
 
 		for (int y = 0; y < 2; y++)
 			for (int x = 0; x < 2; x++)
-				chunks.push_back(std::make_shared<Chunk>());
+				chunks.push_back(std::make_shared<Chunk>(x, y));
 		
 
 		LoadModels();
