@@ -225,6 +225,19 @@ public:
 		mesh = fe::MeshArray(std::move(allVertices), std::move(allIndices));
 	}
 
+	static const std::vector<std::string>& BlockTextures() {
+		static const std::vector<std::string> blocks = {
+			"resources/textures/dirt.png",
+			"resources/textures/grass_carried.png",
+			"resources/textures/grass_side_carried.png",
+			"resources/textures/bedrock.png",
+			"resources/textures/stone.png",
+			"resources/textures/cake_bottom.png",
+			"resources/textures/cake_top.png"
+		};
+		return blocks;
+	}
+
 	void UploadToScene(fe::PhysicsEngine* physicsEngine, fe::Scene* scene) {
 		std::cout << "Uploading chunk (" << coord.x << ", " << coord.y << "): "
 		          << "Vertices: " << mesh.vertices.size()
