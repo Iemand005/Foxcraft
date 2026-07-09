@@ -110,7 +110,7 @@ public:
 		this->player = std::make_shared<fe::Character>();
 		this->scene->AddObject(player);
 		this->player->state.position = glm::vec3(0.0f, 2.0f, 5.0f);
-		this->player->gravityEnabled = physicsGravityEnabled;
+		this->player->gravityEnabled = true;
 		RebuildPlayerPhysicsBody();
 		if (this->player->physicsObject) {
 			this->player->physicsObject->SetPosition(this->player->state.position);
