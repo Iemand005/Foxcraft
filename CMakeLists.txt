@@ -24,10 +24,10 @@ if(CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
 endif()
 
-if(NOT TARGET Jolt)
-    add_subdirectory(${ENGINE_DIR}/external/JoltPhysics/Build ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/jolt)
-    set_target_properties(Jolt PROPERTIES DISABLE_PRECOMPILE_HEADERS ON)
-endif()
+# if(NOT TARGET Jolt)
+#     add_subdirectory(${ENGINE_DIR}/external/JoltPhysics/Build ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/jolt)
+#     set_target_properties(Jolt PROPERTIES DISABLE_PRECOMPILE_HEADERS ON)
+# endif()
 
 if(NOT TARGET Engine)
     message(STATUS "Engine target not found. Looking for engine source...")
@@ -74,7 +74,7 @@ target_include_directories(Foxcraft PRIVATE
 
 target_link_libraries(Foxcraft PRIVATE
 	Engine
-	Jolt::Jolt
+	# Jolt::Jolt
 )
 
 if(NOT WIN32)
