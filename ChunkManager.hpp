@@ -155,5 +155,5 @@ private:
 
     std::vector<std::thread> workers;
     std::atomic<bool> running;
-    Scene* scene;
+    fe::Scene* scene;
 };
