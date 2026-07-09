@@ -145,9 +145,9 @@ public:
 		} else if (type == BlockType::Dirt) {
 			return 0;
 		} else if (type == BlockType::Stone) {
-			return 3;
-		} else if (type == BlockType::Bedrock) {
 			return 4;
+		} else if (type == BlockType::Bedrock) {
+			return 3;
 		}
 		return 0;
 	}
