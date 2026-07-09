@@ -66,7 +66,7 @@ public:
 	float freeCamSpeed = 15.0f;
 	float segmentLength = 12.0f;
 
-	Chunk chunk;
+	std::vector<Chunk> chunks;
 
 	Foxcraft(int width = 1000, int height = 1000, bool vr = false) : fe::EditableGame(width, height, vr, false) {
 
@@ -86,28 +86,30 @@ public:
 		AddMonoBlock("resources/textures/dirt.png", {1, 0, 0});
 
 
-		chunk.Generate();
+		for (Chunk& chunk : chunks) {
+			chunk.Generate();
 
-		fe::MeshArray mesh = chunk.GenerateMesh();
-		std::cout << "Vertices: " << mesh.vertices.size()
-		<< " Indices: " << mesh.indices.size() << std::endl;
-		// mesh.loadTexture("resources/textures/dirt.png", fe::TextureScaling::Nearest);
+			fe::MeshArray mesh = chunk.GenerateMesh();
+			std::cout << "Vertices: " << mesh.vertices.size()
+			<< " Indices: " << mesh.indices.size() << std::endl;
+			// mesh.loadTexture("resources/textures/dirt.png", fe::TextureScaling::Nearest);
 
-		std::vector<std::string> blocks = {
-			"resources/textures/dirt.png",
-			"resources/textures/grass_carried.png",
-			"resources/textures/grass_side_carried.png",
-			"resources/textures/cake_bottom.png" 
-			"resources/textures/cake_top.png" 
-		};
+			std::vector<std::string> blocks = {
+				"resources/textures/dirt.png",
+				"resources/textures/grass_carried.png",
+				"resources/textures/grass_side_carried.png",
+				"resources/textures/cake_bottom.png" 
+				"resources/textures/cake_top.png" 
+			};
 
-		mesh.loadTextureArray(blocks, fe::TextureScaling::Nearest);
+			mesh.loadTextureArray(blocks, fe::TextureScaling::Nearest);
 
 
-		auto cubeObject = std::make_shared<fe::Object>(mesh);
+			auto cubeObject = std::make_shared<fe::Object>(mesh);
 
-		cubeObject->name = "Chunk";
-		this->scene->AddObject(cubeObject);
+			cubeObject->name = "Chunk";
+			this->scene->AddObject(cubeObject);
+		}
 	}
 
 	void AddBlock(std::string topTexturePath, std::string sideTexturePath, std::string bottomTexturePath) {
