@@ -214,6 +214,13 @@ public:
 		this->scene->AddObject(cubeObject);
 	}
 
+	void SyncCameraToPlayer() {
+		if (!player || freeCamera) return;
+
+		const glm::vec3 headOffset(0.0f, 1.6f, 0.0f);
+		camera->SetPos(player->state.position + headOffset);
+	}
+
 	void ProcessInput() {
 		SDL_Event event;
 		fe::SDLWindow *window = (fe::SDLWindow*)this->window.get();
@@ -281,6 +288,7 @@ public:
 		player->state.position.y = 2;
 		camera->farDist = farPlane;
 		camera->SetAspect(camera->aspect);
+		SyncCameraToPlayer();
 		float elapsedTimeBumpy = 0.0f;
 		float elapsedTime = 0.0f;
 
@@ -288,6 +296,9 @@ public:
 
 			ProcessInput();
 
+			if (!freeCamera) {
+				SyncCameraToPlayer();
+			}
 
 			if (freeCamera) {
 				float dt = fpsCounter.deltaTime;
