@@ -1,3 +1,6 @@
+#include <vector>
+#include <mutex>
+
 class ChunkManager {
 public:
     ChunkManager(int numWorkers = 2) : running(true) {
