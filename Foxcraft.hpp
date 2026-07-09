@@ -23,7 +23,7 @@
 #include <audio/AudioVisualiser.hpp>
 #include <ScreenSaverMode.hpp>
 
-#include "Chunk.hpp"
+#include "ChunkManager.hpp"
 
 class Foxcraft : public fe::EditableGame {
 public:
