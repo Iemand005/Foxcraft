@@ -8,6 +8,7 @@
 
 #include "Chunk.hpp"
 
+#include <Scene.hpp>
 
 
 struct ChunkCoordHash {
