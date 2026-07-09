@@ -120,6 +120,10 @@ public:
 		std::vector<fe::VertexArray> allVertices;
 		std::vector<unsigned int> allIndices;
 
+		// Pre-allocate to reduce reallocations (rough estimates)
+		allVertices.reserve(WIDTH * HEIGHT * DEPTH * 4);  // ~4 vertices per visible block
+		allIndices.reserve(WIDTH * HEIGHT * DEPTH * 6);   // ~6 indices per visible face
+
 		int blockCount = 0;
 		int faceCount = 0;
 
@@ -132,6 +136,8 @@ public:
 					blockCount++;
 
 					std::vector<fe::PlaneDirection> visibleFaces;
+					visibleFaces.reserve(6);  // Reserve for max 6 faces
+					
 					for(auto direction : {fe::PlaneDirection::Front, fe::PlaneDirection::Back,
 						fe::PlaneDirection::Left, fe::PlaneDirection::Right,
 						fe::PlaneDirection::Top, fe::PlaneDirection::Bottom}) {

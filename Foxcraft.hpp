@@ -34,6 +34,8 @@ public:
 	int windowStart = 0;
 	float pathIndex = 1.0f;
 	std::vector<std::shared_ptr<Chunk>> chunks;
+	std::vector<std::shared_ptr<fe::Object>> chunkObjects;  // Track loaded chunk objects
+	std::vector<bool> chunksLoaded;  // Track which chunks have been meshed
 	glm::vec3 lastUp = glm::vec3(0, 1, 0);
 	glm::vec3 lastRight = glm::vec3(1, 0, 0);
 	glm::vec3 prevEndForward{0};
@@ -44,6 +46,9 @@ public:
 	static constexpr int MAX_CHUNKS = 32;
 	static constexpr int TUNNEL_SEGMENTS = 64;
 	static constexpr int SUBDIVISIONS_PER_SEG = 48;
+	static constexpr int CHUNK_LOAD_DISTANCE = 2;  // Load chunks within this many chunks of player
+	static constexpr int GRID_WIDTH = 5;  // 5x5 grid
+	static constexpr int GRID_HEIGHT = 5;
 
 	int NUM_CHUNKS = 4;
 
@@ -72,10 +77,14 @@ public:
 
 		LoadShaders("resources/shaders/VertexShader.glsl", "resources/shaders/FragmentShader.glsl");
 
-		for (int y = 0; y < 5; y++)
-			for (int x = 0; x < 5; x++)
+		// Create chunks but don't generate them yet (lazy loading)
+		for (int y = 0; y < GRID_HEIGHT; y++) {
+			for (int x = 0; x < GRID_WIDTH; x++) {
 				chunks.push_back(std::make_shared<Chunk>(x, y));
-		
+				chunksLoaded.push_back(false);
+			}
+		}
+		chunkObjects.resize(chunks.size(), nullptr);
 
 		LoadModels();
 	}
@@ -88,29 +97,77 @@ public:
 		AddMonoBlock("resources/textures/dirt.png");
 		AddMonoBlock("resources/textures/dirt.png", {1, 0, 0});
 
-		for (auto& chunk : chunks) {
-			if (!chunk) continue;
-			chunk->Generate();
+		// Don't load chunks here - they'll be loaded on-demand
+		// Update loaded chunks based on camera position
+		UpdateLoadedChunks();
+	}
 
-			fe::MeshArray mesh = chunk->GenerateMesh();
-			std::cout << "Vertices: " << mesh.vertices.size() << " Indices: " << mesh.indices.size() << std::endl;
-			// mesh.loadTexture("resources/textures/dirt.png", fe::TextureScaling::Nearest);
+	void LoadChunkMesh(int chunkIndex) {
+		if (chunkIndex < 0 || chunkIndex >= chunks.size() || chunksLoaded[chunkIndex]) {
+			return;  // Already loaded or invalid
+		}
 
-			std::vector<std::string> blocks = {
-				"resources/textures/dirt.png",
-				"resources/textures/grass_carried.png",
-				"resources/textures/grass_side_carried.png",
-				"resources/textures/cake_bottom.png" 
-				"resources/textures/cake_top.png" 
-			};
+		auto& chunk = chunks[chunkIndex];
+		if (!chunk) return;
 
-			mesh.loadTextureArray(blocks, fe::TextureScaling::Nearest);
+		// Generate the chunk on first load
+		chunk->Generate();
 
-			auto cubeObject = std::make_shared<fe::Object>(mesh);
+		fe::MeshArray mesh = chunk->GenerateMesh();
+		std::cout << "Loading chunk " << chunkIndex << ": Vertices: " << mesh.vertices.size() 
+				  << " Indices: " << mesh.indices.size() << std::endl;
 
-			cubeObject->name = "Chunk";
-			cubeObject->state.position = chunk->GetWorldPosition();
-			this->scene->AddObject(cubeObject);
+		std::vector<std::string> blocks = {
+			"resources/textures/dirt.png",
+			"resources/textures/grass_carried.png",
+			"resources/textures/grass_side_carried.png",
+			"resources/textures/cake_bottom.png",
+			"resources/textures/cake_top.png"
+		};
+
+		mesh.loadTextureArray(blocks, fe::TextureScaling::Nearest);
+
+		auto cubeObject = std::make_shared<fe::Object>(mesh);
+		cubeObject->name = "Chunk";
+		cubeObject->state.position = chunk->GetWorldPosition();
+		this->scene->AddObject(cubeObject);
+
+		chunkObjects[chunkIndex] = cubeObject;
+		chunksLoaded[chunkIndex] = true;
+	}
+
+	void UpdateLoadedChunks() {
+		// Get player position
+		glm::vec3 playerPos = camera->GetPos();
+		
+		// Convert player position to chunk coordinates
+		int playerChunkX = static_cast<int>(playerPos.x / 16.0f);
+		int playerChunkZ = static_cast<int>(playerPos.z / 16.0f);
+
+		// Load chunks within CHUNK_LOAD_DISTANCE
+		for (int cy = 0; cy < GRID_HEIGHT; cy++) {
+			for (int cx = 0; cx < GRID_WIDTH; cx++) {
+				// Calculate distance to this chunk
+				int dx = cx - playerChunkX;
+				int dz = cy - playerChunkZ;
+				int distance = std::max(std::abs(dx), std::abs(dz));
+
+				int chunkIndex = cy * GRID_WIDTH + cx;
+
+				if (distance <= CHUNK_LOAD_DISTANCE) {
+					// Load this chunk
+					if (!chunksLoaded[chunkIndex]) {
+						LoadChunkMesh(chunkIndex);
+					}
+				} else {
+					// Unload this chunk (optional - removes from scene)
+					if (chunksLoaded[chunkIndex] && chunkObjects[chunkIndex]) {
+						this->scene->RemoveObject(chunkObjects[chunkIndex]);
+						chunkObjects[chunkIndex] = nullptr;
+						chunksLoaded[chunkIndex] = false;
+					}
+				}
+			}
 		}
 	}
 
@@ -257,6 +314,7 @@ public:
 			} else {
 			}
 
+			UpdateLoadedChunks();  // Update loaded chunks before rendering
 			Update();
 			Redraw();
 		}
