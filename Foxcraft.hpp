@@ -66,7 +66,12 @@ public:
 	float freeCamSpeed = 15.0f;
 	float segmentLength = 12.0f;
 
-	std::vector<Chunk> chunks;
+	struct ChunkInstance {
+		std::shared_ptr<Chunk> chunk;
+		glm::vec3 position = glm::vec3(0.0f);
+	};
+
+	std::vector<ChunkInstance> chunks;
 
 	Foxcraft(int width = 1000, int height = 1000, bool vr = false) : fe::EditableGame(width, height, vr, false) {
 
@@ -85,11 +90,11 @@ public:
 		AddMonoBlock("resources/textures/dirt.png");
 		AddMonoBlock("resources/textures/dirt.png", {1, 0, 0});
 
+		for (auto& instance : chunks) {
+			if (!instance.chunk) continue;
+			instance.chunk->Generate();
 
-		for (Chunk& chunk : chunks) {
-			chunk.Generate();
-
-			fe::MeshArray mesh = chunk.GenerateMesh();
+			fe::MeshArray mesh = instance.chunk->GenerateMesh();
 			std::cout << "Vertices: " << mesh.vertices.size()
 			<< " Indices: " << mesh.indices.size() << std::endl;
 			// mesh.loadTexture("resources/textures/dirt.png", fe::TextureScaling::Nearest);
@@ -104,10 +109,10 @@ public:
 
 			mesh.loadTextureArray(blocks, fe::TextureScaling::Nearest);
 
-
 			auto cubeObject = std::make_shared<fe::Object>(mesh);
 
 			cubeObject->name = "Chunk";
+			cubeObject->state.position = instance.position;
 			this->scene->AddObject(cubeObject);
 		}
 	}
