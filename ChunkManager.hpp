@@ -10,7 +10,7 @@
 
 
 
-struct glm::ivec2Hash {
+struct ChunkCoordHash {
     size_t operator()(const glm::ivec2& c) const {
         return std::hash<int64_t>()((int64_t(c.x) << 32) ^ uint32_t(c.y));
     }
@@ -142,7 +142,7 @@ private:
         // if (chunk->ebo) glDeleteBuffers(1, &chunk->ebo);
     }
 
-    std::unordered_map<glm::ivec2, std::shared_ptr<Chunk>, glm::ivec2Hash> chunks;
+    std::unordered_map<glm::ivec2, std::shared_ptr<Chunk>, ChunkCoordHash> chunks;
     std::mutex chunksMutex;
 
     std::deque<std::shared_ptr<Chunk>> pendingQueue;
