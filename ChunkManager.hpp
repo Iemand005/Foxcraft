@@ -1,6 +1,8 @@
 #include <vector>
 #include <mutex>
 
+#include <glm/glm.hpp>
+
 #include <Chunk.hpp>
 
 enum class ChunkState {
@@ -11,6 +13,12 @@ enum class ChunkState {
     InScene,            // fully uploaded to GPU and active
     ScheduledForRemoval, // main thread marked it, needs cleanup
     Unloading            // being removed (freeing GPU buffers etc.)
+};
+
+struct ChunkCoordHash {
+    size_t operator()(const glm::ivec2& c) const {
+        return std::hash<int64_t>()((int64_t(c.x) << 32) ^ uint32_t(c.y));
+    }
 };
 
 class ChunkManager {
@@ -27,7 +35,7 @@ public:
     }
 
     // Called from main thread when a chunk enters range
-    void RequestChunk(ChunkCoord coord) {
+    void RequestChunk(glm::ivec2 coord) {
         std::lock_guard<std::mutex> lock(chunksMutex);
         if (chunks.count(coord)) return; // already tracked
 
@@ -139,7 +147,7 @@ private:
         if (chunk->ebo) glDeleteBuffers(1, &chunk->ebo);
     }
 
-    std::unordered_map<ChunkCoord, std::shared_ptr<Chunk>, ChunkCoordHash> chunks;
+    std::unordered_map<glm::ivec2, std::shared_ptr<Chunk>, ChunkCoordHash> chunks;
     std::mutex chunksMutex;
 
     std::deque<std::shared_ptr<Chunk>> pendingQueue;

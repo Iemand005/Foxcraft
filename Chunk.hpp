@@ -5,6 +5,7 @@
 #include <memory>
 #include <iostream>
 
+#include <glm/glm.hpp>
 #include <glm/gtc/noise.hpp>
 
 #include <Primitives.hpp>
