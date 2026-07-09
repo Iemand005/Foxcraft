@@ -98,6 +98,10 @@ private:
 
             chunk->state = ChunkState::Generating;
 
+			chunk->Generate();
+
+			chunk->GenerateMesh();
+
             // GenerateChunk(*chunk);   // your existing Generate() voxel logic
             // BuildMeshData(*chunk);   // CPU-side vertices/indices only, no GL calls here
 
