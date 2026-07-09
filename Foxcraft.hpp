@@ -77,7 +77,6 @@ public:
 
 		LoadShaders("resources/shaders/VertexShader.glsl", "resources/shaders/FragmentShader.glsl");
 
-		// Create chunks but don't generate them yet (lazy loading)
 		for (int y = 0; y < GRID_HEIGHT; y++) {
 			for (int x = 0; x < GRID_WIDTH; x++) {
 				chunks.push_back(std::make_shared<Chunk>(x, y));
@@ -97,20 +96,17 @@ public:
 		AddMonoBlock("resources/textures/dirt.png");
 		AddMonoBlock("resources/textures/dirt.png", {1, 0, 0});
 
-		// Don't load chunks here - they'll be loaded on-demand
-		// Update loaded chunks based on camera position
 		UpdateLoadedChunks();
 	}
 
 	void LoadChunkMesh(int chunkIndex) {
 		if (chunkIndex < 0 || chunkIndex >= chunks.size() || chunksLoaded[chunkIndex]) {
-			return;  // Already loaded or invalid
+			return;
 		}
 
 		auto& chunk = chunks[chunkIndex];
 		if (!chunk) return;
 
-		// Generate the chunk on first load
 		chunk->Generate();
 
 		fe::MeshArray mesh = chunk->GenerateMesh();
