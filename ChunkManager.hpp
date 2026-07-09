@@ -55,10 +55,7 @@ public:
             it->second->state = ChunkState::ScheduledForRemoval;
     }
 
-    // Called once per frame from main thread. maxUploads caps GPU work per frame
-    // so a burst of finished chunks doesn't spike frame time.
     void Update(int maxUploads = 2) {
-        // 1. Insert newly generated chunks into the scene
         int uploaded = 0;
         while (uploaded < maxUploads) {
             std::shared_ptr<Chunk> chunk;
@@ -72,7 +69,6 @@ public:
             uploaded++;
         }
 
-        // 2. Handle removals (cheap, so no cap needed, but you could add one)
         std::lock_guard<std::mutex> lock(chunksMutex);
         for (auto it = chunks.begin(); it != chunks.end(); ) {
             if (it->second->state == ChunkState::ScheduledForRemoval) {
