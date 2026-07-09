@@ -29,7 +29,8 @@ class Foxcraft : public fe::EditableGame {
 public:
 
 	bool showDebugUI = false;
-	bool physicsGravityEnabled = false;
+	bool physicsGravityEnabled = true;
+	bool useRectangularPlayerHitbox = true;
 
 	std::vector<glm::vec3> path;
 	int windowStart = 0;
@@ -88,15 +89,28 @@ public:
 
 		LoadModels();
 
-		physicsEngine->DisableGravity();
+		if (physicsEngine) physicsEngine->EnableGravity();
+	}
+
+	void RebuildPlayerPhysicsBody() {
+		if (!player || !physicsEngine) return;
+
+		const glm::vec3 size = useRectangularPlayerHitbox ? glm::vec3(0.6f, 1.8f, 0.6f) : glm::vec3(1.0f, 1.0f, 1.0f);
+		auto newPhysics = this->physicsEngine->CreateObject(size, true);
+		if (!newPhysics) return;
+
+		this->player->SetPhysicsObject(std::move(newPhysics));
+		if (this->player->physicsObject) {
+			this->player->physicsObject->SetPosition(this->player->state.position);
+		}
 	}
 
 	void LoadModels() {
 
 		this->player = std::make_shared<fe::Character>();
 		this->scene->AddObject(player);
-		this->player->SetPhysicsObject(this->physicsEngine->CreateObject(glm::vec3(1.0f, 1.0f, 1.0f)));
 		this->player->state.position = glm::vec3(0.0f, 2.0f, 5.0f);
+		RebuildPlayerPhysicsBody();
 		if (this->player->physicsObject) {
 			this->player->physicsObject->SetPosition(this->player->state.position);
 		}
@@ -359,6 +373,10 @@ public:
 				} else {
 					if (physicsEngine) physicsEngine->DisableGravity();
 				}
+			}
+
+			if (ImGui::Checkbox("Rectangular player hitbox", &useRectangularPlayerHitbox)) {
+				RebuildPlayerPhysicsBody();
 			}
 		}
 		ImGui::End();
