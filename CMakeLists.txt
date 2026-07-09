@@ -14,11 +14,13 @@ set(ENGINE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../FenixEngine")
 
 # add_subdirectory(${CMAKE_SOURCE_DIR}/../FenixEngine/src/Engine ${CMAKE_BINARY_DIR}/out/Engine)
 
+add_subdirectory(${ENGINE_DIR}/external/JoltPhysics/Build ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/jolt)
+
 if(NOT TARGET Engine)
     message(STATUS "Engine target not found. Looking for engine source...")
     
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../FenixEngine/CMakeLists.txt")
-        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../FenixEngine" FenixEngine)
+    if(EXISTS "${ENGINE_DIR}/CMakeLists.txt")
+        add_subdirectory("${ENGINE_DIR}" FenixEngine)
     # elif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/FenixEngine/CMakeLists.txt")
     #     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/FenixEngine" FenixEngine)
     else()
