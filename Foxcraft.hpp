@@ -72,6 +72,17 @@ public:
 
 		LoadShaders("resources/shaders/VertexShader.glsl", "resources/shaders/FragmentShader.glsl");
 
+		for (int y = 0; y < 2; y++)
+		{
+			for (int x = 0; x < 2; x++)
+			{
+				/* code */
+			}
+			
+		}
+		
+		chunks.push_back()
+
 		LoadModels();
 	}
 
