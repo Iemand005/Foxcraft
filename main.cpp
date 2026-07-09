@@ -16,23 +16,19 @@
 
 void LogToFile(const std::string& message)
 {
-	#ifdef _WIN32
+#ifdef _WIN32
 	std::string logpath = "C:\\Temp\\Cake_screensaver.log";
-	#else
+#else
 	std::string logpath = "/tmp/Cake_screensaver.log";
-	#endif
-	try
-	{
+#endif
+	try {
 		std::ofstream file(logpath, std::ios::app);
-		if (file.is_open())
-		{
-			auto now = std::chrono::system_clock::now();
-			auto time = std::chrono::system_clock::to_time_t(now);
-			file << "[" << std::ctime(&time) << "] " << message << "\n";
-			file.close();
-		}
-	}
-	catch (...) { }
+		if (!file.is_open()) return;
+		auto now = std::chrono::system_clock::now();
+		auto time = std::chrono::system_clock::to_time_t(now);
+		file << "[" << std::ctime(&time) << "] " << message << "\n";
+		file.close();
+	} catch (...) { }
 }
 
 int main() {
