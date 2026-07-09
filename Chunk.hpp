@@ -40,6 +40,10 @@ public:
 		return position;
 	}
 
+	glm::vec3 GetWorldPosition() {
+		return {position.x * WIDTH, 0, position.y * DEPTH};
+	}
+
 	void SetBlock(int x, int y, int z, BlockType type) {
 		blocks[x * HEIGHT * DEPTH + y * DEPTH + z] = type;
 	}
