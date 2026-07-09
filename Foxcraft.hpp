@@ -92,6 +92,11 @@ public:
 
 		this->player = std::make_shared<fe::Character>();
 		this->scene->AddObject(player);
+		this->player->SetPhysicsObject(this->physicsEngine->CreateObject(glm::vec3(1.0f, 1.0f, 1.0f)));
+		this->player->state.position = glm::vec3(0.0f, 2.0f, 5.0f);
+		if (this->player->physicsObject) {
+			this->player->physicsObject->SetPosition(this->player->state.position);
+		}
 
 		AddMonoBlock("resources/textures/dirt.png");
 		AddMonoBlock("resources/textures/dirt.png", {1, 0, 0});
@@ -112,6 +117,14 @@ public:
 		fe::MeshArray mesh = chunk->GenerateMesh();
 		std::cout << "Loading chunk " << chunkIndex << ": Vertices: " << mesh.vertices.size() 
 				  << " Indices: " << mesh.indices.size() << std::endl;
+
+		std::vector<glm::vec3> colliderVertices;
+		colliderVertices.reserve(mesh.vertices.size());
+		for (const auto& vertex : mesh.vertices) {
+			colliderVertices.push_back(vertex.position);
+		}
+		std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
+		mesh.SetPhysicsObject(this->physicsEngine->CreateObject(colliderVertices, colliderIndices));
 
 		std::vector<std::string> blocks = {
 			"resources/textures/dirt.png",
@@ -286,6 +299,9 @@ public:
 
 		player->state.position.z = 5;
 		player->state.position.y = 2;
+		if (player->physicsObject) {
+			player->physicsObject->SetPosition(player->state.position);
+		}
 		camera->farDist = farPlane;
 		camera->SetAspect(camera->aspect);
 		SyncCameraToPlayer();
