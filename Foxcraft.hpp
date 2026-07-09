@@ -33,7 +33,7 @@ public:
 	std::vector<glm::vec3> path;
 	int windowStart = 0;
 	float pathIndex = 1.0f;
-	std::vector<std::shared_ptr<fe::Object>> chunks;
+	std::vector<std::shared_ptr<Chunk>> chunks;
 	glm::vec3 lastUp = glm::vec3(0, 1, 0);
 	glm::vec3 lastRight = glm::vec3(1, 0, 0);
 	glm::vec3 prevEndForward{0};
@@ -66,13 +66,6 @@ public:
 	float freeCamSpeed = 15.0f;
 	float segmentLength = 12.0f;
 
-	struct ChunkInstance {
-		std::shared_ptr<Chunk> chunk;
-		glm::vec3 position = glm::vec3(0.0f);
-	};
-
-	std::vector<ChunkInstance> chunks;
-
 	Foxcraft(int width = 1000, int height = 1000, bool vr = false) : fe::EditableGame(width, height, vr, false) {
 
 		SetClearColor(1, 1, 0);
@@ -90,11 +83,11 @@ public:
 		AddMonoBlock("resources/textures/dirt.png");
 		AddMonoBlock("resources/textures/dirt.png", {1, 0, 0});
 
-		for (auto& instance : chunks) {
-			if (!instance.chunk) continue;
-			instance.chunk->Generate();
+		for (auto& chunk : chunks) {
+			if (!chunk) continue;
+			chunk->Generate();
 
-			fe::MeshArray mesh = instance.chunk->GenerateMesh();
+			fe::MeshArray mesh = chunk->GenerateMesh();
 			std::cout << "Vertices: " << mesh.vertices.size()
 			<< " Indices: " << mesh.indices.size() << std::endl;
 			// mesh.loadTexture("resources/textures/dirt.png", fe::TextureScaling::Nearest);
