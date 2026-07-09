@@ -93,8 +93,7 @@ public:
 			chunk->Generate();
 
 			fe::MeshArray mesh = chunk->GenerateMesh();
-			std::cout << "Vertices: " << mesh.vertices.size()
-			<< " Indices: " << mesh.indices.size() << std::endl;
+			std::cout << "Vertices: " << mesh.vertices.size() << " Indices: " << mesh.indices.size() << std::endl;
 			// mesh.loadTexture("resources/textures/dirt.png", fe::TextureScaling::Nearest);
 
 			std::vector<std::string> blocks = {
