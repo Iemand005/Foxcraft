@@ -48,8 +48,7 @@ int main() {
 #ifdef _WIN32
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR lpCmdLine, int) {
-	try
-	{
+	try {
 		LogToFile("Creating Foxcraft game instance...");
 		Foxcraft game;
 
@@ -57,16 +56,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR lpCmdLine, int) {
 		game.Run();
 
 		LogToFile("Game exited normally");
-	}
-	catch (const std::exception& e)
-	{
+	} catch (const std::exception& e) {
 		LogToFile(std::string("Exception caught: ") + e.what());
-	}
-	catch (...)
-	{
+	} catch (...) {
 		LogToFile("Unknown exception caught");
 	}
-
 
 	return 0;
 }
