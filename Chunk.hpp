@@ -37,6 +37,8 @@ private:
 	glm::vec2 position;
 
 public:
+	ChunkState state;
+
 	Chunk() : blocks(WIDTH * HEIGHT * DEPTH, BlockType::Air) {}
 	Chunk(int x, int y) : Chunk() {
 		position = {x, y};
