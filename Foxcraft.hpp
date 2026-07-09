@@ -365,13 +365,6 @@ public:
 		if (!showDebugUI) return;
 		BeginFrame();
 
-		// ImGui::Begin("Foxcraft Debug");
-		// {
-
-		// 	if (ImGui::Checkbox("Rectangular player hitbox", &useRectangularPlayerHitbox)) {
-		// 		RebuildPlayerPhysicsBody();
-		// 	}
-		// }
 		ImGui::End();
 
 		DrawDebugUI();
