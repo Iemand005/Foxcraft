@@ -68,7 +68,7 @@ public:
 
 	Foxcraft(int width = 1000, int height = 1000, bool vr = false) : fe::EditableGame(width, height, vr, false) {
 
-		SetClearColor(1, 1, 0);
+		SetClearColor(0.1f, 0.3f, 1);
 
 		LoadShaders("resources/shaders/VertexShader.glsl", "resources/shaders/FragmentShader.glsl");
 
