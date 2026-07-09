@@ -117,8 +117,7 @@ public:
 		chunk->Generate();
 
 		fe::MeshArray mesh = chunk->GenerateMesh();
-		std::cout << "Loading chunk " << chunkIndex << ": Vertices: " << mesh.vertices.size() 
-				  << " Indices: " << mesh.indices.size() << std::endl;
+		std::cout << "Loading chunk " << chunkIndex << ": Vertices: " << mesh.vertices.size() << " Indices: " << mesh.indices.size() << std::endl;
 
 		std::vector<glm::vec3> colliderVertices;
 		colliderVertices.reserve(mesh.vertices.size());
