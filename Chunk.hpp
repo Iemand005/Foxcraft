@@ -5,6 +5,8 @@
 #include <memory>
 #include <iostream>
 
+#include <glm/gtc/noise.hpp>
+
 #include <Primitives.hpp>
 #include <MeshArray.hpp>
 
@@ -58,7 +60,9 @@ public:
 
 		for(int x = 0; x < WIDTH; x++) {
 			for(int z = 0; z < DEPTH; z++) {
-				float waveHeight = heightOffset + std::sin((position.x * WIDTH + x) * heightFrequency) * heightAmplitude + std::sin((position.y * DEPTH + z) * heightFrequency * 1.3f) * (heightAmplitude * 0.5f);
+				float waveHeight = heightOffset +
+					glm::perlin(glm::vec2((position.x * WIDTH + x) * heightFrequency,
+						(position.y * DEPTH + z) * heightFrequency * 1.3f)) * heightAmplitude;
 				int maxHeight = static_cast<int>(std::round(waveHeight));
 
 				for(int y = 0; y < HEIGHT; y++) {
