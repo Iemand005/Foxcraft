@@ -340,7 +340,7 @@ public:
 		ImGui::Begin("Chunks");
 		{
 			if (ImGui::Button("Spawn Chunk (-1, -1)"))
-				chunkManager.RequestChunk({-1, -1});
+				chunkManager->RequestChunk({-1, -1});
 		}
 		ImGui::End();
 
