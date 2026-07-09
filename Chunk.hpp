@@ -34,6 +34,8 @@ class Chunk {
 private:
 	std::vector<BlockType> blocks;
 	static constexpr int WIDTH = 16, HEIGHT = 128, DEPTH = 16;
+
+	fe::MeshArray mesh;
 	
 public:
 	glm::ivec2 coord;
