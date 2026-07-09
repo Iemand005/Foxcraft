@@ -365,7 +365,7 @@ public:
 		if (!showDebugUI) return;
 		BeginFrame();
 
-		ImGui::End();
+		// ImGui::End();
 
 		DrawDebugUI();
 
