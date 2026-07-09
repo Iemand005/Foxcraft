@@ -132,36 +132,39 @@ public:
 
 		chunk->Generate();
 
-		fe::MeshArray mesh = chunk->GenerateMesh();
-		std::cout << "Loading chunk " << chunkIndex << ": Vertices: " << mesh.vertices.size() << " Indices: " << mesh.indices.size() << std::endl;
+		// fe::MeshArray mesh = chunk->GenerateMesh();
+		// std::cout << "Loading chunk " << chunkIndex << ": Vertices: " << mesh.vertices.size() << " Indices: " << mesh.indices.size() << std::endl;
 
-		std::vector<glm::vec3> colliderVertices;
-		colliderVertices.reserve(mesh.vertices.size());
-		for (const auto& vertex : mesh.vertices) {
-			colliderVertices.push_back(vertex.position);
-		}
-		std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
-		mesh.SetPhysicsObject(this->physicsEngine->CreateObject(colliderVertices, colliderIndices));
+		// std::vector<glm::vec3> colliderVertices;
+		// colliderVertices.reserve(mesh.vertices.size());
+		// for (const auto& vertex : mesh.vertices) {
+		// 	colliderVertices.push_back(vertex.position);
+		// }
+		// std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
+		// mesh.SetPhysicsObject(this->physicsEngine->CreateObject(colliderVertices, colliderIndices));
 
-		std::vector<std::string> blocks = {
-			"resources/textures/dirt.png",
-			"resources/textures/grass_carried.png",
-			"resources/textures/grass_side_carried.png",
-			"resources/textures/bedrock.png",
-			"resources/textures/stone.png",
-			"resources/textures/cake_bottom.png",
-			"resources/textures/cake_top.png"
-		};
+		// std::vector<std::string> blocks = {
+		// 	"resources/textures/dirt.png",
+		// 	"resources/textures/grass_carried.png",
+		// 	"resources/textures/grass_side_carried.png",
+		// 	"resources/textures/bedrock.png",
+		// 	"resources/textures/stone.png",
+		// 	"resources/textures/cake_bottom.png",
+		// 	"resources/textures/cake_top.png"
+		// };
 
-		mesh.loadTextureArray(blocks, fe::TextureScaling::Nearest);
+		// mesh.loadTextureArray(blocks, fe::TextureScaling::Nearest);
 
-		auto chunkObject = std::make_shared<fe::Object>(mesh);
-		chunkObject->name = "Chunk";
-		chunkObject->state.position = chunk->GetWorldPosition();
-		if (chunkObject->physicsObject) {
-			chunkObject->physicsObject->SetPosition(chunkObject->state.position);
-		}
-		this->scene->AddObject(chunkObject);
+		// auto chunkObject = std::make_shared<fe::Object>(mesh);
+		// chunkObject->name = "Chunk";
+		// chunkObject->state.position = chunk->GetWorldPosition();
+		// if (chunkObject->physicsObject) {
+		// 	chunkObject->physicsObject->SetPosition(chunkObject->state.position);
+		// }
+		// this->scene->AddObject(chunkObject);
+
+		chunk->BuildMesh();
+		chunk->AddToScene(this->physicsEngine, this->scene);
 
 		chunkObjects[chunkIndex] = chunkObject;
 		chunksLoaded[chunkIndex] = true;
