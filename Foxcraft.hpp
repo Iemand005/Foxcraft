@@ -168,7 +168,7 @@ public:
 		chunk->BuildMesh();
 		chunk->UploadToScene(this->physicsEngine.get(), this->scene.get());
 
-		chunkObjects[chunkIndex] = chunkObject;
+		// chunkObjects[chunkIndex] = chunkObject;
 		chunksLoaded[chunkIndex] = true;
 	}
 
