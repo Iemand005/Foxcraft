@@ -14,7 +14,9 @@ set(ENGINE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../FenixEngine")
 
 # add_subdirectory(${CMAKE_SOURCE_DIR}/../FenixEngine/src/Engine ${CMAKE_BINARY_DIR}/out/Engine)
 
-add_subdirectory(${ENGINE_DIR}/external/JoltPhysics/Build ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/jolt)
+if(NOT TARGET Jolt)
+    add_subdirectory(${ENGINE_DIR}/external/JoltPhysics/Build ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/jolt)
+endif()
 
 if(NOT TARGET Engine)
     message(STATUS "Engine target not found. Looking for engine source...")
@@ -61,6 +63,7 @@ target_include_directories(Foxcraft PRIVATE
 
 target_link_libraries(Foxcraft PRIVATE
 	Engine
+	Jolt::Jolt
 )
 
 if(NOT WIN32)
