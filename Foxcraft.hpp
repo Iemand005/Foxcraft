@@ -86,6 +86,8 @@ public:
 		chunkObjects.resize(chunks.size(), nullptr);
 
 		LoadModels();
+
+		physicsEngine->DisableGravity();
 	}
 
 	void LoadModels() {
