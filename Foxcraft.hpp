@@ -73,7 +73,7 @@ public:
 	float freeCamSpeed = 15.0f;
 	float segmentLength = 12.0f;
 
-	ChunkManager chunkManager(4);
+	std::unique_ptr<ChunkManager> chunkManager = std::make_unique<ChunkManager>(4);
 
 	Foxcraft(int width = 1000, int height = 1000, bool vr = false) : fe::EditableGame(width, height, vr, false) {
 
