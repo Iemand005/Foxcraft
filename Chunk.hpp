@@ -225,7 +225,7 @@ public:
 		mesh = fe::MeshArray(std::move(allVertices), std::move(allIndices));
 	}
 
-	void UploadToScene(PhysicsEngine* physicsEngine, fe::Scene* scene) {
+	void UploadToScene(fe::PhysicsEngine* physicsEngine, fe::Scene* scene) {
 		std::cout << "Uploading chunk (" << coord.x << ", " << coord.y << "): "
 		          << "Vertices: " << mesh.vertices.size()
 		          << " Indices: " << mesh.indices.size() << std::endl;
