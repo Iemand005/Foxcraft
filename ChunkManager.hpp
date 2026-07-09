@@ -7,7 +7,7 @@
 
 
 
-struct ChunkCoordHash {
+struct glm::ivec2Hash {
     size_t operator()(const glm::ivec2& c) const {
         return std::hash<int64_t>()((int64_t(c.x) << 32) ^ uint32_t(c.y));
     }
@@ -44,7 +44,7 @@ public:
     }
 
     // Called from main thread when a chunk leaves range
-    void UnloadChunk(ChunkCoord coord) {
+    void UnloadChunk(glm::ivec2 coord) {
         std::lock_guard<std::mutex> lock(chunksMutex);
         auto it = chunks.find(coord);
         if (it != chunks.end())
@@ -139,7 +139,7 @@ private:
         if (chunk->ebo) glDeleteBuffers(1, &chunk->ebo);
     }
 
-    std::unordered_map<glm::ivec2, std::shared_ptr<Chunk>, ChunkCoordHash> chunks;
+    std::unordered_map<glm::ivec2, std::shared_ptr<Chunk>, glm::ivec2Hash> chunks;
     std::mutex chunksMutex;
 
     std::deque<std::shared_ptr<Chunk>> pendingQueue;

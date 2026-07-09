@@ -36,12 +36,12 @@ private:
 	static constexpr int WIDTH = 16, HEIGHT = 128, DEPTH = 16;
 	
 public:
-	glm::ivec2 position;
+	glm::ivec2 coord;
 	ChunkState state;
 
 	Chunk() : blocks(WIDTH * HEIGHT * DEPTH, BlockType::Air) {}
 	Chunk(int x, int y) : Chunk() {
-		position = {x, y};
+		coord = {x, y};
 	}
 
 	BlockType GetBlock(int x, int y, int z) const {
@@ -59,11 +59,11 @@ public:
 	}
 
 	glm::vec2 GetPosition() {
-		return position;
+		return coord;
 	}
 
 	glm::vec3 GetWorldPosition() {
-		return {position.x * WIDTH, 0, position.y * DEPTH};
+		return {coord.x * WIDTH, 0, coord.y * DEPTH};
 	}
 
 
@@ -78,8 +78,8 @@ public:
 
 		for (int x = 0; x < WIDTH; x++) {
 			for (int z = 0; z < DEPTH; z++) {
-				float worldX = position.x * WIDTH + x;
-				float worldZ = position.y * DEPTH + z;
+				float worldX = coord.x * WIDTH + x;
+				float worldZ = coord.y * DEPTH + z;
 
 				float noiseSum = 0.0f;
 				float amplitude = 1.0f;
