@@ -47,13 +47,7 @@ int main() {
 
 #ifdef _WIN32
 
-int WINAPI WinMain(
-	HINSTANCE,
-	HINSTANCE,
-	LPSTR lpCmdLine,
-	int
-)
-{
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR lpCmdLine, int) {
 	try
 	{
 		LogToFile("Creating Foxcraft game instance...");
