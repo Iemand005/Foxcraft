@@ -1,6 +1,8 @@
 #include <vector>
 #include <mutex>
 
+#include <Chunk.hpp>
+
 enum class ChunkState {
     Unloaded,           // not tracked yet
     Queued,             // sitting in the work queue, not started
