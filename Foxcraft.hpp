@@ -47,8 +47,8 @@ public:
 	static constexpr int TUNNEL_SEGMENTS = 64;
 	static constexpr int SUBDIVISIONS_PER_SEG = 48;
 	static constexpr int CHUNK_LOAD_DISTANCE = 2;  // Load chunks within this many chunks of player
-	static constexpr int GRID_WIDTH = 5;  // 5x5 grid
-	static constexpr int GRID_HEIGHT = 5;
+	static constexpr int GRID_WIDTH = 1;  // 5x5 grid
+	static constexpr int GRID_HEIGHT = 1;
 
 	int NUM_CHUNKS = 4;
 
@@ -140,6 +140,9 @@ public:
 		auto cubeObject = std::make_shared<fe::Object>(mesh);
 		cubeObject->name = "Chunk";
 		cubeObject->state.position = chunk->GetWorldPosition();
+		if (cubeObject->physicsObject) {
+			cubeObject->physicsObject->SetPosition(cubeObject->state.position);
+		}
 		this->scene->AddObject(cubeObject);
 
 		chunkObjects[chunkIndex] = cubeObject;
