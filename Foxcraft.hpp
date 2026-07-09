@@ -133,17 +133,13 @@ public:
 	}
 
 	void UpdateLoadedChunks() {
-		// Get player position
 		glm::vec3 playerPos = camera->GetPos();
 		
-		// Convert player position to chunk coordinates
 		int playerChunkX = static_cast<int>(playerPos.x / 16.0f);
 		int playerChunkZ = static_cast<int>(playerPos.z / 16.0f);
 
-		// Load chunks within CHUNK_LOAD_DISTANCE
 		for (int cy = 0; cy < GRID_HEIGHT; cy++) {
 			for (int cx = 0; cx < GRID_WIDTH; cx++) {
-				// Calculate distance to this chunk
 				int dx = cx - playerChunkX;
 				int dz = cy - playerChunkZ;
 				int distance = std::max(std::abs(dx), std::abs(dz));
@@ -151,12 +147,10 @@ public:
 				int chunkIndex = cy * GRID_WIDTH + cx;
 
 				if (distance <= CHUNK_LOAD_DISTANCE) {
-					// Load this chunk
 					if (!chunksLoaded[chunkIndex]) {
 						LoadChunkMesh(chunkIndex);
 					}
 				} else {
-					// Unload this chunk (optional - removes from scene)
 					if (chunksLoaded[chunkIndex] && chunkObjects[chunkIndex]) {
 						this->scene->RemoveObject(chunkObjects[chunkIndex]);
 						chunkObjects[chunkIndex] = nullptr;
