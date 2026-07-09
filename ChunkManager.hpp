@@ -1,5 +1,6 @@
 #include <vector>
 #include <mutex>
+#include <queue>
 
 #include <glm/glm.hpp>
 
@@ -107,36 +108,36 @@ private:
 
     void UploadAndInsert(std::shared_ptr<Chunk> chunk) {
         // Safe here: this runs on main thread, GL context is current
-        glGenVertexArrays(1, &chunk->vao);
-        glGenBuffers(1, &chunk->vbo);
-        glGenBuffers(1, &chunk->ebo);
+        // glGenVertexArrays(1, &chunk->vao);
+        // glGenBuffers(1, &chunk->vbo);
+        // glGenBuffers(1, &chunk->ebo);
 
-        glBindVertexArray(chunk->vao);
-        glBindBuffer(GL_ARRAY_BUFFER, chunk->vbo);
-        glBufferData(GL_ARRAY_BUFFER, chunk->vertexData.size() * sizeof(Vertex),
-                     chunk->vertexData.data(), GL_STATIC_DRAW);
+        // glBindVertexArray(chunk->vao);
+        // glBindBuffer(GL_ARRAY_BUFFER, chunk->vbo);
+        // glBufferData(GL_ARRAY_BUFFER, chunk->vertexData.size() * sizeof(Vertex),
+        //              chunk->vertexData.data(), GL_STATIC_DRAW);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, chunk->ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, chunk->indexData.size() * sizeof(uint32_t),
-                     chunk->indexData.data(), GL_STATIC_DRAW);
-        // ... vertex attrib pointers ...
+        // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, chunk->ebo);
+        // glBufferData(GL_ELEMENT_ARRAY_BUFFER, chunk->indexData.size() * sizeof(uint32_t),
+        //              chunk->indexData.data(), GL_STATIC_DRAW);
+        // // ... vertex attrib pointers ...
 
-        chunk->sceneNode = scene->AddChunkNode(chunk);
-        chunk->state = ChunkState::InScene;
+        // chunk->sceneNode = scene->AddChunkNode(chunk);
+        // chunk->state = ChunkState::InScene;
 
-        // Free CPU-side copies now that they're on the GPU
-        chunk->vertexData.clear();
-        chunk->vertexData.shrink_to_fit();
-        chunk->indexData.clear();
-        chunk->indexData.shrink_to_fit();
+        // // Free CPU-side copies now that they're on the GPU
+        // chunk->vertexData.clear();
+        // chunk->vertexData.shrink_to_fit();
+        // chunk->indexData.clear();
+        // chunk->indexData.shrink_to_fit();
     }
 
     void RemoveFromScene(std::shared_ptr<Chunk> chunk) {
-        chunk->state = ChunkState::Unloading;
-        if (chunk->sceneNode) scene->RemoveNode(chunk->sceneNode);
-        if (chunk->vao) glDeleteVertexArrays(1, &chunk->vao);
-        if (chunk->vbo) glDeleteBuffers(1, &chunk->vbo);
-        if (chunk->ebo) glDeleteBuffers(1, &chunk->ebo);
+        // chunk->state = ChunkState::Unloading;
+        // if (chunk->sceneNode) scene->RemoveNode(chunk->sceneNode);
+        // if (chunk->vao) glDeleteVertexArrays(1, &chunk->vao);
+        // if (chunk->vbo) glDeleteBuffers(1, &chunk->vbo);
+        // if (chunk->ebo) glDeleteBuffers(1, &chunk->ebo);
     }
 
     std::unordered_map<glm::ivec2, std::shared_ptr<Chunk>, glm::ivec2Hash> chunks;
