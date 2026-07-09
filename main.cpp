@@ -16,65 +16,65 @@
 
 void LogToFile(const std::string& message)
 {
-  #ifdef _WIN32
-  std::string logpath = "C:\\Temp\\Cake_screensaver.log";
-  #else
-  std::string logpath = "/tmp/Cake_screensaver.log";
-  #endif
-  try
-  {
-    std::ofstream file(logpath, std::ios::app);
-    if (file.is_open())
-    {
-      auto now = std::chrono::system_clock::now();
-      auto time = std::chrono::system_clock::to_time_t(now);
-      file << "[" << std::ctime(&time) << "] " << message << "\n";
-      file.close();
-    }
-  }
-  catch (...) { }
+	#ifdef _WIN32
+	std::string logpath = "C:\\Temp\\Cake_screensaver.log";
+	#else
+	std::string logpath = "/tmp/Cake_screensaver.log";
+	#endif
+	try
+	{
+		std::ofstream file(logpath, std::ios::app);
+		if (file.is_open())
+		{
+			auto now = std::chrono::system_clock::now();
+			auto time = std::chrono::system_clock::to_time_t(now);
+			file << "[" << std::ctime(&time) << "] " << message << "\n";
+			file.close();
+		}
+	}
+	catch (...) { }
 }
 
 int main() {
 
-  std::cout << "Hiii" << std::endl;
+	std::cout << "Hiii" << std::endl;
 
-  Foxcraft game;
+	Foxcraft game;
 
-  game.Run();
-  return 0;
+	game.Run();
+	return 0;
 }
 
 #ifdef _WIN32
 
 int WINAPI WinMain(
-  HINSTANCE,
-  HINSTANCE,
-  LPSTR lpCmdLine,
-  int
+	HINSTANCE,
+	HINSTANCE,
+	LPSTR lpCmdLine,
+	int
 )
 {
-  try
-  {
-    LogToFile("Creating Foxcraft game instance...");
-    Foxcraft game;
+	try
+	{
+		LogToFile("Creating Foxcraft game instance...");
+		Foxcraft game;
 
-    LogToFile("Running game...");
-    game.Run();
+		LogToFile("Running game...");
+		game.Run();
 
-    LogToFile("Game exited normally");
-  }
-  catch (const std::exception& e)
-  {
-    LogToFile(std::string("Exception caught: ") + e.what());
-  }
-  catch (...)
-  {
-    LogToFile("Unknown exception caught");
-  }
+		LogToFile("Game exited normally");
+	}
+	catch (const std::exception& e)
+	{
+		LogToFile(std::string("Exception caught: ") + e.what());
+	}
+	catch (...)
+	{
+		LogToFile("Unknown exception caught");
+	}
 
 
-  return 0;
+	return 0;
 }
 
 #endif
