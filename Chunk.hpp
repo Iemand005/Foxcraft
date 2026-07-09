@@ -35,8 +35,11 @@ private:
 	std::vector<BlockType> blocks;
 	static constexpr int WIDTH = 16, HEIGHT = 128, DEPTH = 16;
 
-	fe::MeshArray mesh;
+	// fe::MeshArray mesh
 	
+	fe::MeshArray mesh;
+	std::shared_ptr<fe::Object> sceneObject;
+
 public:
 	glm::ivec2 coord;
 	ChunkState state;
@@ -167,61 +170,51 @@ public:
 		return 0;
 	}
 
-	fe::MeshArray GenerateMesh() {
+	// worker safe fucntion
+	void BuildMesh() {
 		std::vector<fe::VertexArray> allVertices;
 		std::vector<unsigned int> allIndices;
 
 		allVertices.reserve(WIDTH * HEIGHT * DEPTH * 4);
-		allIndices.reserve(WIDTH * HEIGHT * DEPTH * 6); 
+		allIndices.reserve(WIDTH * HEIGHT * DEPTH * 6);
 
-		int blockCount = 0;
-		int faceCount = 0;
-
-		for(int x = 0; x < WIDTH; x++) {
-			for(int y = 0; y < HEIGHT; y++) {
-				for(int z = 0; z < DEPTH; z++) {
+		for (int x = 0; x < WIDTH; x++) {
+			for (int y = 0; y < HEIGHT; y++) {
+				for (int z = 0; z < DEPTH; z++) {
 					BlockType block = GetBlock(x, y, z);
-					if(block == BlockType::Air) continue;
-
-					blockCount++;
+					if (block == BlockType::Air) continue;
 
 					std::vector<fe::PlaneDirection> visibleFaces;
 					visibleFaces.reserve(6);
-					
-					for(auto direction : {fe::PlaneDirection::Front, fe::PlaneDirection::Back,
+
+					for (auto direction : {fe::PlaneDirection::Front, fe::PlaneDirection::Back,
 						fe::PlaneDirection::Left, fe::PlaneDirection::Right,
 						fe::PlaneDirection::Top, fe::PlaneDirection::Bottom}) {
-						if(NeedsFace(glm::vec3(x, y, z), direction)) {
+						if (NeedsFace(glm::vec3(x, y, z), direction)) {
 							visibleFaces.push_back(direction);
-							faceCount++;
 						}
 					}
 
-					if(!visibleFaces.empty()) {
+					if (!visibleFaces.empty()) {
 						fe::Mesh cubeMesh = fe::Primitives::GenerateCube(visibleFaces, 1.0f);
-
 						glm::vec3 offset = glm::vec3(x + 0.5f, y + 0.5f, z + 0.5f);
+						unsigned int vertexOffset = static_cast<unsigned int>(allVertices.size());
 
-						unsigned int vertexOffset = allVertices.size();
-
-						for(auto &v : cubeMesh.vertices) {
-
+						for (auto& v : cubeMesh.vertices) {
 							fe::VertexArray vv;
-							vv.normal  = v.normal;
+							vv.normal = v.normal;
 							vv.position = v.position + offset;
+
 							fe::PlaneDirection direction = fe::PlaneDirection::Front;
-							if (v.normal.y > 0.5f) {
-								direction = fe::PlaneDirection::Top;
-							} else if (v.normal.y < -0.5f) {
-								direction = fe::PlaneDirection::Bottom;
-							}
-							
+							if (v.normal.y > 0.5f) direction = fe::PlaneDirection::Top;
+							else if (v.normal.y < -0.5f) direction = fe::PlaneDirection::Bottom;
+
 							float layer = GetBlockTextureLayer(block, direction);
 							vv.texCoord = glm::vec3(v.uv.x, v.uv.y, layer);
 							allVertices.push_back(vv);
 						}
 
-						for(auto idx : cubeMesh.indices) {
+						for (auto idx : cubeMesh.indices) {
 							allIndices.push_back(static_cast<unsigned int>(idx) + vertexOffset);
 						}
 					}
@@ -229,8 +222,32 @@ public:
 			}
 		}
 
-		std::cout << "Total blocks: " << blockCount << ", faces: " << faceCount << std::endl;
+		mesh = fe::MeshArray(std::move(allVertices), std::move(allIndices));
+	}
 
-		return fe::MeshArray(allVertices, allIndices);
+	void UploadToScene(PhysicsEngine* physicsEngine, fe::Scene* scene) {
+		std::cout << "Uploading chunk (" << coord.x << ", " << coord.y << "): "
+		          << "Vertices: " << mesh.vertices.size()
+		          << " Indices: " << mesh.indices.size() << std::endl;
+
+		std::vector<glm::vec3> colliderVertices;
+		colliderVertices.reserve(mesh.vertices.size());
+		for (const auto& vertex : mesh.vertices) {
+			colliderVertices.push_back(vertex.position);
+		}
+		std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
+		mesh.SetPhysicsObject(physicsEngine->CreateObject(colliderVertices, colliderIndices));
+
+		mesh.loadTextureArray(BlockTextures(), fe::TextureScaling::Nearest);
+
+		sceneObject = std::make_shared<fe::Object>(mesh);
+		sceneObject->name = "Chunk";
+		sceneObject->state.position = GetWorldPosition();
+		if (sceneObject->physicsObject) {
+			sceneObject->physicsObject->SetPosition(sceneObject->state.position);
+		}
+
+		scene->AddObject(sceneObject);
+		state = ChunkState::InScene;
 	}
 };
