@@ -29,6 +29,7 @@ class Foxcraft : public fe::EditableGame {
 public:
 
 	bool showDebugUI = false;
+	bool physicsGravityEnabled = false;
 
 	std::vector<glm::vec3> path;
 	int windowStart = 0;
@@ -348,6 +349,19 @@ public:
 	void DrawUI() override {
 		if (!showDebugUI) return;
 		BeginFrame();
+
+		ImGui::Begin("Foxcraft Debug");
+		{
+			if (ImGui::Button(physicsGravityEnabled ? "Disable Gravity" : "Enable Gravity")) {
+				physicsGravityEnabled = !physicsGravityEnabled;
+				if (physicsGravityEnabled) {
+					if (physicsEngine) physicsEngine->EnableGravity();
+				} else {
+					if (physicsEngine) physicsEngine->DisableGravity();
+				}
+			}
+		}
+		ImGui::End();
 
 		DrawDebugUI();
 
