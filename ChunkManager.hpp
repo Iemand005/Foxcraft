@@ -5,15 +5,7 @@
 
 #include <Chunk.hpp>
 
-enum class ChunkState {
-    Unloaded,           // not tracked yet
-    Queued,             // sitting in the work queue, not started
-    Generating,         // worker thread is building voxel/mesh data right now
-    ReadyToUpload,       // worker finished, waiting for main thread to add to scene
-    InScene,            // fully uploaded to GPU and active
-    ScheduledForRemoval, // main thread marked it, needs cleanup
-    Unloading            // being removed (freeing GPU buffers etc.)
-};
+
 
 struct ChunkCoordHash {
     size_t operator()(const glm::ivec2& c) const {
