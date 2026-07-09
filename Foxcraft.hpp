@@ -166,7 +166,7 @@ public:
 		// this->scene->AddObject(chunkObject);
 
 		chunk->BuildMesh();
-		chunk->AddToScene(this->physicsEngine, this->scene);
+		chunk->UploadToScene(this->physicsEngine, this->scene);
 
 		chunkObjects[chunkIndex] = chunkObject;
 		chunksLoaded[chunkIndex] = true;
