@@ -23,7 +23,8 @@ private:
 
 public:
 	Chunk() : blocks(WIDTH * HEIGHT * DEPTH, BlockType::Air) {}
-	Chunk(int x, int y) : Chunk() : position({x, y}) {
+	Chunk(int x, int y) : Chunk() {
+		position = {x, y};
 	}
 
 	BlockType GetBlock(int x, int y, int z) const {
