@@ -152,8 +152,8 @@ private:
 		}
 
 		if (!removed) {
-            std::cerr << "WARNING: chunk scene object was non-null but not found in scene->objects! Scheduling for removal again..." << std::endl;
-			chunk->state = ChunkState::ScheduledForRemoval;
+            std::cerr << "WARNING: chunk scene object was non-null but not found in scene->objects! Uh not Scheduling for removal again..." << std::endl;
+			// chunk->state = ChunkState::ScheduledForRemoval;
         }	
 		return removed;
 	}
