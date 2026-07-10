@@ -48,7 +48,7 @@ public:
 	static constexpr int MAX_CHUNKS = 32;
 	static constexpr int TUNNEL_SEGMENTS = 64;
 	static constexpr int SUBDIVISIONS_PER_SEG = 48;
-	static constexpr int CHUNK_LOAD_DISTANCE = 2;  // Load chunks within this many chunks of player
+	int CHUNK_LOAD_DISTANCE = 2;  // Load chunks within this many chunks of player
 	static constexpr int GRID_WIDTH = 1;  // 5x5 grid
 	static constexpr int GRID_HEIGHT = 1;
 
@@ -282,6 +282,7 @@ public:
 		{
 			if (ImGui::Button("Spawn Chunk (-1, -1)"))
 				chunkManager->RequestChunk({-1, -1});
+			ImGui::DragFloat("Render Distance", &CHUNK_LOAD_DISTANCE);
 		}
 		ImGui::End();
 
