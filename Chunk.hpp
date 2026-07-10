@@ -69,7 +69,7 @@ public:
 		return {coord.x * WIDTH, 0, coord.y * DEPTH};
 	}
 
-	BlockType GenerateBlockAt(int x, int y) {
+	BlockType GenerateBlockAt(glm::ivec3 position) {
 
 	}
 
@@ -111,10 +111,6 @@ public:
 
 				for (int y = 0; y < HEIGHT; y++) {
 					if (y < bedrockThickness) {
-						float holeNoise = glm::perlin(glm::vec3(worldX * 0.6f, y * 0.6f, worldZ * 0.6f));
-						if (holeNoise > 0.35f && y > 0) {
-							continue; // hole - leave as air
-						}
 						SetBlock(x, y, z, BlockType::Bedrock);
 					} else if (y < stoneEnd) {
 						SetBlock(x, y, z, BlockType::Stone);
