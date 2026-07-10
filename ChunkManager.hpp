@@ -132,6 +132,7 @@ private:
 		scene->RemoveObject(chunk->GetSceneObject());
 		// physicsEngine->RemoveObject()
 		// physicsEngine->
+		// TODO: ofcourse edelete the things from GPU too yeah
         // if (chunk->sceneNode) scene->RemoveNode(chunk->sceneNode);
         // if (chunk->vao) glDeleteVertexArrays(1, &chunk->vao);
         // if (chunk->vbo) glDeleteBuffers(1, &chunk->vbo);
