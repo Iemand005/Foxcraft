@@ -120,7 +120,9 @@ private:
 	}
 
 	void UploadAndInsert(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
-
+		if (chunk->state == ChunkState::ScheduledForRemoval || chunk->state == ChunkState::Unloading) {
+			return; // was removed while we were generating it — abandon, do not upload
+		}
 		chunk->UploadToScene(physicsEngine, scene);
 	}
 
