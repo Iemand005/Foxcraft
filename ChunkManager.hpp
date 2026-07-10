@@ -105,7 +105,10 @@ private:
 				pendingQueue.pop_front();
 			}
 
-			chunk->state = ChunkState::Generating;
+			ChunkState expected = ChunkState::Queued;
+			if (!chunk->state.compare_exchange_strong(expected, ChunkState::Generating)) {
+				continue; // was ScheduledForRemoval (or something else) — drop it
+			}
 
 			chunk->Generate();
 
