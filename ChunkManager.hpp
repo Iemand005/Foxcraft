@@ -72,7 +72,7 @@ public:
         std::lock_guard<std::mutex> lock(chunksMutex);
         for (auto it = chunks.begin(); it != chunks.end(); ) {
             if (it->second->state == ChunkState::ScheduledForRemoval) {
-                RemoveFromScene(it->second);
+                RemoveFromScene(it->second, physicsEngine, scene);
                 it = chunks.erase(it);
             } else {
                 ++it;
@@ -127,7 +127,7 @@ private:
 		chunk->UploadToScene(physicsEngine, scene);
     }
 
-    void RemoveFromScene(std::shared_ptr<Chunk> chunk) {
+    void RemoveFromScene(std::shared_ptr<Chunk> chunk, fe::PhysicsEngine* physicsEngine, fe::Scene* scene) {
         chunk->state = ChunkState::Unloading;
 		// scene->RemoveObject(chunk->)
         // if (chunk->sceneNode) scene->RemoveNode(chunk->sceneNode);
