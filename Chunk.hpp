@@ -248,14 +248,16 @@ public:
 		for (const auto& vertex : mesh.vertices)
 			colliderVertices.push_back(vertex.position);
 
-			std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
-		mesh.SetPhysicsObject(physicsEngine->CreateObject(colliderVertices, colliderIndices));
-
+		std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
+		
 		mesh.loadTextureArray(BlockTextures(), fe::TextureScaling::Nearest);
-
+		
 		sceneObject = std::make_shared<fe::Object>(mesh);
 		sceneObject->name = "Chunk";
 		sceneObject->state.position = GetWorldPosition();
+		
+		auto physobj = physicsEngine->CreateObject(colliderVertices, colliderIndices);
+		mesh.SetPhysicsObject(physobj);
 		if (sceneObject->physicsObject) {
 			sceneObject->physicsObject->SetPosition(sceneObject->state.position);
 		}
