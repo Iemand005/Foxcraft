@@ -35,7 +35,6 @@ public:
 	std::vector<glm::vec3> path;
 	int windowStart = 0;
 	float pathIndex = 1.0f;
-	std::vector<std::shared_ptr<Chunk>> chunks;
 	std::vector<std::shared_ptr<fe::Object>> chunkObjects;  // Track loaded chunk objects
 	std::vector<bool> chunksLoaded;  // Track which chunks have been meshed
 	glm::vec3 lastUp = glm::vec3(0, 1, 0);
@@ -81,14 +80,6 @@ public:
 
 		LoadShaders("resources/shaders/VertexShader.glsl", "resources/shaders/FragmentShader.glsl");
 
-		for (int y = 0; y < GRID_HEIGHT; y++) {
-			for (int x = 0; x < GRID_WIDTH; x++) {
-				chunks.push_back(std::make_shared<Chunk>(x, y));
-				chunksLoaded.push_back(false);
-			}
-		}
-		chunkObjects.resize(chunks.size(), nullptr);
-
 		LoadModels();
 
 		if (physicsEngine) physicsEngine->EnableGravity();
@@ -119,22 +110,6 @@ public:
 		}
 
 		UpdateLoadedChunks();
-	}
-
-	void LoadChunkMesh(int chunkIndex) {
-		if (chunkIndex < 0 || chunkIndex >= chunks.size() || chunksLoaded[chunkIndex]) {
-			return;
-		}
-
-		auto& chunk = chunks[chunkIndex];
-		if (!chunk) return;
-
-		chunk->Generate();
-		chunk->BuildMesh();
-		chunk->UploadToScene(this->physicsEngine.get(), this->scene.get());
-
-		// chunkObjects[chunkIndex] = chunkObject;
-		chunksLoaded[chunkIndex] = true;
 	}
 
 	void UpdateLoadedChunks() {
