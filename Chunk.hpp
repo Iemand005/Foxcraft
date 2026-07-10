@@ -241,7 +241,9 @@ public:
 	void UploadToScene(fe::PhysicsEngine* physicsEngine, fe::Scene* scene) {
 		std::cout << "Uploading chunk (" << coord.x << ", " << coord.y << "): " << "Vertices: " << mesh.vertices.size() << " Indices: " << mesh.indices.size() << std::endl;
 		
+		// GPU coies
 		mesh.CopyToGPU();
+		mesh.loadTextureArray(BlockTextures(), fe::TextureScaling::Nearest);
 
 		std::vector<glm::vec3> colliderVertices;
 		colliderVertices.reserve(mesh.vertices.size());
@@ -250,7 +252,6 @@ public:
 
 		std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
 		
-		mesh.loadTextureArray(BlockTextures(), fe::TextureScaling::Nearest);
 		
 		sceneObject = std::make_shared<fe::Object>(mesh);
 		sceneObject->name = "Chunk";
