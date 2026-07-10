@@ -222,7 +222,7 @@ public:
 			}
 		}
 
-		mesh = fe::MeshArray(std::move(allVertices), std::move(allIndices));
+		mesh = fe::MeshArray(std::move(allVertices), std::move(allIndices), false);
 	}
 
 	static const std::vector<std::string>& BlockTextures() {
@@ -242,6 +242,9 @@ public:
 		std::cout << "Uploading chunk (" << coord.x << ", " << coord.y << "): "
 		          << "Vertices: " << mesh.vertices.size()
 		          << " Indices: " << mesh.indices.size() << std::endl;
+		
+		mesh.CopyToGPU();
+		mesh.FreeCpuData();
 
 		std::vector<glm::vec3> colliderVertices;
 		colliderVertices.reserve(mesh.vertices.size());
