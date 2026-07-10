@@ -59,6 +59,8 @@ add_executable(Foxcraft
 	WIN32
 	${IMGUI_SOURCE_FILES}
 	main.cpp
+	ChunkManager.cpp
+	Chunk.cpp
 )
 
 target_include_directories(Foxcraft PRIVATE

@@ -1,5 +1,5 @@
 #include "ChunkManager.hpp"
-#include "ChunkChunkMesheer.hpp"
+#include "ChunkMesher.hpp"
 
 void ChunkManager::WorkerLoop() {
 	while (running) {
@@ -22,7 +22,7 @@ void ChunkManager::WorkerLoop() {
 		if (chunk->state != ChunkState::TerrainGenerating)
 			continue;
 
-		// chunk->BuildMesh();
+
 		ChunkMesher::BuildMesh(chunk, this);
 
 		expected = ChunkState::TerrainGenerating;
