@@ -124,6 +124,9 @@ private:
 
 			chunk->Generate();
 
+			if (!chunk->state == ChunkState::Generating)
+			contnue;
+
 			chunk->BuildMesh();
 
 			expected = ChunkState::Generating;
