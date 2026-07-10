@@ -130,15 +130,15 @@ private:
 		chunk->state = ChunkState::Unloading;
 		auto sco = chunk->GetSceneObject();
 		if (sco && !sco->meshArrays.empty()) {
+			scene->RemoveObject(sco);
 			if (sco->meshArrays[0].physicsObject)
 				sco->meshArrays[0].physicsObject->Destroy();
 			sco->meshArrays[0].RemoveFromGPU();
 		}
-		scene->RemoveObject(chunk->GetSceneObject());
 		
 	}
 
-	std::unordered_map<glm::ivec2, std::shared_ptr<Chunk>, ChunkCoordHash> chunks;
+						// 1		1	
 	std::mutex chunksMutex;
 
 	std::deque<std::shared_ptr<Chunk>> pendingQueue;
