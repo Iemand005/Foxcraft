@@ -149,24 +149,24 @@ public:
 		return neighbor == BlockType::Air;
 	}
 
-	int GetBlockTextureLayer(BlockType type, fe::PlaneDirection direction) {
-		if (type == BlockType::Grass) {
-			if (direction == fe::PlaneDirection::Top) {
-				return 1;
-			} else if (direction == fe::PlaneDirection::Bottom) {
-				return 0;
-			} else {
-				return 2;
-			}
-		} else if (type == BlockType::Dirt) {
-			return 0;
-		} else if (type == BlockType::Stone) {
-			return 4;
-		} else if (type == BlockType::Bedrock) {
-			return 3;
-		}
-		return 0;
-	}
+	// int GetBlockTextureLayer(BlockType type, fe::PlaneDirection direction) {
+	// 	if (type == BlockType::Grass) {
+	// 		if (direction == fe::PlaneDirection::Top) {
+	// 			return 1;
+	// 		} else if (direction == fe::PlaneDirection::Bottom) {
+	// 			return 0;
+	// 		} else {
+	// 			return 2;
+	// 		}
+	// 	} else if (type == BlockType::Dirt) {
+	// 		return 0;
+	// 	} else if (type == BlockType::Stone) {
+	// 		return 4;
+	// 	} else if (type == BlockType::Bedrock) {
+	// 		return 3;
+	// 	}
+	// 	return 0;
+	// }
 
 	void BuildMesh() {
 		std::vector<fe::VertexArray> allVertices;
@@ -222,18 +222,18 @@ public:
 		mesh = fe::MeshArray(std::move(allVertices), std::move(allIndices), false);
 	}
 
-	static const std::vector<std::string>& BlockTextures() {
-		static const std::vector<std::string> blocks = {
-			"resources/textures/dirt.png",
-			"resources/textures/grass_carried.png",
-			"resources/textures/grass_side_carried.png",
-			"resources/textures/bedrock.png",
-			"resources/textures/stone.png",
-			"resources/textures/cake_bottom.png",
-			"resources/textures/cake_top.png"
-		};
-		return blocks;
-	}
+	// static const std::vector<std::string>& BlockTextures() {
+	// 	static const std::vector<std::string> blocks = {
+	// 		"resources/textures/dirt.png",
+	// 		"resources/textures/grass_carried.png",
+	// 		"resources/textures/grass_side_carried.png",
+	// 		"resources/textures/bedrock.png",
+	// 		"resources/textures/stone.png",
+	// 		"resources/textures/cake_bottom.png",
+	// 		"resources/textures/cake_top.png"
+	// 	};
+	// 	return blocks;
+	// }
 
 	void UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
 
