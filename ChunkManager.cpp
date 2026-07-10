@@ -1,4 +1,5 @@
 #include "ChunkManager.hpp"
+#include "ChunkChunkMesheer.hpp"
 
 void ChunkManager::WorkerLoop() {
 	while (running) {
