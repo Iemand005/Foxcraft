@@ -244,7 +244,6 @@ public:
 		          << " Indices: " << mesh.indices.size() << std::endl;
 		
 		mesh.CopyToGPU();
-		mesh.FreeCpuData();
 
 		std::vector<glm::vec3> colliderVertices;
 		colliderVertices.reserve(mesh.vertices.size());
@@ -262,6 +261,9 @@ public:
 		if (sceneObject->physicsObject) {
 			sceneObject->physicsObject->SetPosition(sceneObject->state.position);
 		}
+
+		mesh.FreeCpuData();
+
 
 		scene->AddObject(sceneObject);
 		state = ChunkState::InScene;
