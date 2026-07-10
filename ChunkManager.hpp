@@ -127,6 +127,13 @@ public:
 		return { chunkX, chunkZ };
 	}
 
+	Chunk* GetChunk(ChunkCoord coord) {
+        auto it = chunks.find(coord);
+        if (it == chunks.end())
+            return nullptr;
+        return it->second.get();
+    }
+
 private:
 	void WorkerLoop() {
 		while (running) {
