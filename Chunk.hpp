@@ -21,13 +21,13 @@ enum class BlockType : short {
 };
 
 enum class ChunkState {
-    Unloaded,           // not tracked yet
-    TerrainPending,             // sitting in the work queue, not started
-    Generating,         // worker thread is building voxel/mesh data right now
-    ReadyToUpload,       // worker finished, waiting for main thread to add to scene
-    InScene,            // fully uploaded to GPU and active
-    ScheduledForRemoval, // main thread marked it, needs cleanup
-    Unloading            // being removed (freeing GPU buffers etc.)
+    Unloaded,				// not tracked yet
+    TerrainPending,			// sitting in the work queue, not started
+    TerrainGenerating,		// worker thread is building voxel/mesh data right now
+    TerrainReady,			// worker finished, waiting for main thread to add to scene
+    InScene,				// fully uploaded to GPU and active
+    ScheduledForRemoval,	// main thread marked it, needs cleanup
+    RemovalPending			// being removed (freeing GPU buffers etc.)
 };
 
 class Chunk {
@@ -236,7 +236,7 @@ public:
 
 	void UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
 
-		if (state == ChunkState::ScheduledForRemoval || state == ChunkState::Unloading) {
+		if (state == ChunkState::ScheduledForRemoval || state == ChunkState::RemovalPending) {
 			std::cout << "Cancelled chunk upload (" << coord.x << ", " << coord.y << ") due to removal request." << std::endl;
 
 			return; // got cancelled after the caller's check but before we ran

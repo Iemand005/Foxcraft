@@ -147,19 +147,19 @@ private:
 			}
 
 			ChunkState expected = ChunkState::TerrainPending;
-			if (!chunk->state.compare_exchange_strong(expected, ChunkState::Generating)) {
+			if (!chunk->state.compare_exchange_strong(expected, ChunkState::TerrainGenerating)) {
 				continue; // was ScheduledForRemoval (or something else) — drop it
 			}
 
 			chunk->Generate();
 
-			if (chunk->state != ChunkState::Generating)
+			if (chunk->state != ChunkState::TerrainGenerating)
 				continue;
 
 			chunk->BuildMesh();
 
-			expected = ChunkState::Generating;
-			if (chunk->state.compare_exchange_strong(expected, ChunkState::ReadyToUpload)) {
+			expected = ChunkState::TerrainGenerating;
+			if (chunk->state.compare_exchange_strong(expected, ChunkState::TerrainReady)) {
 				std::lock_guard<std::mutex> lock(completedMutex);
 				completedQueue.push(chunk);
 			}
@@ -167,14 +167,14 @@ private:
 	}
 
 	void UploadAndInsert(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
-		if (chunk->state == ChunkState::ScheduledForRemoval || chunk->state == ChunkState::Unloading)
+		if (chunk->state == ChunkState::ScheduledForRemoval || chunk->state == ChunkState::RemovalPending)
 			return;
 
 		chunk->UploadToScene(physicsEngine, scene);
 	}
 
 	bool RemoveFromScene(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
-		chunk->state = ChunkState::Unloading;
+		chunk->state = ChunkState::RemovalPending;
 		auto sco = chunk->GetSceneObject();
 		bool removed = scene->RemoveObject(sco);
 		if (sco && !sco->meshArrays.empty()) {
