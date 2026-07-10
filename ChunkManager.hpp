@@ -126,7 +126,9 @@ private:
 
     void RemoveFromScene(std::shared_ptr<Chunk> chunk, fe::PhysicsEngine* physicsEngine, fe::Scene* scene) {
         chunk->state = ChunkState::Unloading;
+		chunk->GetSceneObject()->meshArrays[0].physicsObject->Destroy();
 		scene->RemoveObject(chunk->GetSceneObject());
+		// physicsEngine->RemoveObject()
 		// physicsEngine->
         // if (chunk->sceneNode) scene->RemoveNode(chunk->sceneNode);
         // if (chunk->vao) glDeleteVertexArrays(1, &chunk->vao);
