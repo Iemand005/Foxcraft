@@ -139,31 +139,21 @@ public:
 
 	void UpdateLoadedChunks() {
 		glm::vec3 playerPos = camera->GetPos();
-		
-		int playerChunkX = static_cast<int>(playerPos.x / 16.0f);
-		int playerChunkZ = static_cast<int>(playerPos.z / 16.0f);
 
-		for (int cy = 0; cy < GRID_HEIGHT; cy++) {
-			for (int cx = 0; cx < GRID_WIDTH; cx++) {
-				int dx = cx - playerChunkX;
-				int dz = cy - playerChunkZ;
+		int playerChunkX = static_cast<int>(std::floor(playerPos.x / 16.0f));
+		int playerChunkZ = static_cast<int>(std::floor(playerPos.z / 16.0f));
+
+		for (int dz = -CHUNK_LOAD_DISTANCE; dz <= CHUNK_LOAD_DISTANCE; dz++) {
+			for (int dx = -CHUNK_LOAD_DISTANCE; dx <= CHUNK_LOAD_DISTANCE; dx++) {
 				int distance = std::max(std::abs(dx), std::abs(dz));
+				if (distance > CHUNK_LOAD_DISTANCE) continue;
 
-				int chunkIndex = cy * GRID_WIDTH + cx;
-
-				if (distance <= CHUNK_LOAD_DISTANCE) {
-					if (!chunksLoaded[chunkIndex]) {
-						LoadChunkMesh(chunkIndex);
-					}
-				} else {
-					if (chunksLoaded[chunkIndex] && chunkObjects[chunkIndex]) {
-						this->scene->RemoveObject(chunkObjects[chunkIndex]);
-						chunkObjects[chunkIndex] = nullptr;
-						chunksLoaded[chunkIndex] = false;
-					}
-				}
+				glm::ivec2 coord{playerChunkX + dx, playerChunkZ + dz};
+				chunkManager->RequestChunk(coord); // no-op internally if already tracked
 			}
 		}
+
+		// chunkManager->UnloadChunksOutsideRange(glm::ivec2{playerChunkX, playerChunkZ}, CHUNK_LOAD_DISTANCE);
 	}
 
 	void SyncCameraToPlayer() {
