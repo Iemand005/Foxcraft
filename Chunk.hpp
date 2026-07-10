@@ -27,6 +27,7 @@ enum class ChunkState {
     TerrainReady,			// worker finished, waiting for main thread to add to scene
     InScene,				// fully uploaded to GPU and active
     ScheduledForRemoval,	// main thread marked it, needs cleanup
+	Dirty,
     RemovalPending			// being removed (freeing GPU buffers etc.)
 };
 
