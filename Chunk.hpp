@@ -268,4 +268,6 @@ public:
 		scene->AddObject(sceneObject);
 		state = ChunkState::InScene;
 	}
+
+	std::shared_ptr<fe::Object> GetSceneObject() { return self->sceneObject; }
 };
