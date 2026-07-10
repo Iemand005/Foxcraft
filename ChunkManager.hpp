@@ -138,7 +138,7 @@ private:
 		
 	}
 
-						// 1		1	
+	std::unordered_map<glm::ivec2, std::shared_ptr<Chunk>, ChunkCoordHash> chunks;
 	std::mutex chunksMutex;
 
 	std::deque<std::shared_ptr<Chunk>> pendingQueue;
