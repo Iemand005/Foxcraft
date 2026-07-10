@@ -252,19 +252,18 @@ public:
 
 		std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
 		
+		auto physobj = physicsEngine->CreateObject(colliderVertices, colliderIndices);
+		mesh.SetPhysicsObject(std::move(physobj));
 		
 		sceneObject = std::make_shared<fe::Object>(std::move(mesh));
 		sceneObject->name = "Chunk";
 		sceneObject->state.position = GetWorldPosition();
 		
-		auto physobj = physicsEngine->CreateObject(colliderVertices, colliderIndices);
 		if (physobj) {
 			physobj->SetPosition(sceneObject->state.position);
 		}
-		mesh.SetPhysicsObject(std::move(physobj));
-
+		
 		mesh.FreeCpuData();
-
 
 		scene->AddObject(sceneObject);
 		state = ChunkState::InScene;
