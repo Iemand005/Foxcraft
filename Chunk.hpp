@@ -168,7 +168,6 @@ public:
 		return 0;
 	}
 
-	// worker safe fucntion
 	void BuildMesh() {
 		std::vector<fe::VertexArray> allVertices;
 		std::vector<unsigned int> allIndices;
