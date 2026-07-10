@@ -143,17 +143,17 @@ public:
 		int playerChunkX = static_cast<int>(std::floor(playerPos.x / 16.0f));
 		int playerChunkZ = static_cast<int>(std::floor(playerPos.z / 16.0f));
 
-		// for (int dz = -CHUNK_LOAD_DISTANCE; dz <= CHUNK_LOAD_DISTANCE; dz++) {
-		// 	for (int dx = -CHUNK_LOAD_DISTANCE; dx <= CHUNK_LOAD_DISTANCE; dx++) {
-		// 		int distance = std::max(std::abs(dx), std::abs(dz));
-		// 		if (distance > CHUNK_LOAD_DISTANCE) continue;
+		for (int dz = -CHUNK_LOAD_DISTANCE; dz <= CHUNK_LOAD_DISTANCE; dz++) {
+			for (int dx = -CHUNK_LOAD_DISTANCE; dx <= CHUNK_LOAD_DISTANCE; dx++) {
+				int distance = std::max(std::abs(dx), std::abs(dz));
+				if (distance > CHUNK_LOAD_DISTANCE) continue;
 
-		// 		glm::ivec2 coord{playerChunkX + dx, playerChunkZ + dz};
-		// 		chunkManager->RequestChunk(coord); // no-op internally if already tracked
-		// 	}
-		// }
+				glm::ivec2 coord{playerChunkX + dx, playerChunkZ + dz};
+				chunkManager->RequestChunk(coord); // no-op internally if already tracked
+			}
+		}
 
-		// chunkManager->UnloadChunksOutsideRange(glm::ivec2{playerChunkX, playerChunkZ}, CHUNK_LOAD_DISTANCE);
+		chunkManager->UnloadChunksOutsideRange(glm::ivec2{playerChunkX, playerChunkZ}, CHUNK_LOAD_DISTANCE);
 	}
 
 	void SyncCameraToPlayer() {
