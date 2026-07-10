@@ -252,11 +252,6 @@ public:
 
 		std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
 		
-		
-		sceneObject = std::make_shared<fe::Object>(std::move(mesh));
-		sceneObject->name = "Chunk";
-		sceneObject->state.position = GetWorldPosition();
-		
 		auto physobj = physicsEngine->CreateObject(colliderVertices, colliderIndices);
 		if (physobj) {
 			physobj->SetPosition(sceneObject->state.position);
@@ -264,6 +259,12 @@ public:
 		mesh.SetPhysicsObject(std::move(physobj));
 
 		mesh.FreeCpuData();
+		
+		sceneObject = std::make_shared<fe::Object>(std::move(mesh));
+		sceneObject->name = "Chunk";
+		sceneObject->state.position = GetWorldPosition();
+		
+		
 
 
 		scene->AddObject(sceneObject);
