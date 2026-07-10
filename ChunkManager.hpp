@@ -126,7 +126,7 @@ private:
 
 			chunk->BuildMesh();
 
-			ChunkState expected = ChunkState::Generating;
+			expected = ChunkState::Generating;
 			if (chunk->state.compare_exchange_strong(expected, ChunkState::ReadyToUpload)) {
 				std::lock_guard<std::mutex> lock(completedMutex);
 				completedQueue.push(chunk);
