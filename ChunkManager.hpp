@@ -127,16 +127,13 @@ private:
     void RemoveFromScene(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
         chunk->state = ChunkState::Unloading;
 		auto sco = chunk->GetSceneObject();
-		if (sco && !sco->meshArrays.empty() && sco->meshArrays[0].physicsObject)
-			sco->meshArrays[0].physicsObject->Destroy();
+		if (sco && !sco->meshArrays.empty()) {
+			if (sco->meshArrays[0].physicsObject)
+				sco->meshArrays[0].physicsObject->Destroy();
+			sco->meshArrays[0].RemoveFromGPU();
+		}
 		scene->RemoveObject(chunk->GetSceneObject());
-		// physicsEngine->RemoveObject()
-		// physicsEngine->
-		// TODO: ofcourse edelete the things from GPU too yeah
-        // if (chunk->sceneNode) scene->RemoveNode(chunk->sceneNode);
-        // if (chunk->vao) glDeleteVertexArrays(1, &chunk->vao);
-        // if (chunk->vbo) glDeleteBuffers(1, &chunk->vbo);
-        // if (chunk->ebo) glDeleteBuffers(1, &chunk->ebo);
+		
     }
 
     std::unordered_map<glm::ivec2, std::shared_ptr<Chunk>, ChunkCoordHash> chunks;
