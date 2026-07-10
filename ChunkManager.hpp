@@ -129,8 +129,8 @@ private:
 	void RemoveFromScene(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
 		chunk->state = ChunkState::Unloading;
 		auto sco = chunk->GetSceneObject();
+		scene->RemoveObject(sco);
 		if (sco && !sco->meshArrays.empty()) {
-			scene->RemoveObject(sco);
 			if (sco->meshArrays[0].physicsObject)
 				sco->meshArrays[0].physicsObject->Destroy();
 			sco->meshArrays[0].RemoveFromGPU();
