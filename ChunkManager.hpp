@@ -37,7 +37,7 @@ public:
 
 		auto chunk = std::make_shared<Chunk>();
 		chunk->coord = coord;
-		chunk->state = ChunkState::Queued;
+		chunk->state = ChunkState::TerrainPending;
 		chunks[coord] = chunk;
 
 		{
@@ -112,13 +112,13 @@ public:
 		glm::ivec2 coord = WorldToChunkCoord(worldX, worldZ);
 		Chunk* chunk = GetChunk(coord);
 
-		// if (!chunk) {
-		// 	return BlockType::Air; // or Unknown, see below
-		// }
+		if (!chunk) {
+			return BlockType::Air; // or Unknown, see below
+		}
 
-		// int localX = worldX - coord.x * WIDTH;
-		// int localZ = worldZ - coord.y * DEPTH;
-		// return chunk->GetBlock(localX, y, localZ);
+		int localX = worldX - coord.x * WIDTH;
+		int localZ = worldZ - coord.y * DEPTH;
+		return chunk->GetBlock(localX, y, localZ);
 	}
 
 	glm::ivec2 WorldToChunkCoord(int worldX, int worldZ) {
@@ -127,7 +127,7 @@ public:
 		return { chunkX, chunkZ };
 	}
 
-	Chunk* GetChunk(ChunkCoord coord) {
+	Chunk* GetChunk(glm::ivec2 coord) {
         auto it = chunks.find(coord);
         if (it == chunks.end())
             return nullptr;
@@ -146,7 +146,7 @@ private:
 				pendingQueue.pop_front();
 			}
 
-			ChunkState expected = ChunkState::Queued;
+			ChunkState expected = ChunkState::TerrainPending;
 			if (!chunk->state.compare_exchange_strong(expected, ChunkState::Generating)) {
 				continue; // was ScheduledForRemoval (or something else) — drop it
 			}

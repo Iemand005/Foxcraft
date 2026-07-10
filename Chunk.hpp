@@ -22,7 +22,7 @@ enum class BlockType : short {
 
 enum class ChunkState {
     Unloaded,           // not tracked yet
-    Queued,             // sitting in the work queue, not started
+    TerrainPending,             // sitting in the work queue, not started
     Generating,         // worker thread is building voxel/mesh data right now
     ReadyToUpload,       // worker finished, waiting for main thread to add to scene
     InScene,            // fully uploaded to GPU and active
