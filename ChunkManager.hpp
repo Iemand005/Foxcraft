@@ -104,6 +104,28 @@ public:
 			}
 		}
 	}
+	
+	const constexpr int WIDTH = 16;
+	const constexpr int DEPTH = 16;
+
+	BlockType ChunkManager::GetBlock(int worldX, int y, int worldZ) {
+		glm::ivec2 coord = WorldToChunkCoord(worldX, worldZ);
+		Chunk* chunk = GetChunk(coord);
+
+		// if (!chunk) {
+		// 	return BlockType::Air; // or Unknown, see below
+		// }
+
+		// int localX = worldX - coord.x * WIDTH;
+		// int localZ = worldZ - coord.y * DEPTH;
+		// return chunk->GetBlock(localX, y, localZ);
+	}
+
+	glm::ivec2 WorldToChunkCoord(int worldX, int worldZ) {
+		int chunkX = static_cast<int>(std::floor(static_cast<float>(worldX) / WIDTH));
+		int chunkZ = static_cast<int>(std::floor(static_cast<float>(worldZ) / DEPTH));
+		return { chunkX, chunkZ };
+	}
 
 private:
 	void WorkerLoop() {
