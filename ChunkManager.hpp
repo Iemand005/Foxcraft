@@ -30,22 +30,7 @@ public:
 		for (auto& t : workers) t.join();
 	}
 
-	// Called from main thread when a chunk enters range
-	void RequestChunk(glm::ivec2 coord) {
-		std::lock_guard<std::mutex> lock(chunksMutex);
-		if (chunks.count(coord)) return; // already tracked
-
-		auto chunk = std::make_shared<Chunk>();
-		chunk->coord = coord;
-		chunk->state = ChunkState::Queued;
-		chunks[coord] = chunk;
-
-		{
-			std::lock_guard<std::mutex> qlock(queueMutex);
-			pendingQueue.push_back(chunk);
-		}
-		queueCV.notify_one();
-	}
+	 
 
 	// Called from main thread when a chunk leaves range
 	void UnloadChunk(glm::ivec2 coord) {
@@ -111,8 +96,8 @@ private:
 
 			chunk->BuildMesh();
 
-			chunk->state = ChunkState::ReadyToUpload;
-			{
+			ChunkState expected = ChunkState::Generating;
+			if (chunk->state.compare_exchange_strong(expected, ChunkState::ReadyToUpload)) {
 				std::lock_guard<std::mutex> lock(completedMutex);
 				completedQueue.push(chunk);
 			}
