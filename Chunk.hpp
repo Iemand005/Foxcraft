@@ -262,7 +262,7 @@ public:
 			sceneObject->physicsObject->SetPosition(sceneObject->state.position);
 		}
 
-		mesh.FreeCpuData();
+		//mesh.FreeCpuData();
 
 
 		scene->AddObject(sceneObject);
