@@ -269,5 +269,5 @@ public:
 		state = ChunkState::InScene;
 	}
 
-	std::shared_ptr<fe::Object> GetSceneObject() { return self->sceneObject; }
+	std::shared_ptr<fe::Object> GetSceneObject() { return this->sceneObject; }
 };
