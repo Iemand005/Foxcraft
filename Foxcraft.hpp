@@ -166,59 +166,6 @@ public:
 		}
 	}
 
-	void AddBlock(std::string topTexturePath, std::string sideTexturePath, std::string bottomTexturePath) {
-		fe::UVRect cakeTopBtmUV;
-		cakeTopBtmUV.u0 = 1.0f / 16.0f;
-		cakeTopBtmUV.u1 = 15.0f / 16.0f;
-		cakeTopBtmUV.v0 = 1.0f / 16.0f;
-		cakeTopBtmUV.v1 = 15.0f / 16.0f;
-
-		fe::UVRect cakeSideUV;
-		cakeSideUV.u0 = 1.0f / 16.0f;
-		cakeSideUV.u1 = 15.0f / 16.0f;
-		cakeSideUV.v0 = 0.0f / 16.0f;
-		cakeSideUV.v1 = 8.0f / 16.0f;
-
-		fe::CubeUVs cakeUVs;
-
-
-		cakeUVs.top = cakeUVs.bottom = cakeTopBtmUV;
-		cakeUVs.front = cakeUVs.back = cakeUVs.left = cakeUVs.right = cakeSideUV;
-
-		auto planeMesh = fe::Primitives::GenerateCube({fe::PlaneDirection::Top}, cakeUVs);
-		planeMesh.loadTexture(topTexturePath, fe::TextureScaling::Nearest);
-
-		auto sideMesh = fe::Primitives::GenerateCube({fe::PlaneDirection::Front, fe::PlaneDirection::Left, fe::PlaneDirection::Right, fe::PlaneDirection::Back}, cakeUVs);
-		sideMesh.loadTexture(sideTexturePath, fe::TextureScaling::Nearest);
-
-		auto bottomMesh = fe::Primitives::GenerateCube({fe::PlaneDirection::Bottom}, cakeUVs);
-		bottomMesh.loadTexture(bottomTexturePath, fe::TextureScaling::Nearest);
-		bottomMesh.hasTransparency = true;
-
-		auto CAKEObject = std::make_shared<fe::Object>(planeMesh);
-		CAKEObject->meshes.push_back(sideMesh);
-		CAKEObject->meshes.push_back(bottomMesh);
-
-		CAKEObject->name = "Cake";
-		CAKEObject->state.position.y = 0.25f;
-		CAKEObject->state.scale.x = CAKEObject->state.scale.z = 14.0f / 16.0f;
-		CAKEObject->state.scale.y = 0.5f;
-		this->scene->AddObject(CAKEObject);
-
-	}
-
-	void AddMonoBlock(std::string texturePath, glm::vec3 pos = {}) {
-		auto cubeMesh = fe::Primitives::GenerateCube();
-		cubeMesh.loadTexture(texturePath, fe::TextureScaling::Nearest);
-		cubeMesh.hasTransparency = true;
-
-		auto cubeObject = std::make_shared<fe::Object>(cubeMesh);
-
-		cubeObject->name = "Cube";
-		cubeObject->state.position = pos;
-		this->scene->AddObject(cubeObject);
-	}
-
 	void SyncCameraToPlayer() {
 		if (!player || freeCamera) return;
 
@@ -311,7 +258,7 @@ public:
 			}
 
 			if (freeCamera) {
-				float dt = fpsCounter.deltaTime;
+				double dt = fpsCounter.deltaTime;
 				float spd = freeCamSpeed * dt;
 				glm::vec3 cp = camera->GetPos();
 				glm::vec3 right = glm::normalize(glm::cross(camera->front, camera->up));
