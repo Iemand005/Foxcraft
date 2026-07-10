@@ -129,12 +129,16 @@ private:
 	void RemoveFromScene(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
 		chunk->state = ChunkState::Unloading;
 		auto sco = chunk->GetSceneObject();
-		scene->RemoveObject(sco);
+		bool removed = scene->RemoveObject(sco);
 		if (sco && !sco->meshArrays.empty()) {
 			if (sco->meshArrays[0].physicsObject)
 				sco->meshArrays[0].physicsObject->Destroy();
 			sco->meshArrays[0].RemoveFromGPU();
 		}
+
+		if (!removed) {
+            std::cerr << "WARNING: chunk scene object was non-null but not found in scene->objects!\n";
+        }
 		
 	}
 
