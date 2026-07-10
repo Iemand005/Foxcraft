@@ -262,10 +262,10 @@ public:
 		sceneObject->state.position = GetWorldPosition();
 		
 		auto physobj = physicsEngine->CreateObject(colliderVertices, colliderIndices);
-		mesh.SetPhysicsObject(std::move(physobj));
 		if (physobj) {
 			physobj->SetPosition(sceneObject->state.position);
 		}
+		mesh.SetPhysicsObject(std::move(physobj));
 		
 		mesh.FreeCpuData();
 
