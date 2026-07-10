@@ -263,7 +263,7 @@ public:
 		}
 		mesh.SetPhysicsObject(std::move(physobj));
 
-		//mesh.FreeCpuData();
+		mesh.FreeCpuData();
 
 
 		scene->AddObject(sceneObject);
