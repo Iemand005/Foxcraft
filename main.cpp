@@ -1,7 +1,7 @@
 #ifdef _WIN32
-#define _WINSOCKAPI_
-#include <winsock2.h>
-#include <windows.h>
+// #define _WINSOCKAPI_
+// #include <winsock2.h>
+// #include <windows.h>
 #else
 #include <X11/Xlib.h>
 #endif
