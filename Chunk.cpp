@@ -1,4 +1,5 @@
 #include "Chunk.hpp"
+#include "ChunkMesher.hpp"
 
 void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
 
