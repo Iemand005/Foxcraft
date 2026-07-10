@@ -69,6 +69,9 @@ public:
 		return {coord.x * WIDTH, 0, coord.y * DEPTH};
 	}
 
+	BlockType GenerateBlockAt(int x, int y) {
+
+	}
 
 	void Generate() {
 		float heightAmplitude = 6.0f;
