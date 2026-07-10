@@ -61,7 +61,7 @@ public:
 		mesh = fe::MeshArray(std::move(allVertices), std::move(allIndices), false);
 	}
 
-	int GetBlockTextureLayer(BlockType type, fe::PlaneDirection direction) {
+	static int GetBlockTextureLayer(BlockType type, fe::PlaneDirection direction) {
 		if (type == BlockType::Grass) {
 			if (direction == fe::PlaneDirection::Top) {
 				return 1;
