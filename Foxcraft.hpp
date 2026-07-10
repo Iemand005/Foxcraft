@@ -282,7 +282,7 @@ public:
 		{
 			if (ImGui::Button("Spawn Chunk (-1, -1)"))
 				chunkManager->RequestChunk({-1, -1});
-			ImGui::DragFloat("Render Distance", &CHUNK_LOAD_DISTANCE);
+			ImGui::DragInt("Render Distance", &CHUNK_LOAD_DISTANCE);
 		}
 		ImGui::End();
 
