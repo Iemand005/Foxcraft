@@ -80,6 +80,18 @@ public:
 		}
 	}
 
+	void LoadChunksInsideRange(glm::ivec2 center, int loadDistance) {
+		for (int dz = -loadDistance; dz <= loadDistance; dz++) {
+			for (int dx = -loadDistance; dx <= loadDistance; dx++) {
+				int distance = std::max(std::abs(dx), std::abs(dz));
+				if (distance > loadDistance) continue;
+
+				// glm::ivec2 coord{playerChunkX + dx, playerChunkZ + dz};
+				RequestChunk(center + glm::ivec2{dx, dz});
+			}
+		}
+	}
+
 	void UnloadChunksOutsideRange(glm::ivec2 center, int loadDistance) {
 		std::lock_guard<std::mutex> lock(chunksMutex);
 		for (auto& [coord, chunk] : chunks) {

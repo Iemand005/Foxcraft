@@ -153,6 +153,8 @@ public:
 			}
 		}
 
+		chunkManager->LoadChunksInsideRange(glm::ivec2{playerChunkX, playerChunkZ}, CHUNK_LOAD_DISTANCE);
+
 		chunkManager->UnloadChunksOutsideRange(glm::ivec2{playerChunkX, playerChunkZ}, CHUNK_LOAD_DISTANCE);
 	}
 
