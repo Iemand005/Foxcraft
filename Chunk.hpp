@@ -42,7 +42,7 @@ private:
 
 public:
 	glm::ivec2 coord;
-	ChunkState state;
+	std::atomic<ChunkState> state;
 
 	Chunk() : blocks(WIDTH * HEIGHT * DEPTH, BlockType::Air) {}
 	Chunk(int x, int y) : Chunk() {
@@ -252,13 +252,13 @@ public:
 
 		std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
 		
-		auto physobj = physicsEngine->CreateObject(colliderVertices, colliderIndices);
-		mesh.SetPhysicsObject(std::move(physobj));
 		
 		sceneObject = std::make_shared<fe::Object>(std::move(mesh));
 		sceneObject->name = "Chunk";
 		sceneObject->state.position = GetWorldPosition();
 		
+		auto physobj = physicsEngine->CreateObject(colliderVertices, colliderIndices);
+		mesh.SetPhysicsObject(std::move(physobj));
 		if (physobj) {
 			physobj->SetPosition(sceneObject->state.position);
 		}
