@@ -156,7 +156,8 @@ private:
 			if (chunk->state != ChunkState::TerrainGenerating)
 				continue;
 
-			chunk->BuildMesh();
+			// chunk->BuildMesh();
+			ChunkMesher::BuildMesh(chunk, *this);
 
 			expected = ChunkState::TerrainGenerating;
 			if (chunk->state.compare_exchange_strong(expected, ChunkState::TerrainReady)) {

@@ -7,7 +7,7 @@
 class ChunkMesher {
 	static constexpr int WIDTH = 16, HEIGHT = 128, DEPTH = 16;
 public:
-    static fe::MeshArray BuildMesh(Chunk& chunk, ChunkManager& manager) {
+    static fe::MeshArray BuildMesh(std::shared_ptr<Chunk> chunk, ChunkManager& manager) {
 		std::vector<fe::VertexArray> allVertices;
 		std::vector<unsigned int> allIndices;
 
@@ -17,7 +17,7 @@ public:
 		for (int x = 0; x < WIDTH; x++) {
 			for (int y = 0; y < HEIGHT; y++) {
 				for (int z = 0; z < DEPTH; z++) {
-					BlockType block = chunk.GetBlock(x, y, z);
+					BlockType block = chunk->GetBlock(x, y, z);
 					if (block == BlockType::Air) continue;
 
 					std::vector<fe::PlaneDirection> visibleFaces;
@@ -26,7 +26,7 @@ public:
 					for (auto direction : {fe::PlaneDirection::Front, fe::PlaneDirection::Back,
 						fe::PlaneDirection::Left, fe::PlaneDirection::Right,
 						fe::PlaneDirection::Top, fe::PlaneDirection::Bottom}) {
-						if (chunk.NeedsFace(glm::vec3(x, y, z), direction)) {
+						if (chunk->NeedsFace(glm::vec3(x, y, z), direction)) {
 							visibleFaces.push_back(direction);
 						}
 					}
@@ -58,7 +58,7 @@ public:
 			}
 		}
 
-		chunk.mesh = fe::MeshArray(std::move(allVertices), std::move(allIndices), false);
+		chunk->mesh = fe::MeshArray(std::move(allVertices), std::move(allIndices), false);
 	}
 
 	static int GetBlockTextureLayer(BlockType type, fe::PlaneDirection direction) {
