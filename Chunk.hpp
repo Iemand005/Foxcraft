@@ -239,18 +239,16 @@ public:
 	}
 
 	void UploadToScene(fe::PhysicsEngine* physicsEngine, fe::Scene* scene) {
-		std::cout << "Uploading chunk (" << coord.x << ", " << coord.y << "): "
-		          << "Vertices: " << mesh.vertices.size()
-		          << " Indices: " << mesh.indices.size() << std::endl;
+		std::cout << "Uploading chunk (" << coord.x << ", " << coord.y << "): " << "Vertices: " << mesh.vertices.size() << " Indices: " << mesh.indices.size() << std::endl;
 		
 		mesh.CopyToGPU();
 
 		std::vector<glm::vec3> colliderVertices;
 		colliderVertices.reserve(mesh.vertices.size());
-		for (const auto& vertex : mesh.vertices) {
+		for (const auto& vertex : mesh.vertices)
 			colliderVertices.push_back(vertex.position);
-		}
-		std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
+
+			std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
 		mesh.SetPhysicsObject(physicsEngine->CreateObject(colliderVertices, colliderIndices));
 
 		mesh.loadTextureArray(BlockTextures(), fe::TextureScaling::Nearest);
