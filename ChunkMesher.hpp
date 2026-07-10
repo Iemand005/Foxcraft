@@ -1,9 +1,11 @@
 #pragma once
 
+#include <MeshArray.hpp>
+#include "CChunk.hpp"
 
 class ChunkMesher {
 public:
-    static Mesh BuildMesh(Chunk& chunk, ChunkManager& manager) {
+    static MeshArray BuildMesh(Chunk& chunk, ChunkManager& manager) {
         Mesh mesh;
         ChunkCoord coord = chunk.GetCoord();
 
