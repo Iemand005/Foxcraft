@@ -49,7 +49,7 @@ public:
 
 	BlockType GetBlock(int x, int y, int z) const {
 		if(x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT || z < 0 || z >= DEPTH)
-			return BlockType::Air;
+			return BlockType::Bedrock;
 		return blocks[x * HEIGHT * DEPTH + y * DEPTH + z];
 	}
 
