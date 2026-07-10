@@ -7,7 +7,7 @@
 class ChunkMesher {
 	static constexpr int WIDTH = 16, HEIGHT = 128, DEPTH = 16;
 public:
-    static fe::MeshArray BuildMesh(std::shared_ptr<Chunk> chunk, ChunkManager& manager) {
+    static fe::MeshArray BuildMesh(std::shared_ptr<Chunk> chunk, ChunkManager *manager) {
 		std::vector<fe::VertexArray> allVertices;
 		std::vector<unsigned int> allIndices;
 
