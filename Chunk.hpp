@@ -237,6 +237,12 @@ public:
 	}
 
 	void UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
+
+		if (state == ChunkState::ScheduledForRemoval || state == ChunkState::Unloading) {
+			std::cout << "Cancelled chunk upload (" << coord.x << ", " << coord.y << ") due to removal request." << std::endl;
+
+			return; // got cancelled after the caller's check but before we ran
+		}
 		std::cout << "Uploading chunk (" << coord.x << ", " << coord.y << "): " << "Vertices: " << mesh.vertices.size() << " Indices: " << mesh.indices.size() << std::endl;
 		
 		// GPU coies
