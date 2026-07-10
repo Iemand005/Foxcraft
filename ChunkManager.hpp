@@ -72,8 +72,8 @@ public:
 		std::lock_guard<std::mutex> lock(chunksMutex);
 		for (auto it = chunks.begin(); it != chunks.end(); ) {
 			if (it->second->state == ChunkState::ScheduledForRemoval) {
-				RemoveFromScene(it->second, physicsEngine, scene);
-				it = chunks.erase(it);
+				if (RemoveFromScene(it->second, physicsEngine, scene))
+					it = chunks.erase(it);
 			} else {
 				++it;
 			}
@@ -126,7 +126,7 @@ private:
 		chunk->UploadToScene(physicsEngine, scene);
 	}
 
-	void RemoveFromScene(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
+	bool RemoveFromScene(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
 		chunk->state = ChunkState::Unloading;
 		auto sco = chunk->GetSceneObject();
 		bool removed = scene->RemoveObject(sco);
@@ -139,7 +139,7 @@ private:
 		if (!removed) {
             std::cerr << "WARNING: chunk scene object was non-null but not found in scene->objects!\n";
         }
-		
+		return removed;
 	}
 
 	std::unordered_map<glm::ivec2, std::shared_ptr<Chunk>, ChunkCoordHash> chunks;
