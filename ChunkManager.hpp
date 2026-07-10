@@ -55,7 +55,7 @@ public:
             it->second->state = ChunkState::ScheduledForRemoval;
     }
 
-    void Update(int maxUploads, fe::PhysicsEngine* physicsEngine, fe::Scene* scene) {
+    void Update(int maxUploads, fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
         int uploaded = 0;
         while (uploaded < maxUploads) {
             std::shared_ptr<Chunk> chunk;
@@ -119,12 +119,12 @@ private:
         }
     }
 
-    void UploadAndInsert(std::shared_ptr<Chunk> chunk, fe::PhysicsEngine* physicsEngine, fe::Scene* scene) {
+    void UploadAndInsert(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
 
 		chunk->UploadToScene(physicsEngine, scene);
     }
 
-    void RemoveFromScene(std::shared_ptr<Chunk> chunk, fe::PhysicsEngine* physicsEngine, fe::Scene* scene) {
+    void RemoveFromScene(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
         chunk->state = ChunkState::Unloading;
 		auto sco = chunk->GetSceneObject();
 		if (sco && !sco->meshArrays.empty() && sco->meshArrays[0].physicsObject)

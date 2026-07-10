@@ -238,7 +238,7 @@ public:
 		return blocks;
 	}
 
-	void UploadToScene(fe::PhysicsEngine* physicsEngine, fe::Scene* scene) {
+	void UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
 		std::cout << "Uploading chunk (" << coord.x << ", " << coord.y << "): " << "Vertices: " << mesh.vertices.size() << " Indices: " << mesh.indices.size() << std::endl;
 		
 		// GPU coies
@@ -253,7 +253,7 @@ public:
 		std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
 		
 		
-		sceneObject = std::make_shared<fe::Object>(mesh);
+		sceneObject = std::make_shared<fe::Object>(std::move(mesh));
 		sceneObject->name = "Chunk";
 		sceneObject->state.position = GetWorldPosition();
 		
