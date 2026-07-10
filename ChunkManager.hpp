@@ -80,6 +80,19 @@ public:
         }
     }
 
+	void UnloadChunksOutsideRange(glm::ivec2 center, int loadDistance) {
+		std::lock_guard<std::mutex> lock(chunksMutex);
+		for (auto& [coord, chunk] : chunks) {
+			int dx = coord.x - center.x;
+			int dz = coord.y - center.y;
+			int distance = std::max(std::abs(dx), std::abs(dz));
+
+			if (distance > loadDistance && chunk->state != ChunkState::ScheduledForRemoval) {
+				chunk->state = ChunkState::ScheduledForRemoval;
+			}
+		}
+	}
+
 private:
     void WorkerLoop() {
         while (running) {
