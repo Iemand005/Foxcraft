@@ -49,6 +49,7 @@ file(GLOB_RECURSE IMGUI_SOURCE_FILES
 	${IMGUI_DIR}/backends/imgui_impl_sdlgpu3.cpp
 	${IMGUI_DIR}/backends/imgui_impl_sdlrenderer3.cpp
 	${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
+	${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp
 	${IMGUI_DIR}/imgui_tables.cpp
 	${IMGUI_DIR}/imgui_widgets.cpp
 	${IMGUI_DIR}/imgui_demo.cpp
