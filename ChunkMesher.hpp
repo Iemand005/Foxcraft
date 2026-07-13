@@ -59,6 +59,7 @@ public:
 		}
 
 		chunk->mesh = fe::MeshArray(std::move(allVertices), std::move(allIndices), false);
+		return chunk->mesh;
 	}
 
 	static int GetBlockTextureLayer(BlockType type, fe::PlaneDirection direction) {
