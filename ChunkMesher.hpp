@@ -7,7 +7,7 @@
 class ChunkMesher {
 	static constexpr int WIDTH = 16, HEIGHT = 128, DEPTH = 16;
 public:
-    static fe::MeshArray BuildMesh(std::shared_ptr<Chunk> chunk, ChunkManager *manager) {
+    static void BuildMesh(std::shared_ptr<Chunk> chunk, ChunkManager *manager) {
 		std::vector<fe::VertexArray> allVertices;
 		std::vector<unsigned int> allIndices;
 
@@ -59,7 +59,6 @@ public:
 		}
 
 		chunk->mesh = fe::MeshArray(std::move(allVertices), std::move(allIndices), false);
-		return chunk->mesh;
 	}
 
 	static int GetBlockTextureLayer(BlockType type, fe::PlaneDirection direction) {
