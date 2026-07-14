@@ -5,7 +5,6 @@
 
 #include <cmath>
 #include <memory>
-#include <iostream>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/noise.hpp>
@@ -13,6 +12,7 @@
 #include <Primitives.hpp>
 #include <MeshArray.hpp>
 #include <Object.hpp>
+#include <Scene.hpp>
 
 enum class BlockType : short {
 	Air = 0,
@@ -105,10 +105,10 @@ public:
 
 				float normalizedNoise = noiseSum / maxAmplitude;
 				float waveHeight = heightOffset + normalizedNoise * heightAmplitude;
-				int maxHeight = std::clamp(static_cast<int>(std::round(waveHeight)), 1, HEIGHT - 1);
+				int maxHeight = glm::clamp(static_cast<int>(std::round(waveHeight)), 1, HEIGHT - 1);
 
 				float bedrockNoise = glm::perlin(glm::vec2(worldX * 0.25f, worldZ * 0.25f));
-				int bedrockThickness = std::clamp(
+				int bedrockThickness = glm::clamp(
 					1 + static_cast<int>((bedrockNoise * 0.5f + 0.5f) * 3.0f), 1, 3);
 
 				int stoneEnd = std::max(bedrockThickness, maxHeight - 4);
