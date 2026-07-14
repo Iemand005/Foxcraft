@@ -24,8 +24,6 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
 	mesh.SetPhysicsObject(std::move(physobj));
 
 	mesh.loadTextureArray(ChunkMesher::BlockTextures(), fe::TextureScaling::Nearest);
-	mesh.CopyToGPU();
-	mesh.FreeCpuData();
 
 	sceneObject = std::make_shared<fe::Object<fe::VertexArray>>(std::move(mesh));
 	sceneObject->name = "Chunk";
