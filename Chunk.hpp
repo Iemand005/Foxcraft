@@ -11,7 +11,7 @@
 #include <glm/gtc/noise.hpp>
 
 #include <Primitives.hpp>
-#include <MeshArray.hpp>
+#include <Mesh.hpp>
 #include <Object.hpp>
 #include <Scene.hpp>
 
@@ -45,7 +45,7 @@ private:
 public:
 	glm::ivec2 coord;
 	std::atomic<ChunkState> state;
-	fe::MeshArray mesh;
+	fe::Mesh<fe::VertexArray> mesh;
 
 	Chunk() : blocks(WIDTH * HEIGHT * DEPTH, BlockType::Air) {}
 	Chunk(int x, int y) : Chunk() {

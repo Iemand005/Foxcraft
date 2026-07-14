@@ -1,6 +1,6 @@
 #pragma once
 
-#include <MeshArray.hpp>
+#include <Mesh.hpp>
 #include "Chunk.hpp"
 #include "ChunkManager.hpp"
 
@@ -58,7 +58,7 @@ public:
 			}
 		}
 
-		chunk->mesh = fe::MeshArray(std::move(allVertices), std::move(allIndices), false);
+		chunk->mesh = fe::Mesh<fe::VertexArray>(std::move(allVertices), std::move(allIndices));
 	}
 
 	static int GetBlockTextureLayer(BlockType type, fe::PlaneDirection direction) {

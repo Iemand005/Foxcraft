@@ -152,10 +152,12 @@ private:
 		chunk->state = ChunkState::RemovalPending;
 		auto sco = chunk->GetSceneObject();
 		bool removed = scene->RemoveObject(sco);
-		if (sco && !sco->meshArrays.empty()) {
-			if (sco->meshArrays[0].physicsObject)
-				sco->meshArrays[0].physicsObject->Destroy();
-			sco->meshArrays[0].RemoveFromGPU();
+		if (sco && !sco->meshes.empty()) {
+			for (auto& m : sco->meshes) {
+				if (m.physicsObject)
+					m.physicsObject->Destroy();
+				m.RemoveFromGPU();
+			}
 		}
 
 		if (!removed) {
