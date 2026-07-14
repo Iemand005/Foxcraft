@@ -112,7 +112,7 @@ public:
 	const int WIDTH = 16;
 	const int DEPTH = 16;
 
-	BlockType ChunkManager::GetBlock(int worldX, int y, int worldZ) {
+	BlockType GetBlock(int worldX, int y, int worldZ) {
 		glm::ivec2 coord = WorldToChunkCoord(worldX, worldZ);
 		Chunk* chunk = GetChunk(coord);
 
