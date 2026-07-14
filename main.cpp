@@ -16,6 +16,7 @@
 
 void LogToFile(const std::string& message)
 {
+	std::cout << message << std::endl;
 #ifdef _WIN32
 	std::string logpath = "C:\\Temp\\Cake_screensaver.log";
 #else
