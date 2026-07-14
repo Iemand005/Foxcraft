@@ -86,11 +86,11 @@ public:
 	}
 
 	void RebuildPlayerPhysicsBody() {
-		PhysicsFactory *physicsEngine = GethysicsEngine();
-		if (!player || !) return;
+		fe::PhysicsFactory *physicsEngine = GethysicsEngine();
+		if (!player || !physicsEngine) return;
 
 		const glm::vec3 size = useRectangularPlayerHitbox ? glm::vec3(0.4f, 1.5f, 0.4f) : glm::vec3(1.0f, 1.0f, 1.0f);
-		auto newPhysics = GethysicsEngine()->CreateObject(size, true);
+		auto newPhysics = physicsEngine->CreateObject(size, true);
 		if (!newPhysics) return;
 
 		this->player->SetPhysicsObject(std::move(newPhysics));
