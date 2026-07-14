@@ -82,14 +82,15 @@ public:
 
 		LoadModels();
 
-		if (physicsEngine) physicsEngine->EnableGravity();
+		if (physicsEngine) GethysicsEngine()->EnableGravity();
 	}
 
 	void RebuildPlayerPhysicsBody() {
-		if (!player || !physicsEngine) return;
+		PhysicsFactory *physicsEngine = GethysicsEngine();
+		if (!player || !) return;
 
 		const glm::vec3 size = useRectangularPlayerHitbox ? glm::vec3(0.4f, 1.5f, 0.4f) : glm::vec3(1.0f, 1.0f, 1.0f);
-		auto newPhysics = this->physicsEngine->CreateObject(size, true);
+		auto newPhysics = GethysicsEngine()->CreateObject(size, true);
 		if (!newPhysics) return;
 
 		this->player->SetPhysicsObject(std::move(newPhysics));
@@ -208,7 +209,7 @@ public:
 
 			ProcessInput();
 
-			chunkManager->Update(1, this->physicsEngine.get(), this->scene.get());
+			chunkManager->Update(1, GetPhysicsEngine(), this->scene.get());
 
 			if (!freeCamera) {
 				SyncCameraToPlayer();
