@@ -82,11 +82,11 @@ public:
 
 		LoadModels();
 
-		if (physicsEngine) GethysicsEngine()->EnableGravity();
+		if (physicsEngine) GetPhysicsEngine()->EnableGravity();
 	}
 
 	void RebuildPlayerPhysicsBody() {
-		fe::PhysicsFactory *physicsEngine = GethysicsEngine();
+		fe::PhysicsFactory *physicsEngine = GetPhysicsEngine();
 		if (!player || !physicsEngine) return;
 
 		const glm::vec3 size = useRectangularPlayerHitbox ? glm::vec3(0.4f, 1.5f, 0.4f) : glm::vec3(1.0f, 1.0f, 1.0f);
