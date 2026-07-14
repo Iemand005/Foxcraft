@@ -92,7 +92,14 @@ target_link_libraries(Foxcraft PRIVATE X11::X11)
 endif()
 
 set_property(TARGET Foxcraft PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-	
+
+add_custom_command(TARGET Foxcraft POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+		${CMAKE_CURRENT_SOURCE_DIR}/resources
+		$<TARGET_FILE_DIR:Foxcraft>/resources
+	COMMENT "Copying Foxcraft resources to build directory..."
+)
+
 if(MSVC)
 	target_compile_options(Foxcraft PRIVATE $<$<CONFIG:Debug>:/Zi>)
 
