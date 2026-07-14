@@ -129,6 +129,8 @@ if(GLSLC)
 	set(SHADER_SOURCES
 		${SHADER_SRC_DIR}/VertexShader_vk.glsl
 		${SHADER_SRC_DIR}/FragmentShader_vk.glsl
+		${SHADER_SRC_DIR}/VertexShader_vk_array.glsl
+		${SHADER_SRC_DIR}/FragmentShader_vk_array.glsl
 	)
 
 	foreach(SHADER ${SHADER_SOURCES})
