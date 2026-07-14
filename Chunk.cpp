@@ -27,7 +27,7 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
 	mesh.CopyToGPU();
 	mesh.FreeCpuData();
 
-	sceneObject = std::make_shared<fe::Object>(std::move(mesh));
+	sceneObject = std::make_shared<fe::Object<fe::VertexArray>>(std::move(mesh));
 	sceneObject->name = "Chunk";
 	sceneObject->state.position = GetWorldPosition();
 

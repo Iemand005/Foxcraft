@@ -40,7 +40,7 @@ private:
 	std::vector<BlockType> blocks;
 	static constexpr int WIDTH = 16, HEIGHT = 128, DEPTH = 16;
 
-	std::shared_ptr<fe::Object> sceneObject;
+	std::shared_ptr<fe::Object<fe::VertexArray>> sceneObject;
 	
 public:
 	glm::ivec2 coord;
@@ -155,5 +155,5 @@ public:
 
 	void UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene);
 
-	std::shared_ptr<fe::Object> GetSceneObject() { return this->sceneObject; }
+	std::shared_ptr<fe::Object<fe::VertexArray>> GetSceneObject() { return this->sceneObject; }
 };

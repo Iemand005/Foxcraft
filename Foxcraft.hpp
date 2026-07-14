@@ -35,7 +35,7 @@ public:
 	std::vector<glm::vec3> path;
 	int windowStart = 0;
 	float pathIndex = 1.0f;
-	std::vector<std::shared_ptr<fe::Object>> chunkObjects;  // Track loaded chunk objects
+	std::vector<std::shared_ptr<fe::Object<fe::VertexArray>>> chunkObjects;  // Track loaded chunk objects
 	std::vector<bool> chunksLoaded;  // Track which chunks have been meshed
 	glm::vec3 lastUp = glm::vec3(0, 1, 0);
 	glm::vec3 lastRight = glm::vec3(1, 0, 0);
