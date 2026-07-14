@@ -9,15 +9,5 @@ uniform sampler2DArray ourTexture;
 
 void main()
 {
-    vec3 n = normalize(Normal);
-
-    vec3 lighting = vec3(1.0); 
-
-    vec4 texSample = texture(ourTexture, TexCoord);
-    
-    if(texSample.a < 0.1) {
-        discard;
-    }
-
-    FragColor = vec4(texSample.rgb * lighting, texSample.a);
+    FragColor = vec4(0.0, 1.0, 0.0, 1.0);
 }
