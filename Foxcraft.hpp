@@ -82,7 +82,7 @@ public:
 
 		LoadModels();
 
-		if (physicsEngine) GetPhysicsEngine()->EnableGravity();
+		GetPhysicsEngine()->EnableGravity();
 	}
 
 	void RebuildPlayerPhysicsBody() {
