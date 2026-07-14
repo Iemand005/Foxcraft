@@ -5,6 +5,7 @@
 
 #include <cmath>
 #include <memory>
+#include <atomic>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/noise.hpp>
