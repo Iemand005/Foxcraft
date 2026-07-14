@@ -5,6 +5,8 @@
 #include <queue>
 #include <condition_variable>
 #include <thread>
+#include <atomic>
+
 
 #include <glm/glm.hpp>
 
