@@ -27,6 +27,7 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
 	sceneObject = std::make_shared<fe::Object<fe::VertexArray>>(std::move(mesh));
 	sceneObject->name = "Chunk";
 	sceneObject->state.position = GetWorldPosition();
+	sceneObject->isStatic = true;
 
 	scene->AddObject(sceneObject);
 	state = ChunkState::InScene;
