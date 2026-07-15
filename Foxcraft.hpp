@@ -105,7 +105,7 @@ public:
 
 		this->player = std::make_shared<fe::Character>();
 		this->scene->AddObject(player);
-		this->player->state.position = glm::vec3(0.0f, 2.0f, 5.0f);
+		this->player->state.position = glm::vec3(0.0f, 35.0f, 5.0f);
 		this->player->gravityEnabled = true;
 		RebuildPlayerPhysicsBody();
 		if (this->player->physicsObject) {
@@ -259,8 +259,11 @@ public:
 		window->Show();
 		window->DisableVSync();
 
+		glDisable(GL_CULL_FACE);
+		std::cerr << "[INIT] Face culling DISABLED for diagnostic" << std::endl;
+
 		player->state.position.z = 5;
-		player->state.position.y = 2;
+		player->state.position.y = 35;
 		if (player->physicsObject) {
 			player->physicsObject->SetPosition(player->state.position);
 		}
@@ -274,6 +277,24 @@ public:
 		std::cerr << "[INIT] Camera front: (" << camera->front.x << ", " << camera->front.y << ", " << camera->front.z << ")" << std::endl;
 		std::cerr << "[INIT] Player pos: (" << player->state.position.x << ", " << player->state.position.y << ", " << player->state.position.z << ")" << std::endl;
 		std::cerr << "[INIT] Shader linked: " << (shader ? (shader->IsLinked() ? "yes" : "NO") : "null") << std::endl;
+
+		{
+			GLenum err;
+			while ((err = glGetError()) != GL_NO_ERROR) {
+				std::cerr << "[INIT] Pre-existing GL error: 0x" << std::hex << err << std::dec << std::endl;
+			}
+		}
+		{
+			GLint prog = 0;
+			glGetIntegerv(GL_CURRENT_PROGRAM, &prog);
+			GLint ebo = 0;
+			glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &ebo);
+			GLint vao = 0;
+			glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &vao);
+			std::cerr << "[INIT] GL state: program=" << prog << " vao=" << vao << " ebo=" << ebo
+					  << " depthTest=" << glIsEnabled(GL_DEPTH_TEST)
+					  << " cullFace=" << glIsEnabled(GL_CULL_FACE) << std::endl;
+		}
 
 		while (!window->ShouldClose()) {
 
