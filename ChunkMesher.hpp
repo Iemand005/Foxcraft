@@ -30,7 +30,7 @@ public:
 		};
 
 		auto needsFace = [&](const glm::ivec3& pos, fe::PlaneDirection dir) -> bool {
-			glm::vec3 p = Chunk::GetOffsetAt(glm::vec3(pos), dir);
+			glm::vec3 p = Chunk::GetOffsetAt(pos, dir);
 			return getBlockAt((int)p.x, (int)p.y, (int)p.z) == BlockType::Air;
 		};
 
