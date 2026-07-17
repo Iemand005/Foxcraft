@@ -62,7 +62,7 @@ public:
 		blocks[x * HEIGHT * DEPTH + y * DEPTH + z] = type;
 	}
 		
-	BlockType GetBlock(glm::ivec3 pos) const {
+	BlockType GetBlock(const glm::ivec3& pos) const {
 		return GetBlock(pos.x, pos.y, pos.z);
 	}
 
@@ -74,7 +74,7 @@ public:
 		return {coord.x * WIDTH, 0, coord.y * DEPTH};
 	}
 
-	BlockType GenerateBlockAt(glm::ivec3 position) {
+	BlockType GenerateBlockAt(const glm::ivec3& position) {
 
 	}
 
@@ -129,7 +129,7 @@ public:
 		}
 	}
 
-	static glm::ivec3 GetOffsetAt(glm::ivec3 pos, fe::PlaneDirection direction) {
+	static glm::ivec3 GetOffsetAt(const glm::ivec3& pos, fe::PlaneDirection direction) {
 		switch (direction) {
 			case fe::PlaneDirection::Front:
 				return pos + glm::ivec3(0, 0, -1);
@@ -147,7 +147,7 @@ public:
 		return pos;
 	}
 
-	bool NeedsFace(glm::ivec3 pos, fe::PlaneDirection direction) {
+	bool NeedsFace(const glm::ivec3& pos, fe::PlaneDirection direction) {
 		BlockType neighbor = GetBlock(GetOffsetAt(pos, direction));
 		return neighbor == BlockType::Air;
 	}

@@ -14,24 +14,23 @@ public:
 		allVertices.reserve(WIDTH * HEIGHT * DEPTH * 4);
 		allIndices.reserve(WIDTH * HEIGHT * DEPTH * 6);
 
-		auto getBlockAt = [&](int x, int y, int z) -> BlockType {
-			if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT && z >= 0 && z < DEPTH)
-				return chunk->GetBlock(x, y, z);
-			if (y < 0 || y >= HEIGHT)
+		auto getBlockAt = [&](const glm::ivec3& pos) -> BlockType {
+			if (pos.x >= 0 && pos.x < WIDTH && pos.y >= 0 && pos.y < HEIGHT && pos.z >= 0 && pos.z < DEPTH)
+				return chunk->GetBlock(pos.x, pos.y, pos.z);
+			if (pos.y < 0 || pos.y >= HEIGHT)
 				return BlockType::Air;
-			int worldX = chunk->coord.x * WIDTH + x;
-			int worldZ = chunk->coord.y * DEPTH + z;
+			int worldX = chunk->coord.x * WIDTH + pos.x;
+			int worldZ = chunk->coord.y * DEPTH + pos.z;
 			auto neighborCoord = manager->WorldToChunkCoord(worldX, worldZ);
 			Chunk* neighbor = manager->GetChunk(neighborCoord);
 			if (!neighbor) return BlockType::Air;
 			int localX = worldX - neighborCoord.x * WIDTH;
 			int localZ = worldZ - neighborCoord.y * DEPTH;
-			return neighbor->GetBlock(localX, y, localZ);
+			return neighbor->GetBlock(localX, pos.y, localZ);
 		};
 
 		auto needsFace = [&](const glm::ivec3& pos, fe::PlaneDirection dir) -> bool {
-			glm::vec3 p = Chunk::GetOffsetAt(pos, dir);
-			return getBlockAt((int)p.x, (int)p.y, (int)p.z) == BlockType::Air;
+			return getBlockAt(Chunk::GetOffsetAt(pos, dir)) == BlockType::Air;
 		};
 
 		glm::ivec3 blockPos;
