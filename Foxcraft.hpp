@@ -83,7 +83,8 @@ public:
 
 		SetClearColor(0.1f, 0.3f, 1);
 
-		LoadShaders("resources/shaders/VertexShader.glsl", "resources/shaders/FragmentShader.glsl");
+		if (!options.useVulkan)
+			LoadShaders("resources/shaders/VertexShader.glsl", "resources/shaders/FragmentShader.glsl");
 
 		LoadModels();
 
