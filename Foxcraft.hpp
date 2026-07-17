@@ -264,8 +264,6 @@ public:
 		window->Show();
 		window->DisableVSync();
 
-		glDisable(GL_CULL_FACE);
-
 		player->state.position.z = 5;
 		player->state.position.y = 35;
 		if (player->physicsObject) {
