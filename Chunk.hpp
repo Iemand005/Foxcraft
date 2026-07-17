@@ -157,6 +157,8 @@ public:
 	}
 
 	void UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, bool createPhysics = true);
+	void AddPhysics(fe::PhysicsFactory* physicsEngine);
+	void RemovePhysics();
 
 	std::shared_ptr<fe::Object<fe::VertexArray>> GetSceneObject() { return this->sceneObject; }
 };

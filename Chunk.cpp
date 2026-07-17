@@ -36,3 +36,29 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, b
 	scene->AddObject(sceneObject);
 	state = ChunkState::InScene;
 }
+
+void Chunk::AddPhysics(fe::PhysicsFactory* physicsEngine) {
+	if (!sceneObject || mesh.vertices.empty() || mesh.indices.empty())
+		return;
+	if (sceneObject->physicsObject)
+		return;
+
+	std::vector<glm::vec3> colliderVertices;
+	colliderVertices.reserve(mesh.vertices.size());
+	for (const auto& v : mesh.vertices)
+		colliderVertices.push_back(v.position);
+
+	std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
+
+	auto physobj = physicsEngine->CreateObject(colliderVertices, colliderIndices);
+	if (physobj)
+		physobj->SetPosition(GetWorldPosition());
+	sceneObject->SetPhysicsObject(std::move(physobj));
+}
+
+void Chunk::RemovePhysics() {
+	if (!sceneObject || !sceneObject->physicsObject)
+		return;
+	sceneObject->physicsObject->Destroy();
+	sceneObject->physicsObject.reset();
+}

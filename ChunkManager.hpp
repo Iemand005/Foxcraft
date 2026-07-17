@@ -76,35 +76,58 @@ public:
 		}
 
 		int meshDistSq = meshDist * meshDist;
+		int physicsDistSq = physicsDist >= 0 ? physicsDist * physicsDist : -1;
 
-		std::lock_guard<std::mutex> lock(chunksMutex);
+		{
+			std::lock_guard<std::mutex> lock(chunksMutex);
 
-		for (auto& [coord, chunk] : chunks) {
-			if (chunk->state != ChunkState::TerrainReady || !AllNeighborsPresent(coord))
-				continue;
+			for (auto& [coord, chunk] : chunks) {
+				if (chunk->state != ChunkState::TerrainReady || !AllNeighborsPresent(coord))
+					continue;
 
-			int dx = coord.x - center.x;
-			int dz = coord.y - center.y;
-			if (dx * dx + dz * dz > meshDistSq)
-				continue;
+				int dx = coord.x - center.x;
+				int dz = coord.y - center.y;
+				if (dx * dx + dz * dz > meshDistSq)
+					continue;
 
-			chunk->state = ChunkState::MeshPending;
-			{
-				std::lock_guard<std::mutex> qlock(queueMutex);
-				meshQueue.push_back(chunk);
+				chunk->state = ChunkState::MeshPending;
+				{
+					std::lock_guard<std::mutex> qlock(queueMutex);
+					meshQueue.push_back(chunk);
+				}
+				queueCV.notify_one();
 			}
-			queueCV.notify_one();
-		}
 
-		for (auto it = chunks.begin(); it != chunks.end(); ) {
-			if (it->second->state == ChunkState::ScheduledForRemoval) {
-				auto sco = it->second->GetSceneObject();
-				if (!sco || RemoveFromScene(it->second, physicsEngine, scene))
-					it = chunks.erase(it);
-				else
+			for (auto& [coord, chunk] : chunks) {
+				if (chunk->state != ChunkState::InScene)
+					continue;
+
+				if (physicsDistSq < 0) {
+					if (!chunk->GetSceneObject()->physicsObject)
+						chunk->AddPhysics(physicsEngine);
+					continue;
+				}
+
+				int dx = coord.x - center.x;
+				int dz = coord.y - center.y;
+				bool inRange = dx * dx + dz * dz <= physicsDistSq;
+
+				if (inRange && !chunk->GetSceneObject()->physicsObject)
+					chunk->AddPhysics(physicsEngine);
+				else if (!inRange && chunk->GetSceneObject()->physicsObject)
+					chunk->RemovePhysics();
+			}
+
+			for (auto it = chunks.begin(); it != chunks.end(); ) {
+				if (it->second->state == ChunkState::ScheduledForRemoval) {
+					auto sco = it->second->GetSceneObject();
+					if (!sco || RemoveFromScene(it->second, physicsEngine, scene))
+						it = chunks.erase(it);
+					else
+						++it;
+				} else {
 					++it;
-			} else {
-				++it;
+				}
 			}
 		}
 	}
