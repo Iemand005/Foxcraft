@@ -42,9 +42,9 @@ public:
 				allVertices.push_back(vv);
 			};
 			addVert(v0, u0, v0_);
-			addVert(v1, u1, v0_);
+			addVert(v1, u0, v1_);
 			addVert(v2, u1, v1_);
-			addVert(v3, u0, v1_);
+			addVert(v3, u1, v0_);
 			allIndices.push_back(base);
 			allIndices.push_back(base + 1);
 			allIndices.push_back(base + 2);
@@ -56,7 +56,7 @@ public:
 		auto doGreedy = [&](fe::PlaneDirection dir,
 		                     int sliceAxis, int sliceCount,
 		                     int planeA, int planeB, int sizeA, int sizeB,
-		                     bool positive) {
+		                     bool positive, bool flipWinding) {
 			std::vector<bool> mask(sizeA * sizeB);
 			std::vector<BlockType> types(sizeA * sizeB);
 			int coord[3] = {};
@@ -123,12 +123,21 @@ public:
 						p0c[sliceAxis] = p1c[sliceAxis] = p2c[sliceAxis] = p3c[sliceAxis] = facePos;
 						p0c[planeA] = (float)a;
 						p0c[planeB] = (float)b;
-						p1c[planeA] = (float)(a + w);
-						p1c[planeB] = (float)b;
-						p2c[planeA] = (float)(a + w);
-						p2c[planeB] = (float)(b + h);
-						p3c[planeA] = (float)a;
-						p3c[planeB] = (float)(b + h);
+						if (flipWinding) {
+							p1c[planeA] = (float)(a + w);
+							p1c[planeB] = (float)b;
+							p2c[planeA] = (float)(a + w);
+							p2c[planeB] = (float)(b + h);
+							p3c[planeA] = (float)a;
+							p3c[planeB] = (float)(b + h);
+						} else {
+							p1c[planeA] = (float)a;
+							p1c[planeB] = (float)(b + h);
+							p2c[planeA] = (float)(a + w);
+							p2c[planeB] = (float)(b + h);
+							p3c[planeA] = (float)(a + w);
+							p3c[planeB] = (float)b;
+						}
 
 						emitQuad(
 							glm::vec3(p0c[0], p0c[1], p0c[2]),
@@ -146,12 +155,12 @@ public:
 			}
 		};
 
-		doGreedy(fe::PlaneDirection::Top,    1, HEIGHT, 0, 2, WIDTH, DEPTH,  true);
-		doGreedy(fe::PlaneDirection::Bottom, 1, HEIGHT, 0, 2, WIDTH, DEPTH, false);
-		doGreedy(fe::PlaneDirection::Front,  2, DEPTH,  0, 1, WIDTH, HEIGHT,  true);
-		doGreedy(fe::PlaneDirection::Back,   2, DEPTH,  0, 1, WIDTH, HEIGHT, false);
-		doGreedy(fe::PlaneDirection::Right,  0, WIDTH,  1, 2, HEIGHT, DEPTH,  true);
-		doGreedy(fe::PlaneDirection::Left,   0, WIDTH,  1, 2, HEIGHT, DEPTH, false);
+		doGreedy(fe::PlaneDirection::Top,    1, HEIGHT, 0, 2, WIDTH, DEPTH,  true, false);
+		doGreedy(fe::PlaneDirection::Bottom, 1, HEIGHT, 0, 2, WIDTH, DEPTH, false,  true);
+		doGreedy(fe::PlaneDirection::Front,  2, DEPTH,  0, 1, WIDTH, HEIGHT,  true,  true);
+		doGreedy(fe::PlaneDirection::Back,   2, DEPTH,  0, 1, WIDTH, HEIGHT, false, false);
+		doGreedy(fe::PlaneDirection::Right,  0, WIDTH,  1, 2, HEIGHT, DEPTH,  true,  true);
+		doGreedy(fe::PlaneDirection::Left,   0, WIDTH,  1, 2, HEIGHT, DEPTH, false, false);
 
 		chunk->mesh = fe::Mesh<fe::VertexArray>(std::move(allVertices), std::move(allIndices));
 	}
