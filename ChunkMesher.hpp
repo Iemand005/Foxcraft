@@ -30,15 +30,8 @@ public:
 		};
 
 		auto needsFace = [&](int x, int y, int z, fe::PlaneDirection dir) -> bool {
-			switch (dir) {
-				case fe::PlaneDirection::Front:  return getBlockAt(x, y, z-1) == BlockType::Air;
-				case fe::PlaneDirection::Back:   return getBlockAt(x, y, z+1) == BlockType::Air;
-				case fe::PlaneDirection::Left:   return getBlockAt(x+1, y, z) == BlockType::Air;
-				case fe::PlaneDirection::Right:  return getBlockAt(x-1, y, z) == BlockType::Air;
-				case fe::PlaneDirection::Top:    return getBlockAt(x, y+1, z) == BlockType::Air;
-				case fe::PlaneDirection::Bottom: return getBlockAt(x, y-1, z) == BlockType::Air;
-			}
-			return false;
+			glm::vec3 p = Chunk::GetOffsetAt(glm::vec3(x, y, z), dir);
+			return getBlockAt((int)p.x, (int)p.y, (int)p.z) == BlockType::Air;
 		};
 
 		for (int x = 0; x < WIDTH; x++) {

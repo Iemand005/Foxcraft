@@ -129,7 +129,7 @@ public:
 		}
 	}
 
-	glm::vec3 GetOffsetAt(glm::vec3 pos, fe::PlaneDirection direction) {
+	static glm::vec3 GetOffsetAt(glm::vec3 pos, fe::PlaneDirection direction) {
 		switch (direction) {
 			case fe::PlaneDirection::Front:
 				return pos + glm::vec3(0, 0, -1);
