@@ -38,17 +38,20 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, b
 }
 
 void Chunk::AddPhysics(fe::PhysicsFactory* physicsEngine) {
-	if (!sceneObject || mesh.vertices.empty() || mesh.indices.empty())
+	if (!sceneObject || sceneObject->meshes.empty())
+		return;
+	auto& m = sceneObject->meshes[0];
+	if (m.vertices.empty() || m.indices.empty())
 		return;
 	if (sceneObject->physicsObject)
 		return;
 
 	std::vector<glm::vec3> colliderVertices;
-	colliderVertices.reserve(mesh.vertices.size());
-	for (const auto& v : mesh.vertices)
+	colliderVertices.reserve(m.vertices.size());
+	for (const auto& v : m.vertices)
 		colliderVertices.push_back(v.position);
 
-	std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
+	std::vector<uint32_t> colliderIndices(m.indices.begin(), m.indices.end());
 
 	auto physobj = physicsEngine->CreateObject(colliderVertices, colliderIndices);
 	if (physobj)
