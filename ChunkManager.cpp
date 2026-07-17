@@ -4,29 +4,47 @@
 void ChunkManager::WorkerLoop() {
 	while (running) {
 		std::shared_ptr<Chunk> chunk;
+		bool isMesh = false;
 		{
 			std::unique_lock<std::mutex> lock(queueMutex);
-			queueCV.wait(lock, [this] { return !pendingQueue.empty() || !running; });
+			queueCV.wait(lock, [this] {
+				return !pendingQueue.empty() || !meshQueue.empty() || !running;
+			});
 			if (!running) return;
-			chunk = pendingQueue.front();
-			pendingQueue.pop_front();
+
+			if (!pendingQueue.empty()) {
+				chunk = pendingQueue.front();
+				pendingQueue.pop_front();
+			} else {
+				chunk = meshQueue.front();
+				meshQueue.pop_front();
+				isMesh = true;
+			}
 		}
 
-		ChunkState expected = ChunkState::TerrainPending;
-		if (!chunk->state.compare_exchange_strong(expected, ChunkState::TerrainGenerating)) {
-			continue; // was ScheduledForRemoval (or something else) — drop it
-		}
+		if (!isMesh) {
+			ChunkState expected = ChunkState::TerrainPending;
+			if (!chunk->state.compare_exchange_strong(expected, ChunkState::TerrainGenerating))
+				continue;
 
-		chunk->Generate();
+			chunk->Generate();
 
-		if (chunk->state != ChunkState::TerrainGenerating)
-			continue;
+			if (chunk->state != ChunkState::TerrainGenerating)
+				continue;
 
-		if (chunk->generateMesh)
+			chunk->state = ChunkState::TerrainReady;
+		} else {
+			ChunkState expected = ChunkState::MeshPending;
+			if (!chunk->state.compare_exchange_strong(expected, ChunkState::MeshGenerating))
+				continue;
+
 			ChunkMesher::BuildMesh(chunk, this);
 
-		expected = ChunkState::TerrainGenerating;
-		if (chunk->state.compare_exchange_strong(expected, ChunkState::TerrainReady)) {
+			if (chunk->state != ChunkState::MeshGenerating)
+				continue;
+
+			chunk->state = ChunkState::MeshReady;
+
 			std::lock_guard<std::mutex> lock(completedMutex);
 			completedQueue.push(chunk);
 		}

@@ -34,14 +34,12 @@ public:
 		for (auto& t : workers) t.join();
 	}
 
-	// Called from main thread when a chunk enters range
-	void RequestChunk(glm::ivec2 coord, bool mesh = true) {
+	void RequestChunk(glm::ivec2 coord) {
 		std::lock_guard<std::mutex> lock(chunksMutex);
-		if (chunks.count(coord)) return; // already tracked
+		if (chunks.count(coord)) return;
 
 		auto chunk = std::make_shared<Chunk>();
 		chunk->coord = coord;
-		chunk->generateMesh = mesh;
 		chunk->state = ChunkState::TerrainPending;
 		chunks[coord] = chunk;
 
@@ -52,7 +50,6 @@ public:
 		queueCV.notify_one();
 	}
 
-	// Called from main thread when a chunk leaves range
 	void UnloadChunk(glm::ivec2 coord) {
 		std::lock_guard<std::mutex> lock(chunksMutex);
 		auto it = chunks.find(coord);
@@ -75,24 +72,38 @@ public:
 		}
 
 		std::lock_guard<std::mutex> lock(chunksMutex);
+
+		for (auto& [coord, chunk] : chunks) {
+			if (chunk->state == ChunkState::TerrainReady && AllNeighborsPresent(coord)) {
+				chunk->state = ChunkState::MeshPending;
+				{
+					std::lock_guard<std::mutex> qlock(queueMutex);
+					meshQueue.push_back(chunk);
+				}
+				queueCV.notify_one();
+			}
+		}
+
 		for (auto it = chunks.begin(); it != chunks.end(); ) {
 			if (it->second->state == ChunkState::ScheduledForRemoval) {
-				if (!it->second->generateMesh || RemoveFromScene(it->second, physicsEngine, scene))
+				auto sco = it->second->GetSceneObject();
+				if (!sco || RemoveFromScene(it->second, physicsEngine, scene))
 					it = chunks.erase(it);
+				else
+					++it;
 			} else {
 				++it;
 			}
 		}
 	}
 
-	void LoadChunksInsideRange(glm::ivec2 center, int loadDistance, int meshDistance) {
+	void LoadChunksInsideRange(glm::ivec2 center, int loadDistance) {
 		for (int dz = -loadDistance; dz <= loadDistance; dz++) {
 			for (int dx = -loadDistance; dx <= loadDistance; dx++) {
 				int distance = std::max(std::abs(dx), std::abs(dz));
 				if (distance > loadDistance) continue;
 
-				bool mesh = distance <= meshDistance;
-				RequestChunk(center + glm::ivec2{dx, dz}, mesh);
+				RequestChunk(center + glm::ivec2{dx, dz});
 			}
 		}
 	}
@@ -118,7 +129,7 @@ public:
 		Chunk* chunk = GetChunk(coord);
 
 		if (!chunk) {
-			return BlockType::Air; // or Unknown, see below
+			return BlockType::Air;
 		}
 
 		int localX = worldX - coord.x * WIDTH;
@@ -146,8 +157,7 @@ private:
 		if (chunk->state == ChunkState::ScheduledForRemoval || chunk->state == ChunkState::RemovalPending)
 			return;
 
-		if (chunk->generateMesh)
-			chunk->UploadToScene(physicsEngine, scene);
+		chunk->UploadToScene(physicsEngine, scene);
 	}
 
 	bool RemoveFromScene(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
@@ -164,15 +174,26 @@ private:
 
 		if (!removed) {
             std::cerr << "WARNING: chunk scene object was non-null but not found in scene->objects! Uh not Scheduling for removal again..." << std::endl;
-			// chunk->state = ChunkState::ScheduledForRemoval;
         }	
 		return removed;
+	}
+
+	bool AllNeighborsPresent(glm::ivec2 coord) {
+		const glm::ivec2 offsets[4] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+		for (auto& o : offsets) {
+			auto it = chunks.find(coord + o);
+			if (it == chunks.end()) return false;
+			ChunkState s = it->second->state;
+			if (s < ChunkState::TerrainReady) return false;
+		}
+		return true;
 	}
 
 	std::unordered_map<glm::ivec2, std::shared_ptr<Chunk>, ChunkCoordHash> chunks;
 	std::mutex chunksMutex;
 
 	std::deque<std::shared_ptr<Chunk>> pendingQueue;
+	std::deque<std::shared_ptr<Chunk>> meshQueue;
 	std::mutex queueMutex;
 	std::condition_variable queueCV;
 
