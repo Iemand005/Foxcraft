@@ -200,6 +200,19 @@ public:
         return it->second.get();
     }
 
+	int GetSurfaceHeight(int worldX, int worldZ) {
+		glm::ivec2 coord = WorldToChunkCoord(worldX, worldZ);
+		Chunk* chunk = GetChunk(coord);
+		if (!chunk) return -1;
+		int localX = worldX - coord.x * Chunk::WIDTH;
+		int localZ = worldZ - coord.y * Chunk::DEPTH;
+		for (int y = Chunk::HEIGHT - 1; y >= 0; y--) {
+			if (chunk->GetBlock(localX, y, localZ) != BlockType::Air)
+				return y + 1;
+		}
+		return -1;
+	}
+
 private:
 	void WorkerLoop();
 

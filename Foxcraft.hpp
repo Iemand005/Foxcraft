@@ -122,8 +122,8 @@ public:
 	void UpdateLoadedChunks() {
 		glm::vec3 playerPos = camera->GetPos();
 
-		int playerChunkX = static_cast<int>(std::floor(playerPos.x / 16.0f));
-		int playerChunkZ = static_cast<int>(std::floor(playerPos.z / 16.0f));
+		int playerChunkX = static_cast<int>(std::floor(playerPos.x / static_cast<float>(Chunk::WIDTH)));
+		int playerChunkZ = static_cast<int>(std::floor(playerPos.z / static_cast<float>(Chunk::DEPTH)));
 		playerCenter_ = {playerChunkX, playerChunkZ};
 
 		int terrainDist = CHUNK_LOAD_DISTANCE + chunkOutgenDistance;
@@ -247,6 +247,19 @@ public:
 			}
 
 			Update();
+
+			if (player->physicsObject) {
+				glm::vec3 ppos = player->physicsObject->GetPosition();
+				if (ppos.y < -2.0f) {
+					int surface = chunkManager->GetSurfaceHeight(static_cast<int>(ppos.x), static_cast<int>(ppos.z));
+					if (surface > 0) {
+						ppos.y = static_cast<float>(surface) + 1.0f;
+						player->physicsObject->SetPosition(ppos);
+						player->physicsObject->SetLinearVelocity(glm::vec3(0.0f));
+					}
+				}
+			}
+
 			Redraw();
 		}
 		Destroy();
