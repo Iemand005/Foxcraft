@@ -206,10 +206,9 @@ public:
 		if (!chunk) return -1;
 		int localX = worldX - coord.x * Chunk::WIDTH;
 		int localZ = worldZ - coord.y * Chunk::DEPTH;
-		for (int y = Chunk::HEIGHT - 1; y >= 0; y--) {
+		for (int y = Chunk::HEIGHT - 1; y >= 0; y--)
 			if (chunk->GetBlock(localX, y, localZ) != BlockType::Air)
 				return y + 1;
-		}
 		return -1;
 	}
 
