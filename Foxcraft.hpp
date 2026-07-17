@@ -315,10 +315,7 @@ public:
 		ImGui::Begin("Chunks");
 		{
 			ImGui::DragInt("Render Distance", &CHUNK_LOAD_DISTANCE);
-			glm::vec3 cp = camera->GetPos();
-			float p[3] = {cp.x, cp.y, cp.z};
-			if (ImGui::DragFloat3("Camera Pos", p))
-				camera->SetPos(glm::vec3(p[0], p[1], p[2]));
+			
 		}
 		ImGui::End();
 

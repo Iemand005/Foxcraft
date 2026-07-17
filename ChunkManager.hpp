@@ -101,24 +101,23 @@ public:
 	}
 
 	void LoadChunksInsideRange(glm::ivec2 center, int loadDistance) {
+		int distSq = loadDistance * loadDistance;
 		for (int dz = -loadDistance; dz <= loadDistance; dz++) {
 			for (int dx = -loadDistance; dx <= loadDistance; dx++) {
-				int distance = std::max(std::abs(dx), std::abs(dz));
-				if (distance > loadDistance) continue;
-
+				if (dx * dx + dz * dz > distSq) continue;
 				RequestChunk(center + glm::ivec2{dx, dz});
 			}
 		}
 	}
 
 	void UnloadChunksOutsideRange(glm::ivec2 center, int loadDistance) {
+		int distSq = loadDistance * loadDistance;
 		std::lock_guard<std::mutex> lock(chunksMutex);
 		for (auto& [coord, chunk] : chunks) {
 			int dx = coord.x - center.x;
 			int dz = coord.y - center.y;
-			int distance = std::max(std::abs(dx), std::abs(dz));
 
-			if (distance > loadDistance && chunk->state != ChunkState::ScheduledForRemoval) {
+			if (dx * dx + dz * dz > distSq && chunk->state != ChunkState::ScheduledForRemoval) {
 				chunk->state = ChunkState::ScheduledForRemoval;
 			}
 		}
