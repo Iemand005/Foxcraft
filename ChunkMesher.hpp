@@ -10,8 +10,9 @@ public:
     static void BuildMesh(std::shared_ptr<Chunk> chunk, ChunkManager *manager, bool cullBottomFaces = true) {
 		std::vector<fe::VertexArray> allVertices;
 		std::vector<unsigned int> allIndices;
-		allVertices.reserve(4096);
-		allIndices.reserve(6144);
+
+		allVertices.reserve(WIDTH * HEIGHT * DEPTH * 4);
+		allIndices.reserve(WIDTH * HEIGHT * DEPTH * 6);
 
 		auto getBlockAt = [&](const glm::ivec3& pos) -> BlockType {
 			if (pos.x >= 0 && pos.x < WIDTH && pos.y >= 0 && pos.y < HEIGHT && pos.z >= 0 && pos.z < DEPTH)
@@ -28,112 +29,52 @@ public:
 			return neighbor->GetBlock(localX, pos.y, localZ);
 		};
 
-		const int dims[3] = {WIDTH, HEIGHT, DEPTH};
+		auto needsFace = [&](const glm::ivec3& pos, fe::PlaneDirection dir) -> bool {
+			if (cullBottomFaces && dir == fe::PlaneDirection::Bottom && pos.y == 0)
+				return false;
+			return getBlockAt(Chunk::GetOffsetAt(pos, dir)) == BlockType::Air;
+		};
 
-		for (int axis = 0; axis < 3; axis++) {
-			int u = (axis + 1) % 3;
-			int v = (axis + 2) % 3;
+		glm::ivec3 blockPos;
+		for (int x = 0; x < WIDTH; x++) {
+			for (int y = 0; y < HEIGHT; y++) {
+				for (int z = 0; z < DEPTH; z++) {
+					blockPos = {x, y, z};
+					BlockType block = chunk->GetBlock(x, y, z);
+					if (block == BlockType::Air) continue;
 
-			int axisDim = dims[axis];
-			int uDim = dims[u];
-			int vDim = dims[v];
+					std::vector<fe::PlaneDirection> visibleFaces;
+					visibleFaces.reserve(6);
 
-			glm::ivec3 q(0);
-			q[axis] = 1;
-
-			for (bool backFace : {false, true}) {
-				fe::PlaneDirection direction;
-				if (axis == 0)      direction = backFace ? fe::PlaneDirection::Left   : fe::PlaneDirection::Right;
-				else if (axis == 1) direction = backFace ? fe::PlaneDirection::Bottom : fe::PlaneDirection::Top;
-				else                direction = backFace ? fe::PlaneDirection::Front  : fe::PlaneDirection::Back;
-
-				std::vector<BlockType> mask(uDim * vDim);
-
-				for (int slice = 0; slice < axisDim; slice++) {
-					std::fill(mask.begin(), mask.end(), BlockType::Air);
-
-					for (int ui = 0; ui < uDim; ui++) {
-						for (int vi = 0; vi < vDim; vi++) {
-							glm::ivec3 pos(0);
-							pos[axis] = slice;
-							pos[u] = ui;
-							pos[v] = vi;
-
-							BlockType block = getBlockAt(pos);
-							if (block == BlockType::Air) continue;
-
-							if (cullBottomFaces && direction == fe::PlaneDirection::Bottom && pos.y == 0)
-								continue;
-
-							glm::ivec3 neighborPos = pos + (backFace ? -q : q);
-							if (getBlockAt(neighborPos) != BlockType::Air) continue;
-
-							mask[ui * vDim + vi] = block;
+					for (auto direction : {fe::PlaneDirection::Front, fe::PlaneDirection::Back,
+						fe::PlaneDirection::Left, fe::PlaneDirection::Right,
+						fe::PlaneDirection::Top, fe::PlaneDirection::Bottom}) {
+						if (needsFace(blockPos, direction)) {
+							visibleFaces.push_back(direction);
 						}
 					}
 
-					for (int ui = 0; ui < uDim; ui++) {
-						for (int vi = 0; vi < vDim; ) {
-							BlockType type = mask[ui * vDim + vi];
-							if (type == BlockType::Air) { vi++; continue; }
+					if (!visibleFaces.empty()) {
+						fe::Mesh cubeMesh = fe::Primitives::GenerateCube(visibleFaces, 1.0f);
+						glm::vec3 offset = glm::vec3(x + 0.5f, y + 0.5f, z + 0.5f);
+						unsigned int vertexOffset = static_cast<unsigned int>(allVertices.size());
 
-							int w = 1;
-							while (vi + w < vDim && mask[ui * vDim + (vi + w)] == type) w++;
+						for (auto& v : cubeMesh.vertices) {
+							fe::VertexArray vv;
+							vv.normal = v.normal;
+							vv.position = v.position + offset;
 
-							int h = 1;
-							bool done = false;
-							while (ui + h < uDim && !done) {
-								for (int k = 0; k < w; k++) {
-									if (mask[(ui + h) * vDim + (vi + k)] != type) { done = true; break; }
-								}
-								if (!done) h++;
-							}
+							fe::PlaneDirection direction = fe::PlaneDirection::Front;
+							if (v.normal.y > 0.5f) direction = fe::PlaneDirection::Top;
+							else if (v.normal.y < -0.5f) direction = fe::PlaneDirection::Bottom;
 
-							glm::vec3 origin(0.0f);
-							origin[axis] = static_cast<float>(slice) + (backFace ? 0.0f : 1.0f);
-							origin[u] = static_cast<float>(ui);
-							origin[v] = static_cast<float>(vi);
+							float layer = GetBlockTextureLayer(block, direction);
+							vv.texCoord = glm::vec3(v.uv.x, v.uv.y, layer);
+							allVertices.push_back(vv);
+						}
 
-							glm::vec3 du(0.0f), dv(0.0f);
-							du[u] = static_cast<float>(h);
-							dv[v] = static_cast<float>(w);
-
-							glm::vec3 normal(0.0f);
-							normal[axis] = backFace ? -1.0f : 1.0f;
-
-							float layer = GetBlockTextureLayer(type, direction);
-							float fh = static_cast<float>(h);
-							float fw = static_cast<float>(w);
-
-							fe::VertexArray v0, v1, v2, v3;
-							v0.position = origin;             v0.normal = normal; v0.texCoord = {0.0f, 0.0f, layer};
-							v1.position = origin + du;        v1.normal = normal; v1.texCoord = {fh,   0.0f, layer};
-							v2.position = origin + du + dv;   v2.normal = normal; v2.texCoord = {fh,   fw,   layer};
-							v3.position = origin + dv;        v3.normal = normal; v3.texCoord = {0.0f, fw,   layer};
-
-							unsigned int vo = static_cast<unsigned int>(allVertices.size());
-
-							if (!backFace) {
-								allVertices.push_back(v0); allVertices.push_back(v1);
-								allVertices.push_back(v2); allVertices.push_back(v3);
-							} else {
-								// reverse winding so the face still points outward
-								allVertices.push_back(v0); allVertices.push_back(v3);
-								allVertices.push_back(v2); allVertices.push_back(v1);
-							}
-
-							allIndices.push_back(vo + 0);
-							allIndices.push_back(vo + 1);
-							allIndices.push_back(vo + 2);
-							allIndices.push_back(vo + 0);
-							allIndices.push_back(vo + 2);
-							allIndices.push_back(vo + 3);
-
-							for (int a = 0; a < h; a++)
-								for (int b = 0; b < w; b++)
-									mask[(ui + a) * vDim + (vi + b)] = BlockType::Air;
-
-							vi += w;
+						for (auto idx : cubeMesh.indices) {
+							allIndices.push_back(static_cast<unsigned int>(idx) + vertexOffset);
 						}
 					}
 				}
