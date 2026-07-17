@@ -40,7 +40,7 @@ int main() {
 	try {
 		LogToFile("Creating Foxcraft game instance...");
 		fe::XRGameOptions options(100, 100);
-		options.useVulkan = true;
+		options.useVulkan = false;
 		Foxcraft game(options);
 
 		LogToFile("Running game...");
