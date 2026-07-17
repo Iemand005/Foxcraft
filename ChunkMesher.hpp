@@ -106,10 +106,22 @@ public:
 							float fw = static_cast<float>(w);
 
 							fe::VertexArray v0, v1, v2, v3;
-							v0.position = origin;             v0.normal = normal; v0.texCoord = {0.0f, 0.0f, layer};
-							v1.position = origin + du;        v1.normal = normal; v1.texCoord = {fh,   0.0f, layer};
-							v2.position = origin + du + dv;   v2.normal = normal; v2.texCoord = {fh,   fw,   layer};
-							v3.position = origin + dv;        v3.normal = normal; v3.texCoord = {0.0f, fw,   layer};
+							v0.position = origin;             v0.normal = normal;
+							v1.position = origin + du;        v1.normal = normal;
+							v2.position = origin + du + dv;   v2.normal = normal;
+							v3.position = origin + dv;        v3.normal = normal;
+
+							if (axis == 2) {
+								v0.texCoord = {0.0f, 0.0f, layer};
+								v1.texCoord = {fh,   0.0f, layer};
+								v2.texCoord = {fh,   fw,   layer};
+								v3.texCoord = {0.0f, fw,   layer};
+							} else {
+								v0.texCoord = {0.0f, 0.0f, layer};
+								v1.texCoord = {0.0f, fh,   layer};
+								v2.texCoord = {fw,   fh,   layer};
+								v3.texCoord = {fw,   0.0f, layer};
+							}
 
 							unsigned int vo = static_cast<unsigned int>(allVertices.size());
 
