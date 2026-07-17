@@ -9,18 +9,19 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
 	}
 	std::cout << "Uploading chunk (" << coord.x << ", " << coord.y << "): " << "Vertices: " << mesh.vertices.size() << " Indices: " << mesh.indices.size() << std::endl;
 
-	std::vector<glm::vec3> colliderVertices;
-	colliderVertices.reserve(mesh.vertices.size());
-	for (const auto& vertex : mesh.vertices)
-		colliderVertices.push_back(vertex.position);
+	if (!mesh.vertices.empty() && !mesh.indices.empty()) {
+		std::vector<glm::vec3> colliderVertices;
+		colliderVertices.reserve(mesh.vertices.size());
+		for (const auto& vertex : mesh.vertices)
+			colliderVertices.push_back(vertex.position);
 
-	std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
+		std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
 
-	auto physobj = physicsEngine->CreateObject(colliderVertices, colliderIndices);
-	if (physobj) {
-		physobj->SetPosition(GetWorldPosition());
+		auto physobj = physicsEngine->CreateObject(colliderVertices, colliderIndices);
+		if (physobj)
+			physobj->SetPosition(GetWorldPosition());
+		mesh.SetPhysicsObject(std::move(physobj));
 	}
-	mesh.SetPhysicsObject(std::move(physobj));
 
 	mesh.loadTextureArray(ChunkMesher::BlockTextures(), fe::TextureScaling::Nearest);
 
