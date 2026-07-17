@@ -112,74 +112,10 @@ public:
 		this->player->state.position = glm::vec3(0.0f, 35.0f, 5.0f);
 		this->player->gravityEnabled = true;
 		RebuildPlayerPhysicsBody();
-		if (this->player->physicsObject) {
+		if (this->player->physicsObject)
 			this->player->physicsObject->SetPosition(this->player->state.position);
-		}
-
-		CreateTestCube();
 
 		UpdateLoadedChunks();
-	}
-
-	void CreateTestCube() {
-		float s = 0.5f;
-		float u0 = 0.0f, v0 = 0.0f, u1 = 1.0f, v1 = 1.0f;
-		float layer = 0.0f;
-
-		std::vector<fe::VertexArray> verts = {
-			// Front face (-Z) — CCW when viewed from -Z
-			{ -s,-s,-s,  0, 0,-1,  u0,v0,layer },
-			{ -s, s,-s,  0, 0,-1,  u0,v1,layer },
-			{  s, s,-s,  0, 0,-1,  u1,v1,layer },
-			{  s,-s,-s,  0, 0,-1,  u1,v0,layer },
-			// Back face (+Z) — CCW when viewed from +Z
-			{ -s,-s, s,  0, 0, 1,  u0,v0,layer },
-			{  s,-s, s,  0, 0, 1,  u1,v0,layer },
-			{  s, s, s,  0, 0, 1,  u1,v1,layer },
-			{ -s, s, s,  0, 0, 1,  u0,v1,layer },
-			// Top face (+Y) — CCW when viewed from +Y
-			{ -s, s,-s,  0, 1, 0,  u0,v0,layer },
-			{ -s, s, s,  0, 1, 0,  u0,v1,layer },
-			{  s, s, s,  0, 1, 0,  u1,v1,layer },
-			{  s, s,-s,  0, 1, 0,  u1,v0,layer },
-			// Bottom face (-Y) — CCW when viewed from -Y
-			{ -s,-s,-s,  0,-1, 0,  u0,v0,layer },
-			{  s,-s,-s,  0,-1, 0,  u1,v0,layer },
-			{  s,-s, s,  0,-1, 0,  u1,v1,layer },
-			{ -s,-s, s,  0,-1, 0,  u0,v1,layer },
-			// Right face (+X) — CCW when viewed from +X
-			{  s,-s,-s,  1, 0, 0,  u0,v0,layer },
-			{  s, s,-s,  1, 0, 0,  u0,v1,layer },
-			{  s, s, s,  1, 0, 0,  u1,v1,layer },
-			{  s,-s, s,  1, 0, 0,  u1,v0,layer },
-			// Left face (-X) — CCW when viewed from -X
-			{ -s,-s,-s, -1, 0, 0,  u0,v0,layer },
-			{ -s,-s, s, -1, 0, 0,  u1,v0,layer },
-			{ -s, s, s, -1, 0, 0,  u1,v1,layer },
-			{ -s, s,-s, -1, 0, 0,  u0,v1,layer },
-		};
-
-		std::vector<unsigned int> idx;
-		for (unsigned int face = 0; face < 6; ++face) {
-			unsigned int base = face * 4;
-			idx.push_back(base + 0);
-			idx.push_back(base + 1);
-			idx.push_back(base + 2);
-			idx.push_back(base + 0);
-			idx.push_back(base + 2);
-			idx.push_back(base + 3);
-		}
-
-		fe::Mesh<fe::VertexArray> cubeMesh(verts, idx);
-		cubeMesh.loadTextureArray({"resources/textures/dirt.png"}, fe::TextureScaling::Nearest);
-
-		testCube = std::make_shared<fe::Object<fe::VertexArray>>(std::move(cubeMesh));
-		testCube->name = "TestCube";
-		testCube->state.position = glm::vec3(0.0f, 3.0f, 0.0f);
-		this->scene->AddObject(testCube);
-
-		std::cerr << "[TEST] Created test cube with " << verts.size() << " vertices, "
-				  << idx.size() << " indices at position (0, 3, 0)" << std::endl;
 	}
 
 	void UpdateLoadedChunks() {
