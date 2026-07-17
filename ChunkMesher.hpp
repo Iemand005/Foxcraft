@@ -7,12 +7,11 @@
 class ChunkMesher {
 	static constexpr int WIDTH = 16, HEIGHT = 128, DEPTH = 16;
 public:
-    static void BuildMesh(std::shared_ptr<Chunk> chunk, ChunkManager *manager, bool cullBottomFaces = true) {
+	static void BuildMesh(std::shared_ptr<Chunk> chunk, ChunkManager *manager, bool cullBottomFaces = true) {
 		std::vector<fe::VertexArray> allVertices;
 		std::vector<unsigned int> allIndices;
-
-		allVertices.reserve(WIDTH * HEIGHT * DEPTH * 4);
-		allIndices.reserve(WIDTH * HEIGHT * DEPTH * 6);
+		allVertices.reserve(4096);
+		allIndices.reserve(6144);
 
 		auto getBlockAt = [&](const glm::ivec3& pos) -> BlockType {
 			if (pos.x >= 0 && pos.x < WIDTH && pos.y >= 0 && pos.y < HEIGHT && pos.z >= 0 && pos.z < DEPTH)
@@ -29,138 +28,116 @@ public:
 			return neighbor->GetBlock(localX, pos.y, localZ);
 		};
 
-		auto emitQuad = [&](const glm::vec3& v0, const glm::vec3& v1,
-		                    const glm::vec3& v2, const glm::vec3& v3,
-		                    const glm::vec3& normal, float layer,
-		                    float u0, float v0_, float u1, float v1_) {
-			unsigned int base = static_cast<unsigned int>(allVertices.size());
-			auto addVert = [&](const glm::vec3& pos, float u, float v) {
-				fe::VertexArray vv;
-				vv.position = pos;
-				vv.normal = normal;
-				vv.texCoord = glm::vec3(u, v, layer);
-				allVertices.push_back(vv);
-			};
-			addVert(v0, u0, v0_);
-			addVert(v1, u0, v1_);
-			addVert(v2, u1, v1_);
-			addVert(v3, u1, v0_);
-			allIndices.push_back(base);
-			allIndices.push_back(base + 1);
-			allIndices.push_back(base + 2);
-			allIndices.push_back(base);
-			allIndices.push_back(base + 2);
-			allIndices.push_back(base + 3);
-		};
+		const int dims[3] = {WIDTH, HEIGHT, DEPTH};
 
-		auto doGreedy = [&](fe::PlaneDirection dir,
-		                     int sliceAxis, int sliceCount,
-		                     int planeA, int planeB, int sizeA, int sizeB,
-		                     bool positive, bool flipWinding) {
-			std::vector<bool> mask(sizeA * sizeB);
-			std::vector<BlockType> types(sizeA * sizeB);
-			int coord[3] = {};
+		for (int axis = 0; axis < 3; axis++) {
+			int u = (axis + 1) % 3;
+			int v = (axis + 2) % 3;
 
-			for (int s = 0; s < sliceCount; s++) {
-				coord[sliceAxis] = s;
+			int axisDim = dims[axis];
+			int uDim = dims[u];
+			int vDim = dims[v];
 
-				for (int a = 0; a < sizeA; a++) {
-					coord[planeA] = a;
-					for (int b = 0; b < sizeB; b++) {
-						coord[planeB] = b;
-						BlockType block = chunk->GetBlock(coord[0], coord[1], coord[2]);
-						int idx = a * sizeB + b;
+			glm::ivec3 q(0);
+			q[axis] = 1;
 
-						if (block == BlockType::Air) {
-							mask[idx] = false;
-							continue;
+			for (bool backFace : {false, true}) {
+				fe::PlaneDirection direction;
+				if (axis == 0)      direction = backFace ? fe::PlaneDirection::Left   : fe::PlaneDirection::Right;
+				else if (axis == 1) direction = backFace ? fe::PlaneDirection::Bottom : fe::PlaneDirection::Top;
+				else                direction = backFace ? fe::PlaneDirection::Front  : fe::PlaneDirection::Back;
+
+				std::vector<BlockType> mask(uDim * vDim);
+
+				for (int slice = 0; slice < axisDim; slice++) {
+					std::fill(mask.begin(), mask.end(), BlockType::Air);
+
+					for (int ui = 0; ui < uDim; ui++) {
+						for (int vi = 0; vi < vDim; vi++) {
+							glm::ivec3 pos(0);
+							pos[axis] = slice;
+							pos[u] = ui;
+							pos[v] = vi;
+
+							BlockType block = getBlockAt(pos);
+							if (block == BlockType::Air) continue;
+
+							if (cullBottomFaces && direction == fe::PlaneDirection::Bottom && pos.y == 0)
+								continue;
+
+							glm::ivec3 neighborPos = pos + (backFace ? -q : q);
+							if (getBlockAt(neighborPos) != BlockType::Air) continue;
+
+							mask[ui * vDim + vi] = block;
 						}
-
-						int neighbor[3] = {coord[0], coord[1], coord[2]};
-						neighbor[sliceAxis] = coord[sliceAxis] + (positive ? 1 : -1);
-						BlockType neighborBlock = getBlockAt({neighbor[0], neighbor[1], neighbor[2]});
-
-						if (dir == fe::PlaneDirection::Bottom && coord[1] == 0 && cullBottomFaces)
-							mask[idx] = false;
-						else
-							mask[idx] = neighborBlock == BlockType::Air;
-						types[idx] = block;
 					}
-				}
 
-				for (int a = 0; a < sizeA; a++) {
-					for (int b = 0; b < sizeB; b++) {
-						int idx = a * sizeB + b;
-						if (!mask[idx]) continue;
+					for (int ui = 0; ui < uDim; ui++) {
+						for (int vi = 0; vi < vDim; ) {
+							BlockType type = mask[ui * vDim + vi];
+							if (type == BlockType::Air) { vi++; continue; }
 
-						BlockType type = types[idx];
+							int w = 1;
+							while (vi + w < vDim && mask[ui * vDim + (vi + w)] == type) w++;
 
-						int w = 1;
-						while (a + w < sizeA && mask[(a + w) * sizeB + b] && types[(a + w) * sizeB + b] == type)
-							w++;
-
-						int h = 1;
-						while (b + h < sizeB) {
-							bool allMatch = true;
-							for (int dw = 0; dw < w; dw++) {
-								if (!mask[(a + dw) * sizeB + (b + h)] || types[(a + dw) * sizeB + (b + h)] != type) {
-									allMatch = false;
-									break;
+							int h = 1;
+							bool done = false;
+							while (ui + h < uDim && !done) {
+								for (int k = 0; k < w; k++) {
+									if (mask[(ui + h) * vDim + (vi + k)] != type) { done = true; break; }
 								}
+								if (!done) h++;
 							}
-							if (!allMatch) break;
-							h++;
+
+							glm::vec3 origin(0.0f);
+							origin[axis] = static_cast<float>(slice) + (backFace ? 0.0f : 1.0f);
+							origin[u] = static_cast<float>(ui);
+							origin[v] = static_cast<float>(vi);
+
+							glm::vec3 du(0.0f), dv(0.0f);
+							du[u] = static_cast<float>(h);
+							dv[v] = static_cast<float>(w);
+
+							glm::vec3 normal(0.0f);
+							normal[axis] = backFace ? -1.0f : 1.0f;
+
+							float layer = GetBlockTextureLayer(type, direction);
+							float fh = static_cast<float>(h);
+							float fw = static_cast<float>(w);
+
+							fe::VertexArray v0, v1, v2, v3;
+							v0.position = origin;             v0.normal = normal; v0.texCoord = {0.0f, 0.0f, layer};
+							v1.position = origin + du;        v1.normal = normal; v1.texCoord = {fh,   0.0f, layer};
+							v2.position = origin + du + dv;   v2.normal = normal; v2.texCoord = {fh,   fw,   layer};
+							v3.position = origin + dv;        v3.normal = normal; v3.texCoord = {0.0f, fw,   layer};
+
+							unsigned int vo = static_cast<unsigned int>(allVertices.size());
+
+							if (!backFace) {
+								allVertices.push_back(v0); allVertices.push_back(v1);
+								allVertices.push_back(v2); allVertices.push_back(v3);
+							} else {
+								allVertices.push_back(v0); allVertices.push_back(v3);
+								allVertices.push_back(v2); allVertices.push_back(v1);
+							}
+
+							allIndices.push_back(vo + 0);
+							allIndices.push_back(vo + 1);
+							allIndices.push_back(vo + 2);
+							allIndices.push_back(vo + 0);
+							allIndices.push_back(vo + 2);
+							allIndices.push_back(vo + 3);
+
+							for (int a = 0; a < h; a++)
+								for (int b = 0; b < w; b++)
+									mask[(ui + a) * vDim + (vi + b)] = BlockType::Air;
+
+							vi += w;
 						}
-
-						float layer = (float)GetBlockTextureLayer(type, dir);
-
-						float facePos = (float)(s + (positive ? 1 : 0));
-
-						glm::vec3 normal(0.0f);
-						normal[sliceAxis] = positive ? 1.0f : -1.0f;
-
-						float p0c[3] = {}, p1c[3] = {}, p2c[3] = {}, p3c[3] = {};
-						p0c[sliceAxis] = p1c[sliceAxis] = p2c[sliceAxis] = p3c[sliceAxis] = facePos;
-						p0c[planeA] = (float)a;
-						p0c[planeB] = (float)b;
-						if (flipWinding) {
-							p1c[planeA] = (float)(a + w);
-							p1c[planeB] = (float)b;
-							p2c[planeA] = (float)(a + w);
-							p2c[planeB] = (float)(b + h);
-							p3c[planeA] = (float)a;
-							p3c[planeB] = (float)(b + h);
-						} else {
-							p1c[planeA] = (float)a;
-							p1c[planeB] = (float)(b + h);
-							p2c[planeA] = (float)(a + w);
-							p2c[planeB] = (float)(b + h);
-							p3c[planeA] = (float)(a + w);
-							p3c[planeB] = (float)b;
-						}
-
-						emitQuad(
-							glm::vec3(p0c[0], p0c[1], p0c[2]),
-							glm::vec3(p1c[0], p1c[1], p1c[2]),
-							glm::vec3(p2c[0], p2c[1], p2c[2]),
-							glm::vec3(p3c[0], p3c[1], p3c[2]),
-							normal, layer, 0.0f, 0.0f, (float)w, (float)h
-						);
-
-						for (int dy = 0; dy < h; dy++)
-							for (int dx = 0; dx < w; dx++)
-								mask[(a + dx) * sizeB + (b + dy)] = false;
 					}
 				}
 			}
-		};
-
-		doGreedy(fe::PlaneDirection::Top,    1, HEIGHT, 0, 2, WIDTH, DEPTH,  true, false);
-		doGreedy(fe::PlaneDirection::Bottom, 1, HEIGHT, 0, 2, WIDTH, DEPTH, false,  true);
-		doGreedy(fe::PlaneDirection::Front,  2, DEPTH,  0, 1, WIDTH, HEIGHT,  true,  true);
-		doGreedy(fe::PlaneDirection::Back,   2, DEPTH,  0, 1, WIDTH, HEIGHT, false, false);
-		doGreedy(fe::PlaneDirection::Right,  0, WIDTH,  1, 2, HEIGHT, DEPTH,  true,  true);
-		doGreedy(fe::PlaneDirection::Left,   0, WIDTH,  1, 2, HEIGHT, DEPTH, false, false);
+		}
 
 		chunk->mesh = fe::Mesh<fe::VertexArray>(std::move(allVertices), std::move(allIndices));
 	}
