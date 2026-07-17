@@ -111,10 +111,13 @@ public:
 
 	void LoadChunksInsideRange(glm::ivec2 center, int loadDistance) {
 		int distSq = loadDistance * loadDistance;
-		for (int dz = -loadDistance; dz <= loadDistance; dz++) {
-			for (int dx = -loadDistance; dx <= loadDistance; dx++) {
-				if (dx * dx + dz * dz > distSq) continue;
-				RequestChunk(center + glm::ivec2{dx, dz});
+		for (int d = 0; d <= loadDistance; d++) {
+			for (int dz = -d; dz <= d; dz++) {
+				for (int dx = -d; dx <= d; dx++) {
+					if (std::max(std::abs(dx), std::abs(dz)) != d) continue;
+					if (dx * dx + dz * dz > distSq) continue;
+					RequestChunk(center + glm::ivec2{dx, dz});
+				}
 			}
 		}
 	}
