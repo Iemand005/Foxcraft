@@ -29,6 +29,8 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
 	sceneObject->name = "Chunk";
 	sceneObject->state.position = GetWorldPosition();
 	sceneObject->isStatic = true;
+	sceneObject->boundingCenterOffset = {WIDTH / 2.0f, HEIGHT / 2.0f, DEPTH / 2.0f};
+	sceneObject->boundingRadius = glm::length(sceneObject->boundingCenterOffset);
 
 	scene->AddObject(sceneObject);
 	state = ChunkState::InScene;
