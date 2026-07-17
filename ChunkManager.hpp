@@ -23,8 +23,6 @@ struct ChunkCoordHash {
 
 class ChunkManager {
 public:
-	const int WIDTH = 16;
-	const int DEPTH = 16;
 	
 	ChunkManager(int numWorkers = 2) : running(true) {
 		for (int i = 0; i < numWorkers; i++)
@@ -184,14 +182,14 @@ public:
 			return BlockType::Air;
 		}
 
-		int localX = worldX - coord.x * WIDTH;
-		int localZ = worldZ - coord.y * DEPTH;
+		int localX = worldX - coord.x * Chunk::WIDTH;
+		int localZ = worldZ - coord.y * Chunk::DEPTH;
 		return chunk->GetBlock(localX, y, localZ);
 	}
 
 	glm::ivec2 WorldToChunkCoord(int worldX, int worldZ) {
-		int chunkX = static_cast<int>(std::floor(static_cast<float>(worldX) / WIDTH));
-		int chunkZ = static_cast<int>(std::floor(static_cast<float>(worldZ) / DEPTH));
+		int chunkX = static_cast<int>(std::floor(static_cast<float>(worldX) / Chunk::WIDTH));
+		int chunkZ = static_cast<int>(std::floor(static_cast<float>(worldZ) / Chunk::DEPTH));
 		return { chunkX, chunkZ };
 	}
 

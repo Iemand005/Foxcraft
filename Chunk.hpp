@@ -39,13 +39,13 @@ enum class ChunkState {
 };
 
 class Chunk {
-private:
+	private:
 	std::vector<BlockType> blocks;
-	static constexpr int WIDTH = 16, HEIGHT = 128, DEPTH = 16;
-
+	
 	std::shared_ptr<fe::Object<fe::VertexArray>> sceneObject;
 	
 public:
+	static constexpr int WIDTH = 32, HEIGHT = 128, DEPTH = 32;
 	glm::ivec2 coord;
 	std::atomic<ChunkState> state;
 	std::atomic<bool> paused{false};

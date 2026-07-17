@@ -5,7 +5,6 @@
 #include "ChunkManager.hpp"
 
 class ChunkMesher {
-	static constexpr int WIDTH = 16, HEIGHT = 128, DEPTH = 16;
 public:
 	static void BuildMesh(std::shared_ptr<Chunk> chunk, ChunkManager *manager, bool cullBottomFaces = true) {
 		std::vector<fe::VertexArray> allVertices;
@@ -14,21 +13,21 @@ public:
 		allIndices.reserve(6144);
 
 		auto getBlockAt = [&](const glm::ivec3& pos) -> BlockType {
-			if (pos.x >= 0 && pos.x < WIDTH && pos.y >= 0 && pos.y < HEIGHT && pos.z >= 0 && pos.z < DEPTH)
+			if (pos.x >= 0 && pos.x < Chunk::WIDTH && pos.y >= 0 && pos.y < Chunk::HEIGHT && pos.z >= 0 && pos.z < Chunk::DEPTH)
 				return chunk->GetBlock(pos.x, pos.y, pos.z);
-			if (pos.y < 0 || pos.y >= HEIGHT)
+			if (pos.y < 0 || pos.y >= Chunk::HEIGHT)
 				return BlockType::Air;
-			int worldX = chunk->coord.x * WIDTH + pos.x;
-			int worldZ = chunk->coord.y * DEPTH + pos.z;
+			int worldX = chunk->coord.x * Chunk::WIDTH + pos.x;
+			int worldZ = chunk->coord.y * Chunk::DEPTH + pos.z;
 			auto neighborCoord = manager->WorldToChunkCoord(worldX, worldZ);
 			Chunk* neighbor = manager->GetChunk(neighborCoord);
 			if (!neighbor) return BlockType::Air;
-			int localX = worldX - neighborCoord.x * WIDTH;
-			int localZ = worldZ - neighborCoord.y * DEPTH;
+			int localX = worldX - neighborCoord.x * Chunk::WIDTH;
+			int localZ = worldZ - neighborCoord.y * Chunk::DEPTH;
 			return neighbor->GetBlock(localX, pos.y, localZ);
 		};
 
-		const int dims[3] = {WIDTH, HEIGHT, DEPTH};
+		const int dims[3] = {Chunk::WIDTH, Chunk::HEIGHT, Chunk::DEPTH};
 
 		for (int axis = 0; axis < 3; axis++) {
 			int u = (axis + 1) % 3;
