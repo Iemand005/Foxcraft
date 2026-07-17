@@ -60,7 +60,8 @@ public:
 			it->second->state = ChunkState::ScheduledForRemoval;
 	}
 
-	void Update(int maxUploads, fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
+	void Update(int maxUploads, fe::PhysicsFactory* physicsEngine, fe::Scene* scene,
+	            glm::ivec2 center, int meshDist) {
 		int uploaded = 0;
 		while (uploaded < maxUploads) {
 			std::shared_ptr<Chunk> chunk;
@@ -74,17 +75,25 @@ public:
 			uploaded++;
 		}
 
+		int meshDistSq = meshDist * meshDist;
+
 		std::lock_guard<std::mutex> lock(chunksMutex);
 
 		for (auto& [coord, chunk] : chunks) {
-			if (chunk->state == ChunkState::TerrainReady && AllNeighborsPresent(coord)) {
-				chunk->state = ChunkState::MeshPending;
-				{
-					std::lock_guard<std::mutex> qlock(queueMutex);
-					meshQueue.push_back(chunk);
-				}
-				queueCV.notify_one();
+			if (chunk->state != ChunkState::TerrainReady || !AllNeighborsPresent(coord))
+				continue;
+
+			int dx = coord.x - center.x;
+			int dz = coord.y - center.y;
+			if (dx * dx + dz * dz > meshDistSq)
+				continue;
+
+			chunk->state = ChunkState::MeshPending;
+			{
+				std::lock_guard<std::mutex> qlock(queueMutex);
+				meshQueue.push_back(chunk);
 			}
+			queueCV.notify_one();
 		}
 
 		for (auto it = chunks.begin(); it != chunks.end(); ) {

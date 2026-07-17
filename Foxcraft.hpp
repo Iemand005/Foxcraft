@@ -48,7 +48,9 @@ public:
 	static constexpr int MAX_CHUNKS = 32;
 	static constexpr int TUNNEL_SEGMENTS = 64;
 	static constexpr int SUBDIVISIONS_PER_SEG = 48;
-	int CHUNK_LOAD_DISTANCE = 2;  // Load chunks within this many chunks of player
+	int CHUNK_LOAD_DISTANCE = 2;
+	int chunkOutgenDistance = 1;
+	glm::ivec2 playerCenter_{0, 0};
 	static constexpr int GRID_WIDTH = 1;  // 5x5 grid
 	static constexpr int GRID_HEIGHT = 1;
 
@@ -184,10 +186,11 @@ public:
 
 		int playerChunkX = static_cast<int>(std::floor(playerPos.x / 16.0f));
 		int playerChunkZ = static_cast<int>(std::floor(playerPos.z / 16.0f));
+		playerCenter_ = {playerChunkX, playerChunkZ};
 
-		int dist = CHUNK_LOAD_DISTANCE + 1;
-		chunkManager->LoadChunksInsideRange(glm::ivec2{playerChunkX, playerChunkZ}, dist);
-		chunkManager->UnloadChunksOutsideRange(glm::ivec2{playerChunkX, playerChunkZ}, dist);
+		int terrainDist = CHUNK_LOAD_DISTANCE + chunkOutgenDistance;
+		chunkManager->LoadChunksInsideRange(playerCenter_, terrainDist);
+		chunkManager->UnloadChunksOutsideRange(playerCenter_, terrainDist);
 	}
 
 	void SyncCameraToPlayer() {
@@ -277,7 +280,10 @@ public:
 
 			ProcessInput();
 
-			chunkManager->Update(1, GetPhysicsEngine(), this->scene.get());
+			UpdateLoadedChunks();
+
+			chunkManager->Update(1, GetPhysicsEngine(), this->scene.get(),
+			                     playerCenter_, CHUNK_LOAD_DISTANCE);
 
 			if (!freeCamera) {
 				SyncCameraToPlayer();
@@ -298,7 +304,6 @@ public:
 			} else {
 			}
 
-			UpdateLoadedChunks();  // Update loaded chunks before rendering
 			Update();
 			Redraw();
 		}
@@ -315,7 +320,11 @@ public:
 		ImGui::Begin("Chunks");
 		{
 			ImGui::DragInt("Render Distance", &CHUNK_LOAD_DISTANCE);
-			
+			ImGui::SliderInt("Terrain Pre-gen", &chunkOutgenDistance, 1, 10);
+			glm::vec3 cp = camera->GetPos();
+			float p[3] = {cp.x, cp.y, cp.z};
+			if (ImGui::DragFloat3("Camera Pos", p))
+				camera->SetPos(glm::vec3(p[0], p[1], p[2]));
 		}
 		ImGui::End();
 
