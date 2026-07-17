@@ -23,6 +23,9 @@ struct ChunkCoordHash {
 
 class ChunkManager {
 public:
+	const int WIDTH = 16;
+	const int DEPTH = 16;
+	
 	ChunkManager(int numWorkers = 2) : running(true) {
 		for (int i = 0; i < numWorkers; i++)
 			workers.emplace_back(&ChunkManager::WorkerLoop, this);
@@ -120,9 +123,7 @@ public:
 			}
 		}
 	}
-	
-	const int WIDTH = 16;
-	const int DEPTH = 16;
+
 
 	BlockType GetBlock(int worldX, int y, int worldZ) {
 		glm::ivec2 coord = WorldToChunkCoord(worldX, worldZ);
