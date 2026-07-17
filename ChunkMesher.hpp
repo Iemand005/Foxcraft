@@ -7,7 +7,7 @@
 class ChunkMesher {
 	static constexpr int WIDTH = 16, HEIGHT = 128, DEPTH = 16;
 public:
-    static void BuildMesh(std::shared_ptr<Chunk> chunk, ChunkManager *manager) {
+    static void BuildMesh(std::shared_ptr<Chunk> chunk, ChunkManager *manager, bool cullBottomFaces = true) {
 		std::vector<fe::VertexArray> allVertices;
 		std::vector<unsigned int> allIndices;
 
@@ -30,6 +30,8 @@ public:
 		};
 
 		auto needsFace = [&](const glm::ivec3& pos, fe::PlaneDirection dir) -> bool {
+			if (cullBottomFaces && dir == fe::PlaneDirection::Bottom && pos.y == 0)
+				return false;
 			return getBlockAt(Chunk::GetOffsetAt(pos, dir)) == BlockType::Air;
 		};
 
