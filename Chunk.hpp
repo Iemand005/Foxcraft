@@ -129,25 +129,25 @@ public:
 		}
 	}
 
-	static glm::ivec3 GetOffsetAt(glm::vec3 pos, fe::PlaneDirection direction) {
+	static glm::ivec3 GetOffsetAt(glm::ivec3 pos, fe::PlaneDirection direction) {
 		switch (direction) {
 			case fe::PlaneDirection::Front:
-				return pos + glm::vec3(0, 0, -1);
+				return pos + glm::ivec3(0, 0, -1);
 			case fe::PlaneDirection::Back:
-				return pos + glm::vec3(0, 0, 1);
+				return pos + glm::ivec3(0, 0, 1);
 			case fe::PlaneDirection::Right:
-				return pos + glm::vec3(-1, 0, 0);
+				return pos + glm::ivec3(-1, 0, 0);
 			case fe::PlaneDirection::Left:
-				return pos + glm::vec3(1, 0, 0);
+				return pos + glm::ivec3(1, 0, 0);
 			case fe::PlaneDirection::Top:
-				return pos + glm::vec3(0, 1, 0);
+				return pos + glm::ivec3(0, 1, 0);
 			case fe::PlaneDirection::Bottom:
-				return pos + glm::vec3(0, -1, 0);
+				return pos + glm::ivec3(0, -1, 0);
 		}
 		return pos;
 	}
 
-	bool NeedsFace(glm::vec3 pos, fe::PlaneDirection direction) {
+	bool NeedsFace(glm::ivec3 pos, fe::PlaneDirection direction) {
 		BlockType neighbor = GetBlock(GetOffsetAt(pos, direction));
 		return neighbor == BlockType::Air;
 	}
