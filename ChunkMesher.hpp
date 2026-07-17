@@ -29,57 +29,129 @@ public:
 			return neighbor->GetBlock(localX, pos.y, localZ);
 		};
 
-		auto needsFace = [&](const glm::ivec3& pos, fe::PlaneDirection dir) -> bool {
-			if (cullBottomFaces && dir == fe::PlaneDirection::Bottom && pos.y == 0)
-				return false;
-			return getBlockAt(Chunk::GetOffsetAt(pos, dir)) == BlockType::Air;
+		auto emitQuad = [&](const glm::vec3& v0, const glm::vec3& v1,
+		                    const glm::vec3& v2, const glm::vec3& v3,
+		                    const glm::vec3& normal, float layer,
+		                    float u0, float v0_, float u1, float v1_) {
+			unsigned int base = static_cast<unsigned int>(allVertices.size());
+			auto addVert = [&](const glm::vec3& pos, float u, float v) {
+				fe::VertexArray vv;
+				vv.position = pos;
+				vv.normal = normal;
+				vv.texCoord = glm::vec3(u, v, layer);
+				allVertices.push_back(vv);
+			};
+			addVert(v0, u0, v0_);
+			addVert(v1, u1, v0_);
+			addVert(v2, u1, v1_);
+			addVert(v3, u0, v1_);
+			allIndices.push_back(base);
+			allIndices.push_back(base + 1);
+			allIndices.push_back(base + 2);
+			allIndices.push_back(base);
+			allIndices.push_back(base + 2);
+			allIndices.push_back(base + 3);
 		};
 
-		glm::ivec3 blockPos;
-		for (int x = 0; x < WIDTH; x++) {
-			for (int y = 0; y < HEIGHT; y++) {
-				for (int z = 0; z < DEPTH; z++) {
-					blockPos = {x, y, z};
-					BlockType block = chunk->GetBlock(x, y, z);
-					if (block == BlockType::Air) continue;
+		auto doGreedy = [&](fe::PlaneDirection dir,
+		                     int sliceAxis, int sliceCount,
+		                     int planeA, int planeB, int sizeA, int sizeB,
+		                     bool positive) {
+			std::vector<bool> mask(sizeA * sizeB);
+			std::vector<BlockType> types(sizeA * sizeB);
+			int coord[3] = {};
 
-					std::vector<fe::PlaneDirection> visibleFaces;
-					visibleFaces.reserve(6);
+			for (int s = 0; s < sliceCount; s++) {
+				coord[sliceAxis] = s;
 
-					for (auto direction : {fe::PlaneDirection::Front, fe::PlaneDirection::Back,
-						fe::PlaneDirection::Left, fe::PlaneDirection::Right,
-						fe::PlaneDirection::Top, fe::PlaneDirection::Bottom}) {
-						if (needsFace(blockPos, direction)) {
-							visibleFaces.push_back(direction);
+				for (int a = 0; a < sizeA; a++) {
+					coord[planeA] = a;
+					for (int b = 0; b < sizeB; b++) {
+						coord[planeB] = b;
+						BlockType block = chunk->GetBlock(coord[0], coord[1], coord[2]);
+						int idx = a * sizeB + b;
+
+						if (block == BlockType::Air) {
+							mask[idx] = false;
+							continue;
 						}
+
+						int neighbor[3] = {coord[0], coord[1], coord[2]};
+						neighbor[sliceAxis] = coord[sliceAxis] + (positive ? 1 : -1);
+						BlockType neighborBlock = getBlockAt({neighbor[0], neighbor[1], neighbor[2]});
+
+						if (dir == fe::PlaneDirection::Bottom && coord[1] == 0 && cullBottomFaces)
+							mask[idx] = false;
+						else
+							mask[idx] = neighborBlock == BlockType::Air;
+						types[idx] = block;
 					}
+				}
 
-					if (!visibleFaces.empty()) {
-						fe::Mesh cubeMesh = fe::Primitives::GenerateCube(visibleFaces, 1.0f);
-						glm::vec3 offset = glm::vec3(x + 0.5f, y + 0.5f, z + 0.5f);
-						unsigned int vertexOffset = static_cast<unsigned int>(allVertices.size());
+				for (int a = 0; a < sizeA; a++) {
+					for (int b = 0; b < sizeB; b++) {
+						int idx = a * sizeB + b;
+						if (!mask[idx]) continue;
 
-						for (auto& v : cubeMesh.vertices) {
-							fe::VertexArray vv;
-							vv.normal = v.normal;
-							vv.position = v.position + offset;
+						BlockType type = types[idx];
 
-							fe::PlaneDirection direction = fe::PlaneDirection::Front;
-							if (v.normal.y > 0.5f) direction = fe::PlaneDirection::Top;
-							else if (v.normal.y < -0.5f) direction = fe::PlaneDirection::Bottom;
+						int w = 1;
+						while (a + w < sizeA && mask[(a + w) * sizeB + b] && types[(a + w) * sizeB + b] == type)
+							w++;
 
-							float layer = GetBlockTextureLayer(block, direction);
-							vv.texCoord = glm::vec3(v.uv.x, v.uv.y, layer);
-							allVertices.push_back(vv);
+						int h = 1;
+						while (b + h < sizeB) {
+							bool allMatch = true;
+							for (int dw = 0; dw < w; dw++) {
+								if (!mask[(a + dw) * sizeB + (b + h)] || types[(a + dw) * sizeB + (b + h)] != type) {
+									allMatch = false;
+									break;
+								}
+							}
+							if (!allMatch) break;
+							h++;
 						}
 
-						for (auto idx : cubeMesh.indices) {
-							allIndices.push_back(static_cast<unsigned int>(idx) + vertexOffset);
-						}
+						float layer = (float)GetBlockTextureLayer(type, dir);
+
+						float facePos = (float)(s + (positive ? 1 : 0));
+
+						glm::vec3 normal(0.0f);
+						normal[sliceAxis] = positive ? 1.0f : -1.0f;
+
+						float p0c[3] = {}, p1c[3] = {}, p2c[3] = {}, p3c[3] = {};
+						p0c[sliceAxis] = p1c[sliceAxis] = p2c[sliceAxis] = p3c[sliceAxis] = facePos;
+						p0c[planeA] = (float)a;
+						p0c[planeB] = (float)b;
+						p1c[planeA] = (float)(a + w);
+						p1c[planeB] = (float)b;
+						p2c[planeA] = (float)(a + w);
+						p2c[planeB] = (float)(b + h);
+						p3c[planeA] = (float)a;
+						p3c[planeB] = (float)(b + h);
+
+						emitQuad(
+							glm::vec3(p0c[0], p0c[1], p0c[2]),
+							glm::vec3(p1c[0], p1c[1], p1c[2]),
+							glm::vec3(p2c[0], p2c[1], p2c[2]),
+							glm::vec3(p3c[0], p3c[1], p3c[2]),
+							normal, layer, 0.0f, 0.0f, (float)w, (float)h
+						);
+
+						for (int dy = 0; dy < h; dy++)
+							for (int dx = 0; dx < w; dx++)
+								mask[(a + dx) * sizeB + (b + dy)] = false;
 					}
 				}
 			}
-		}
+		};
+
+		doGreedy(fe::PlaneDirection::Top,    1, HEIGHT, 0, 2, WIDTH, DEPTH,  true);
+		doGreedy(fe::PlaneDirection::Bottom, 1, HEIGHT, 0, 2, WIDTH, DEPTH, false);
+		doGreedy(fe::PlaneDirection::Front,  2, DEPTH,  0, 1, WIDTH, HEIGHT,  true);
+		doGreedy(fe::PlaneDirection::Back,   2, DEPTH,  0, 1, WIDTH, HEIGHT, false);
+		doGreedy(fe::PlaneDirection::Right,  0, WIDTH,  1, 2, HEIGHT, DEPTH,  true);
+		doGreedy(fe::PlaneDirection::Left,   0, WIDTH,  1, 2, HEIGHT, DEPTH, false);
 
 		chunk->mesh = fe::Mesh<fe::VertexArray>(std::move(allVertices), std::move(allIndices));
 	}
