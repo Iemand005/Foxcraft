@@ -29,14 +29,16 @@ public:
 			return neighbor->GetBlock(localX, y, localZ);
 		};
 
-		auto needsFace = [&](int x, int y, int z, fe::PlaneDirection dir) -> bool {
-			glm::vec3 p = Chunk::GetOffsetAt(glm::vec3(x, y, z), dir);
+		auto needsFace = [&](const glm::ivec3& pos, fe::PlaneDirection dir) -> bool {
+			glm::vec3 p = Chunk::GetOffsetAt(glm::vec3(pos), dir);
 			return getBlockAt((int)p.x, (int)p.y, (int)p.z) == BlockType::Air;
 		};
 
+		glm::ivec3 blockPos;
 		for (int x = 0; x < WIDTH; x++) {
 			for (int y = 0; y < HEIGHT; y++) {
 				for (int z = 0; z < DEPTH; z++) {
+					blockPos = {x, y, z};
 					BlockType block = chunk->GetBlock(x, y, z);
 					if (block == BlockType::Air) continue;
 
@@ -46,7 +48,7 @@ public:
 					for (auto direction : {fe::PlaneDirection::Front, fe::PlaneDirection::Back,
 						fe::PlaneDirection::Left, fe::PlaneDirection::Right,
 						fe::PlaneDirection::Top, fe::PlaneDirection::Bottom}) {
-						if (needsFace(x, y, z, direction)) {
+						if (needsFace(blockPos, direction)) {
 							visibleFaces.push_back(direction);
 						}
 					}
