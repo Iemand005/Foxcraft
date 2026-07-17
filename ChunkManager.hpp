@@ -35,12 +35,13 @@ public:
 	}
 
 	// Called from main thread when a chunk enters range
-	void RequestChunk(glm::ivec2 coord) {
+	void RequestChunk(glm::ivec2 coord, bool mesh = true) {
 		std::lock_guard<std::mutex> lock(chunksMutex);
 		if (chunks.count(coord)) return; // already tracked
 
 		auto chunk = std::make_shared<Chunk>();
 		chunk->coord = coord;
+		chunk->generateMesh = mesh;
 		chunk->state = ChunkState::TerrainPending;
 		chunks[coord] = chunk;
 
@@ -76,7 +77,7 @@ public:
 		std::lock_guard<std::mutex> lock(chunksMutex);
 		for (auto it = chunks.begin(); it != chunks.end(); ) {
 			if (it->second->state == ChunkState::ScheduledForRemoval) {
-				if (RemoveFromScene(it->second, physicsEngine, scene))
+				if (!it->second->generateMesh || RemoveFromScene(it->second, physicsEngine, scene))
 					it = chunks.erase(it);
 			} else {
 				++it;
@@ -84,14 +85,14 @@ public:
 		}
 	}
 
-	void LoadChunksInsideRange(glm::ivec2 center, int loadDistance) {
+	void LoadChunksInsideRange(glm::ivec2 center, int loadDistance, int meshDistance) {
 		for (int dz = -loadDistance; dz <= loadDistance; dz++) {
 			for (int dx = -loadDistance; dx <= loadDistance; dx++) {
 				int distance = std::max(std::abs(dx), std::abs(dz));
 				if (distance > loadDistance) continue;
 
-				// glm::ivec2 coord{playerChunkX + dx, playerChunkZ + dz};
-				RequestChunk(center + glm::ivec2{dx, dz});
+				bool mesh = distance <= meshDistance;
+				RequestChunk(center + glm::ivec2{dx, dz}, mesh);
 			}
 		}
 	}
@@ -145,7 +146,8 @@ private:
 		if (chunk->state == ChunkState::ScheduledForRemoval || chunk->state == ChunkState::RemovalPending)
 			return;
 
-		chunk->UploadToScene(physicsEngine, scene);
+		if (chunk->generateMesh)
+			chunk->UploadToScene(physicsEngine, scene);
 	}
 
 	bool RemoveFromScene(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {

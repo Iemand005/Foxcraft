@@ -22,8 +22,8 @@ void ChunkManager::WorkerLoop() {
 		if (chunk->state != ChunkState::TerrainGenerating)
 			continue;
 
-
-		ChunkMesher::BuildMesh(chunk, this);
+		if (chunk->generateMesh)
+			ChunkMesher::BuildMesh(chunk, this);
 
 		expected = ChunkState::TerrainGenerating;
 		if (chunk->state.compare_exchange_strong(expected, ChunkState::TerrainReady)) {

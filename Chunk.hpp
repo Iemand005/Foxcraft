@@ -25,14 +25,17 @@ enum class BlockType : short {
 };
 
 enum class ChunkState {
-    Unloaded,				// not tracked yet
-    TerrainPending,			// sitting in the work queue, not started
-    TerrainGenerating,		// worker thread is building voxel/mesh data right now
-    TerrainReady,			// worker finished, waiting for main thread to add to scene
-    InScene,				// fully uploaded to GPU and active
-    ScheduledForRemoval,	// main thread marked it, needs cleanup
-	Dirty,
-    RemovalPending			// being removed (freeing GPU buffers etc.)
+    Unloaded,
+    TerrainPending,
+    TerrainGenerating,
+    TerrainReady,
+    MeshPending,
+    MeshGenerating,
+    MeshReady,
+    InScene,
+    ScheduledForRemoval,
+    Dirty,
+    RemovalPending
 };
 
 class Chunk {

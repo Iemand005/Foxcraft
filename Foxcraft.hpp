@@ -185,9 +185,11 @@ public:
 		int playerChunkX = static_cast<int>(std::floor(playerPos.x / 16.0f));
 		int playerChunkZ = static_cast<int>(std::floor(playerPos.z / 16.0f));
 
-		chunkManager->LoadChunksInsideRange(glm::ivec2{playerChunkX, playerChunkZ}, CHUNK_LOAD_DISTANCE);
+		int terrainDist = CHUNK_LOAD_DISTANCE + 1;
 
-		chunkManager->UnloadChunksOutsideRange(glm::ivec2{playerChunkX, playerChunkZ}, CHUNK_LOAD_DISTANCE);
+		chunkManager->LoadChunksInsideRange(glm::ivec2{playerChunkX, playerChunkZ}, terrainDist, CHUNK_LOAD_DISTANCE);
+
+		chunkManager->UnloadChunksOutsideRange(glm::ivec2{playerChunkX, playerChunkZ}, terrainDist);
 	}
 
 	void SyncCameraToPlayer() {
