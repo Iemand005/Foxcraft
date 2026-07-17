@@ -48,6 +48,7 @@ private:
 public:
 	glm::ivec2 coord;
 	std::atomic<ChunkState> state;
+	std::atomic<bool> paused{false};
 	fe::Mesh<fe::VertexArray> mesh;
 
 	Chunk() : blocks(WIDTH * HEIGHT * DEPTH, BlockType::Air) {}

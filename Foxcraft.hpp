@@ -219,6 +219,11 @@ public:
 
 			UpdateLoadedChunks();
 
+			{
+				glm::vec2 forward2D = glm::normalize(glm::vec2(camera->front.x, camera->front.z));
+				chunkManager->UpdatePausedState(playerCenter_, forward2D);
+			}
+
 			chunkManager->Update(1, GetPhysicsEngine(), this->scene.get(),
 			                     playerCenter_, CHUNK_LOAD_DISTANCE, physicsDistance);
 

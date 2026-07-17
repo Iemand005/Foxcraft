@@ -8,19 +8,36 @@ void ChunkManager::WorkerLoop() {
 		{
 			std::unique_lock<std::mutex> lock(queueMutex);
 			queueCV.wait(lock, [this] {
-				return !pendingQueue.empty() || !meshQueue.empty() || !running;
+				auto hasNonPaused = [](const std::deque<std::shared_ptr<Chunk>>& q) {
+					for (auto& c : q)
+						if (!c->paused) return true;
+					return false;
+				};
+				return hasNonPaused(pendingQueue) || hasNonPaused(meshQueue) || !running;
 			});
 			if (!running) return;
 
-			if (!pendingQueue.empty()) {
-				chunk = pendingQueue.front();
-				pendingQueue.pop_front();
+			auto popNonPaused = [](std::deque<std::shared_ptr<Chunk>>& q) -> std::shared_ptr<Chunk> {
+				for (auto it = q.begin(); it != q.end(); ++it) {
+					if (!(*it)->paused) {
+						auto c = *it;
+						q.erase(it);
+						return c;
+					}
+				}
+				return nullptr;
+			};
+
+			chunk = popNonPaused(pendingQueue);
+			if (chunk) {
+				isMesh = false;
 			} else {
-				chunk = meshQueue.front();
-				meshQueue.pop_front();
-				isMesh = true;
+				chunk = popNonPaused(meshQueue);
+				if (chunk) isMesh = true;
 			}
 		}
+
+		if (!chunk) continue;
 
 		if (!isMesh) {
 			ChunkState expected = ChunkState::TerrainPending;

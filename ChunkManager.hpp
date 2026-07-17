@@ -109,6 +109,17 @@ public:
 		}
 	}
 
+	void UpdatePausedState(glm::ivec2 center, glm::vec2 forward) {
+		{
+			std::lock_guard<std::mutex> lock(chunksMutex);
+			for (auto& [coord, chunk] : chunks) {
+				glm::vec2 offset = glm::vec2(coord.x - center.x, coord.y - center.y);
+				chunk->paused = glm::dot(offset, forward) < 0.0f;
+			}
+		}
+		queueCV.notify_all();
+	}
+
 	void LoadChunksInsideRange(glm::ivec2 center, int loadDistance, glm::vec2 forward = glm::vec2(0.0f)) {
 		int distSq = loadDistance * loadDistance;
 		bool useDirection = glm::length(forward) > 0.001f;
