@@ -109,13 +109,19 @@ public:
 		}
 	}
 
-	void LoadChunksInsideRange(glm::ivec2 center, int loadDistance) {
+	void LoadChunksInsideRange(glm::ivec2 center, int loadDistance, glm::vec2 forward = glm::vec2(0.0f)) {
 		int distSq = loadDistance * loadDistance;
+		bool useDirection = glm::length(forward) > 0.001f;
 		for (int d = 0; d <= loadDistance; d++) {
 			for (int dz = -d; dz <= d; dz++) {
 				for (int dx = -d; dx <= d; dx++) {
 					if (std::max(std::abs(dx), std::abs(dz)) != d) continue;
 					if (dx * dx + dz * dz > distSq) continue;
+					if (useDirection) {
+						glm::vec2 offset = glm::vec2(dx, dz);
+						if (glm::dot(offset, forward) < 0.0f)
+							continue;
+					}
 					RequestChunk(center + glm::ivec2{dx, dz});
 				}
 			}

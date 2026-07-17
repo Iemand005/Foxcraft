@@ -127,7 +127,8 @@ public:
 		playerCenter_ = {playerChunkX, playerChunkZ};
 
 		int terrainDist = CHUNK_LOAD_DISTANCE + chunkOutgenDistance;
-		chunkManager->LoadChunksInsideRange(playerCenter_, terrainDist);
+		glm::vec2 forward2D = glm::normalize(glm::vec2(camera->front.x, camera->front.z));
+		chunkManager->LoadChunksInsideRange(playerCenter_, terrainDist, forward2D);
 		chunkManager->UnloadChunksOutsideRange(playerCenter_, terrainDist);
 	}
 
