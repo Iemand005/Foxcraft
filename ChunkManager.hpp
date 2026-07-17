@@ -61,7 +61,7 @@ public:
 	}
 
 	void Update(int maxUploads, fe::PhysicsFactory* physicsEngine, fe::Scene* scene,
-	            glm::ivec2 center, int meshDist) {
+	            glm::ivec2 center, int meshDist, int physicsDist = -1) {
 		int uploaded = 0;
 		while (uploaded < maxUploads) {
 			std::shared_ptr<Chunk> chunk;
@@ -71,7 +71,7 @@ public:
 				chunk = completedQueue.front();
 				completedQueue.pop();
 			}
-			UploadAndInsert(chunk, physicsEngine, scene);
+			UploadAndInsert(chunk, physicsEngine, scene, center, physicsDist);
 			uploaded++;
 		}
 
@@ -165,11 +165,20 @@ public:
 private:
 	void WorkerLoop();
 
-	void UploadAndInsert(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
+	void UploadAndInsert(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* physicsEngine, fe::Scene* scene,
+	                     glm::ivec2 center, int physicsDist) {
 		if (chunk->state == ChunkState::ScheduledForRemoval || chunk->state == ChunkState::RemovalPending)
 			return;
 
-		chunk->UploadToScene(physicsEngine, scene);
+		bool createPhysics = true;
+		if (physicsDist >= 0) {
+			int dx = chunk->coord.x - center.x;
+			int dz = chunk->coord.y - center.y;
+			if (dx * dx + dz * dz > physicsDist * physicsDist)
+				createPhysics = false;
+		}
+
+		chunk->UploadToScene(physicsEngine, scene, createPhysics);
 	}
 
 	bool RemoveFromScene(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {

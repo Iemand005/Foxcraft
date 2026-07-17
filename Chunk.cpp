@@ -1,15 +1,16 @@
 #include "Chunk.hpp"
 #include "ChunkMesher.hpp"
 
-void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
+void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, bool createPhysics) {
 
 	if (state == ChunkState::ScheduledForRemoval || state == ChunkState::RemovalPending) {
 		std::cout << "Cancelled chunk upload (" << coord.x << ", " << coord.y << ") due to removal request." << std::endl;
 		return;
 	}
-	std::cout << "Uploading chunk (" << coord.x << ", " << coord.y << "): " << "Vertices: " << mesh.vertices.size() << " Indices: " << mesh.indices.size() << std::endl;
 
-	if (!mesh.vertices.empty() && !mesh.indices.empty()) {
+	if (createPhysics && !mesh.vertices.empty() && !mesh.indices.empty()) {
+		std::cout << "Uploading chunk (" << coord.x << ", " << coord.y << "): " << "Vertices: " << mesh.vertices.size() << " Indices: " << mesh.indices.size() << std::endl;
+
 		std::vector<glm::vec3> colliderVertices;
 		colliderVertices.reserve(mesh.vertices.size());
 		for (const auto& vertex : mesh.vertices)

@@ -155,7 +155,7 @@ public:
 		return neighbor == BlockType::Air;
 	}
 
-	void UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene);
+	void UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, bool createPhysics = true);
 
 	std::shared_ptr<fe::Object<fe::VertexArray>> GetSceneObject() { return this->sceneObject; }
 };

@@ -50,6 +50,7 @@ public:
 	static constexpr int SUBDIVISIONS_PER_SEG = 48;
 	int CHUNK_LOAD_DISTANCE = 2;
 	int chunkOutgenDistance = 1;
+	int physicsDistance = 2;
 	glm::ivec2 playerCenter_{0, 0};
 	static constexpr int GRID_WIDTH = 1;  // 5x5 grid
 	static constexpr int GRID_HEIGHT = 1;
@@ -218,7 +219,7 @@ public:
 			UpdateLoadedChunks();
 
 			chunkManager->Update(1, GetPhysicsEngine(), this->scene.get(),
-			                     playerCenter_, CHUNK_LOAD_DISTANCE);
+			                     playerCenter_, CHUNK_LOAD_DISTANCE, physicsDistance);
 
 			if (!freeCamera) {
 				SyncCameraToPlayer();
@@ -255,6 +256,7 @@ public:
 		ImGui::Begin("Chunks");
 		{
 			ImGui::DragInt("Render Distance", &CHUNK_LOAD_DISTANCE);
+			ImGui::DragInt("Physics Distance", &physicsDistance, 0.5f, 0, 20);
 			ImGui::SliderInt("Terrain Pre-gen", &chunkOutgenDistance, 1, 10);
 		}
 		ImGui::End();
