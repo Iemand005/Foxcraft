@@ -39,7 +39,9 @@ int main() {
 
 	try {
 		LogToFile("Creating Foxcraft game instance...");
-		Foxcraft game(fe::XRGameOptions(800, 600));
+		fe::XRGameOptions options(100, 100);
+		options.useVulkan = true;
+		Foxcraft game(options);
 
 		LogToFile("Running game...");
 		game.Run();
