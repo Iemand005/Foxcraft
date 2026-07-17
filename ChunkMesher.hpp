@@ -14,6 +14,33 @@ public:
 		allVertices.reserve(WIDTH * HEIGHT * DEPTH * 4);
 		allIndices.reserve(WIDTH * HEIGHT * DEPTH * 6);
 
+		auto getBlockAt = [&](int x, int y, int z) -> BlockType {
+			if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT && z >= 0 && z < DEPTH)
+				return chunk->GetBlock(x, y, z);
+			if (y < 0 || y >= HEIGHT)
+				return BlockType::Air;
+			int worldX = chunk->coord.x * WIDTH + x;
+			int worldZ = chunk->coord.y * DEPTH + z;
+			auto neighborCoord = manager->WorldToChunkCoord(worldX, worldZ);
+			Chunk* neighbor = manager->GetChunk(neighborCoord);
+			if (!neighbor) return BlockType::Air;
+			int localX = worldX - neighborCoord.x * WIDTH;
+			int localZ = worldZ - neighborCoord.y * DEPTH;
+			return neighbor->GetBlock(localX, y, localZ);
+		};
+
+		auto needsFace = [&](int x, int y, int z, fe::PlaneDirection dir) -> bool {
+			switch (dir) {
+				case fe::PlaneDirection::Front:  return getBlockAt(x, y, z-1) == BlockType::Air;
+				case fe::PlaneDirection::Back:   return getBlockAt(x, y, z+1) == BlockType::Air;
+				case fe::PlaneDirection::Left:   return getBlockAt(x+1, y, z) == BlockType::Air;
+				case fe::PlaneDirection::Right:  return getBlockAt(x-1, y, z) == BlockType::Air;
+				case fe::PlaneDirection::Top:    return getBlockAt(x, y+1, z) == BlockType::Air;
+				case fe::PlaneDirection::Bottom: return getBlockAt(x, y-1, z) == BlockType::Air;
+			}
+			return false;
+		};
+
 		for (int x = 0; x < WIDTH; x++) {
 			for (int y = 0; y < HEIGHT; y++) {
 				for (int z = 0; z < DEPTH; z++) {
@@ -26,7 +53,7 @@ public:
 					for (auto direction : {fe::PlaneDirection::Front, fe::PlaneDirection::Back,
 						fe::PlaneDirection::Left, fe::PlaneDirection::Right,
 						fe::PlaneDirection::Top, fe::PlaneDirection::Bottom}) {
-						if (chunk->NeedsFace(glm::vec3(x, y, z), direction)) {
+						if (needsFace(x, y, z, direction)) {
 							visibleFaces.push_back(direction);
 						}
 					}
