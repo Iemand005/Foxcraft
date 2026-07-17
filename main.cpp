@@ -1,3 +1,4 @@
+#include "XRGame.hpp"
 #ifdef _WIN32
 // #define _WINSOCKAPI_
 // #include <winsock2.h>
@@ -38,7 +39,7 @@ int main() {
 
 	try {
 		LogToFile("Creating Foxcraft game instance...");
-		Foxcraft game;
+		Foxcraft game(fe::XRGameOptions(800, 600));
 
 		LogToFile("Running game...");
 		game.Run();

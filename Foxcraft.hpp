@@ -77,7 +77,7 @@ public:
 
 	std::unique_ptr<ChunkManager> chunkManager = std::make_unique<ChunkManager>(12);
 
-	Foxcraft(int width = 1000, int height = 1000, bool vr = false) : fe::EditableGame(fe::XRGameOptions{width, height}) {
+	Foxcraft(fe::XRGameOptions options) : fe::EditableGame(options) {
 
 		SetClearColor(0.1f, 0.3f, 1);
 
