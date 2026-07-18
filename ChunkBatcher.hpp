@@ -69,35 +69,30 @@ public:
             v.position += worldOffset;
         }
 
-        uint32_t vOff = AllocFromFreeList(freeVertexBlocks_, alignedVB);
-        if (vOff == UINT32_MAX) {
-            vOff = nextVertexOffset_;
-            if (vOff + alignedVB > maxVertexBytes_) {
-                nextVertexOffset_ = 0;
-                vOff = 0;
-                while (vOff + alignedVB > maxVertexBytes_ || VertexRangeInUse(vOff, alignedVB)) {
-                    vOff = AllocFromFreeList(freeVertexBlocks_, alignedVB);
-                    if (vOff == UINT32_MAX)
-                        throw std::runtime_error("ChunkBatcher vertex buffer full");
-                }
+        auto allocOffset = [&](uint32_t alignedSize, uint32_t& nextOff, uint32_t maxBytes,
+                               bool isVertex) -> uint32_t {
+            uint32_t off = nextOff;
+            if (off + alignedSize > maxBytes) {
+                off = 0;
+                nextOff = 0;
             }
-            nextVertexOffset_ = vOff + alignedVB;
-        }
+            while (true) {
+                bool inUse = isVertex ? VertexRangeInUse(off, alignedSize) : IndexRangeInUse(off, alignedSize);
+                if (!inUse) break;
+                off += alignedSize;
+                if (off + alignedSize > maxBytes)
+                    off = 0;
+                if (off == nextOff)
+                    throw std::runtime_error("ChunkBatcher vertex/index buffer full");
+            }
+            nextOff = off + alignedSize;
+            return off;
+        };
 
-        uint32_t iOff = AllocFromFreeList(freeIndexBlocks_, alignedIB);
-        if (iOff == UINT32_MAX) {
-            iOff = nextIndexOffset_;
-            if (iOff + alignedIB > maxIndexBytes_) {
-                nextIndexOffset_ = 0;
-                iOff = 0;
-                while (iOff + alignedIB > maxIndexBytes_ || IndexRangeInUse(iOff, alignedIB)) {
-                    iOff = AllocFromFreeList(freeIndexBlocks_, alignedIB);
-                    if (iOff == UINT32_MAX)
-                        throw std::runtime_error("ChunkBatcher index buffer full");
-                }
-            }
-            nextIndexOffset_ = iOff + alignedIB;
-        }
+        uint32_t maxVB = static_cast<uint32_t>(maxVertexBytes_);
+        uint32_t maxIB = static_cast<uint32_t>(maxIndexBytes_);
+        uint32_t vOff = allocOffset(alignedVB, nextVertexOffset_, maxVB, true);
+        uint32_t iOff = allocOffset(alignedIB, nextIndexOffset_, maxIB, false);
 
         uint32_t frame = device_->GetCurrentFrame();
         uint32_t totalBytes = alignedVB + alignedIB;
@@ -128,13 +123,8 @@ public:
     }
 
     void RemoveChunk(SlotHandle handle) {
-        if (handle.index >= slots_.size()) return;
-        auto& slot = slots_[handle.index];
-        if (!slot.used) return;
-
-        slot.used = false;
-        FreeToFreeList(freeVertexBlocks_, slot.vertexOffset, slot.vertexBytes);
-        FreeToFreeList(freeIndexBlocks_, slot.indexOffset, slot.indexBytes);
+        if (handle.index < slots_.size())
+            slots_[handle.index].used = false;
     }
 
     void SetFrustumCullingEnabled(bool enabled) { enableFrustumCulling_ = enabled; }
