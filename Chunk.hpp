@@ -56,9 +56,9 @@ public:
 	Chunk() : blocks(WIDTH * HEIGHT * DEPTH, BlockType::Air) {}
 	Chunk(glm::ivec2 position) : Chunk() {
 		coord = position;
-		name = "Chunk"
+		name = "Chunk";
 	}
-	Chunk(int x, int y) : Chunk({x, y}) {}
+	Chunk(int x, int y) : Chunk(glm::ivec2{x, y}) {}
 
 	BlockType GetBlock(int x, int y, int z) const {
 		if(x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT || z < 0 || z >= DEPTH)
