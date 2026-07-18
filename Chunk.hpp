@@ -65,6 +65,10 @@ public:
 	void SetBlock(int x, int y, int z, BlockType type) {
 		blocks[x * HEIGHT * DEPTH + y * DEPTH + z] = type;
 	}
+
+	void SetBlock(const glm::ivec3& pos, BlockType type) {
+		blocks[pos.x * HEIGHT * DEPTH + pos.y * DEPTH + pos.z] = type;
+	}
 		
 	BlockType GetBlock(const glm::ivec3& pos) const {
 		return GetBlock(pos.x, pos.y, pos.z);

@@ -181,7 +181,8 @@ public:
 
 
 	BlockType GetBlock(const glm::ivec3& position) {
-		auto chunk = GetChunkAt(position);
+		glm::ivec2 coord = WorldToChunkCoord(position.x, position.z);
+		Chunk* chunk = GetChunk(coord);
 
 		if (!chunk) {
 			return BlockType::Air;
@@ -197,7 +198,14 @@ public:
 	}
 
 	void SetBlock(const glm::ivec3& position, BlockType type) {
+		glm::ivec2 coord = WorldToChunkCoord(position.x, position.z);
+		Chunk* chunk = GetChunk(coord);
 
+		if (!chunk) return;
+
+		int localX = position.x - coord.x * Chunk::WIDTH;
+		int localZ = position.z - coord.y * Chunk::DEPTH;
+		chunk->SetBlock(localX, position.y, localZ, type);
 	}
 
 	bool IsBlockSolid(const glm::ivec3& position) {
