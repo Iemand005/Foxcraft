@@ -139,7 +139,7 @@ public:
 		camera->SetPos(player->state.position + headOffset);
 	}
 
-	void PlaceBlock() {
+	void PlaceBlock(bool breakBock = false) {
 		glm::vec3 cameraPos = camera->GetPos();
 		glm::vec3 rayDir = glm::normalize(camera->front);
 		float reachDistance = 5.0f;
@@ -164,7 +164,7 @@ public:
 		}
 
 		if (blockFound) {
-			chunkManager->SetBlock(selectedBlockPos, BlockType::Cobblestone); 
+			chunkManager->SetBlock(selectedBlockPos, BlockType::Air); 
 		}
 	}
 
