@@ -66,8 +66,10 @@ public:
 	void UnloadChunk(glm::ivec2 coord) {
 		std::lock_guard<std::mutex> lock(chunksMutex);
 		auto it = chunks.find(coord);
-		if (it != chunks.end())
+		if (it != chunks.end()) {
 			it->second->state = ChunkState::ScheduledForRemoval;
+			pendingRemovals_.push_back(coord);
+		}
 	}
 
 	void Update(int maxUploads, fe::PhysicsFactory* physicsEngine, fe::Scene* scene,
@@ -91,21 +93,30 @@ public:
 		{
 			std::lock_guard<std::mutex> lock(chunksMutex);
 
-			for (auto& [coord, chunk] : chunks) {
-				if (chunk->state != ChunkState::TerrainReady || !AllNeighborsPresent(coord))
-					continue;
+			{
+				std::lock_guard<std::mutex> qlock(terrainReadyMutex_);
+				while (!terrainReadyQueue_.empty()) {
+					auto chunk = terrainReadyQueue_.front();
+					terrainReadyQueue_.pop_front();
 
-				int dx = coord.x - center.x;
-				int dz = coord.y - center.y;
-				if (dx * dx + dz * dz > meshDistSq)
-					continue;
+					if (chunk->state != ChunkState::TerrainReady)
+						continue;
 
-				chunk->state = ChunkState::MeshPending;
-				{
-					std::lock_guard<std::mutex> qlock(queueMutex);
-					meshQueue.push_back(chunk);
+					glm::ivec2 coord = chunk->coord;
+					int dx = coord.x - center.x;
+					int dz = coord.y - center.y;
+					if (dx * dx + dz * dz > meshDistSq)
+						continue;
+					if (!AllNeighborsPresent(coord))
+						continue;
+
+					chunk->state = ChunkState::MeshPending;
+					{
+						std::lock_guard<std::mutex> qlock2(queueMutex);
+						meshQueue.push_back(chunk);
+					}
+					queueCV.notify_one();
 				}
-				queueCV.notify_one();
 			}
 
 			for (auto& [coord, chunk] : chunks) {
@@ -128,17 +139,17 @@ public:
 					chunk->RemovePhysics();
 			}
 
-			for (auto it = chunks.begin(); it != chunks.end(); ) {
-				if (it->second->state == ChunkState::ScheduledForRemoval) {
-					auto sco = it->second->GetSceneObject();
-					if (!sco || RemoveFromScene(it->second, physicsEngine, scene))
-						it = chunks.erase(it);
-					else
-						++it;
-				} else {
-					++it;
-				}
+			for (auto& coord : pendingRemovals_) {
+				auto it = chunks.find(coord);
+				if (it == chunks.end())
+					continue;
+				if (it->second->state != ChunkState::ScheduledForRemoval)
+					continue;
+				auto sco = it->second->GetSceneObject();
+				if (!sco || RemoveFromScene(it->second, physicsEngine, scene))
+					chunks.erase(it);
 			}
+			pendingRemovals_.clear();
 		}
 	}
 
@@ -181,6 +192,7 @@ public:
 
 			if (dx * dx + dz * dz > distSq && chunk->state != ChunkState::ScheduledForRemoval) {
 				chunk->state = ChunkState::ScheduledForRemoval;
+				pendingRemovals_.push_back(coord);
 			}
 		}
 	}
