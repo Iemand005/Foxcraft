@@ -187,14 +187,14 @@ public:
 
 	Chunk *GetChunkAt(const glm::ivec3& position) {
 		glm::ivec2 coord = WorldToChunkCoord(position.x, position.z);
-		Chunk* chunk = GetChunk(coord);
+		Chunk* chunk = GetChunk(coord).get();
 		return chunk;
 	}
 
 
 	BlockType GetBlock(const glm::ivec3& position) {
 		glm::ivec2 coord = WorldToChunkCoord(position.x, position.z);
-		Chunk* chunk = GetChunk(coord);
+		Chunk* chunk = GetChunk(coord) .get();
 
 		if (!chunk) {
 			return BlockType::Air;
@@ -211,13 +211,15 @@ public:
 
 	void SetBlock(const glm::ivec3& position, BlockType type) {
 		glm::ivec2 coord = WorldToChunkCoord(position.x, position.z);
-		Chunk* chunk = GetChunk(coord);
+		Chunk* chunk = GetChunk(coord).get();
 
 		if (!chunk) return;
 
 		int localX = position.x - coord.x * Chunk::WIDTH;
 		int localZ = position.z - coord.y * Chunk::DEPTH;
 		chunk->SetBlock(localX, position.y, localZ, type);
+
+		RequestChunkRemesh(chunk)
 	}
 
 	bool IsBlockSolid(const glm::ivec3& position) {
@@ -230,16 +232,16 @@ public:
 		return { chunkX, chunkZ };
 	}
 
-	Chunk* GetChunk(glm::ivec2 coord) {
+	std::shared_ptr<Chunk> GetChunk(glm::ivec2 coord) {
         auto it = chunks.find(coord);
         if (it == chunks.end())
             return nullptr;
-        return it->second.get();
+        return it->second;
     }
 
 	int GetSurfaceHeight(int worldX, int worldZ) {
 		glm::ivec2 coord = WorldToChunkCoord(worldX, worldZ);
-		Chunk* chunk = GetChunk(coord);
+		Chunk* chunk = GetChunk(coord).get();
 		if (!chunk) return -1;
 		int localX = worldX - coord.x * Chunk::WIDTH;
 		int localZ = worldZ - coord.y * Chunk::DEPTH;
