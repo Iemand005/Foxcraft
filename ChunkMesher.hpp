@@ -154,26 +154,21 @@ public:
 	}
 
 	static int GetBlockTextureLayer(BlockType type, fe::PlaneDirection direction) {
-
 		switch (type) {
-			
-		case (type == BlockType::Grass): {
-			if (direction == fe::PlaneDirection::Top) {
-				return 1;
-			} else if (direction == fe::PlaneDirection::Bottom) {
-				return 0;
-			} else {
+			case BlockType::Grass:
+				if (direction == fe::PlaneDirection::Top)
+					return 1;
+				if (direction == fe::PlaneDirection::Bottom)
+					return 0;
 				return 2;
-			}
-		
-		case type == BlockType::Dirt:
-			return 0;
-		case type == BlockType::Stone:
-			return 4;
-		case type == BlockType::Bedrock: {\\
-			return 3;
-		case type == BlockType::Bedrock: {\\
-			return 3;
+			case BlockType::Dirt:
+				return 0;
+			case BlockType::Stone:
+				return 4;
+			case BlockType::Bedrock:
+				return 3;
+			case BlockType::Cobblestone:
+				return 5;
 		}
 		return 0;
 	}
@@ -185,6 +180,7 @@ public:
 			"resources/textures/grass_side_carried.png",
 			"resources/textures/bedrock.png",
 			"resources/textures/stone.png",
+			"resources/textures/cobblestone.png",
 			"resources/textures/cake_bottom.png",
 			"resources/textures/cake_top.png"
 		};
