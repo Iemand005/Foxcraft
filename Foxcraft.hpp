@@ -78,7 +78,7 @@ public:
 
 	std::shared_ptr<fe::Object<fe::VertexArray>> testCube;
 
-	std::unique_ptr<ChunkManager> chunkManager = std::make_unique<ChunkManager>(12);
+	std::unique_ptr<ChunkManager> chunkManager = std::make_unique<ChunkManager>(6);
 
 	Foxcraft(fe::XRGameOptions options) : fe::EditableGame(options) {
 
