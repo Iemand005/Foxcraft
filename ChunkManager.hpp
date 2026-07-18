@@ -174,7 +174,7 @@ public:
 	}
 
 
-	BlockType GetBlock(glm::ivec3 position) {
+	BlockType GetBlock(const glm::ivec3& position) {
 		glm::ivec2 coord = WorldToChunkCoord(position.x, position.z);
 		Chunk* chunk = GetChunk(coord);
 
@@ -191,8 +191,8 @@ public:
 		return GetBlock({worldX, y, worldZ});
 	}
 
-	bool IsBlockSolid(glm::ivec3 position) {
-		return GetBlock(position.x, position.y, position.z) != BlockType::Air;
+	bool IsBlockSolid(const glm::ivec3& position) {
+		return GetBlock(position) != BlockType::Air;
 	}
 
 	glm::ivec2 WorldToChunkCoord(int worldX, int worldZ) {
