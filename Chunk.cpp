@@ -8,6 +8,25 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, b
 		return;
 	}
 
+	if (sceneObject) {
+		// Remesh: update existing scene object
+		if (!mesh.vertices.empty() && !mesh.indices.empty()) {
+			std::cout << "Remeshing chunk (" << coord.x << ", " << coord.y << "): " << "Vertices: " << mesh.vertices.size() << " Indices: " << mesh.indices.size() << std::endl;
+
+			RemovePhysics();
+
+			sceneObject->meshes[0].RemoveFromGPU();
+			sceneObject->meshes[0].vertices = std::move(mesh.vertices);
+			sceneObject->meshes[0].indices = std::move(mesh.indices);
+			sceneObject->meshes[0].init();
+
+			if (createPhysics)
+				AddPhysics(physicsEngine);
+		}
+		state = ChunkState::InScene;
+		return;
+	}
+
 	if (createPhysics && !mesh.vertices.empty() && !mesh.indices.empty()) {
 		std::cout << "Uploading chunk (" << coord.x << ", " << coord.y << "): " << "Vertices: " << mesh.vertices.size() << " Indices: " << mesh.indices.size() << std::endl;
 

@@ -58,7 +58,7 @@ public:
 
 		{
 			std::lock_guard<std::mutex> qlock(queueMutex);
-			pendingQueue.push_back(chunk);
+			meshQueue.push_back(chunk);
 		}
 		queueCV.notify_one();
 	}
