@@ -392,26 +392,6 @@ private:
         return false;
     }
 
-    static void FreeToFreeList(std::vector<FreeBlock>& list, uint32_t offset, uint32_t size) {
-        if (size == 0) return;
-        for (auto it = list.begin(); it != list.end(); ++it) {
-            if (it->offset + it->size == offset) {
-                it->size += size;
-                auto next = it + 1;
-                if (next != list.end() && it->offset + it->size == next->offset) {
-                    it->size += next->size;
-                    list.erase(next);
-                }
-                return;
-            } else if (offset + size == it->offset) {
-                it->offset = offset;
-                it->size += size;
-                return;
-            }
-        }
-        list.push_back({offset, size});
-    }
-
     VulkanDevice* device_;
     VkDeviceSize maxVertexBytes_;
     VkDeviceSize maxIndexBytes_;
