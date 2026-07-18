@@ -105,6 +105,8 @@ public:
         }
     }
 
+    void SetFrustumCullingEnabled(bool enabled) { enableFrustumCulling_ = enabled; }
+
     void Update(const glm::vec3& cameraPos, const glm::vec3& cameraFront, float farPlane) {
         FlushUploads();
 
@@ -115,10 +117,12 @@ public:
         for (auto& slot : slots_) {
             if (!slot.used) continue;
 
-            glm::vec3 toCenter = slot.center - cameraPos;
-            float dist = glm::length(toCenter);
-            if (dist > farPlane) continue;
-            if (glm::dot(glm::normalize(toCenter), camDir) < -0.2f) continue;
+            if (enableFrustumCulling_) {
+                glm::vec3 toCenter = slot.center - cameraPos;
+                float dist = glm::length(toCenter);
+                if (dist > farPlane) continue;
+                if (glm::dot(glm::normalize(toCenter), camDir) < -0.2f) continue;
+            }
 
             VkDrawIndexedIndirectCommand cmd{};
             cmd.indexCount = slot.indexCount;
@@ -310,12 +314,13 @@ private:
         uint32_t frame = device_->GetCurrentFrame();
 
         vkWaitForFences(dev, 1, &stagingFences_[frame], VK_TRUE, UINT64_MAX);
-        vkResetFences(dev, 1, &stagingFences_[frame]);
 
         if (pendingCopies_[frame].empty()) {
             stagingCursor_[frame] = 0;
             return;
         }
+
+        vkResetFences(dev, 1, &stagingFences_[frame]);
 
         vkResetCommandBuffer(stagingCmdBufs_[frame], 0);
         VkCommandBufferBeginInfo beginInfo{};
@@ -347,6 +352,7 @@ private:
     VkDeviceSize maxVertexBytes_;
     VkDeviceSize maxIndexBytes_;
     uint32_t maxChunks_;
+    bool enableFrustumCulling_ = true;
 
     VkBuffer vertexBuffer_ = VK_NULL_HANDLE;
     VkDeviceMemory vertexMemory_ = VK_NULL_HANDLE;
