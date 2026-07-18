@@ -169,6 +169,8 @@ public:
 				return 3;
 			case BlockType::Cobblestone:
 				return 5;
+			default:
+				return 0;
 		}
 		return 0;
 	}

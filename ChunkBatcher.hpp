@@ -72,17 +72,32 @@ public:
         uint32_t vOff = AllocFromFreeList(freeVertexBlocks_, alignedVB);
         if (vOff == UINT32_MAX) {
             vOff = nextVertexOffset_;
-            nextVertexOffset_ += alignedVB;
+            if (vOff + alignedVB > maxVertexBytes_) {
+                nextVertexOffset_ = 0;
+                vOff = 0;
+                while (vOff + alignedVB > maxVertexBytes_ || VertexRangeInUse(vOff, alignedVB)) {
+                    vOff = AllocFromFreeList(freeVertexBlocks_, alignedVB);
+                    if (vOff == UINT32_MAX)
+                        throw std::runtime_error("ChunkBatcher vertex buffer full");
+                }
+            }
+            nextVertexOffset_ = vOff + alignedVB;
         }
 
         uint32_t iOff = AllocFromFreeList(freeIndexBlocks_, alignedIB);
         if (iOff == UINT32_MAX) {
             iOff = nextIndexOffset_;
-            nextIndexOffset_ += alignedIB;
+            if (iOff + alignedIB > maxIndexBytes_) {
+                nextIndexOffset_ = 0;
+                iOff = 0;
+                while (iOff + alignedIB > maxIndexBytes_ || IndexRangeInUse(iOff, alignedIB)) {
+                    iOff = AllocFromFreeList(freeIndexBlocks_, alignedIB);
+                    if (iOff == UINT32_MAX)
+                        throw std::runtime_error("ChunkBatcher index buffer full");
+                }
+            }
+            nextIndexOffset_ = iOff + alignedIB;
         }
-
-        if (vOff + alignedVB > maxVertexBytes_ || iOff + alignedIB > maxIndexBytes_)
-            throw std::runtime_error("ChunkBatcher vertex/index buffer full");
 
         uint32_t frame = device_->GetCurrentFrame();
         uint32_t totalBytes = alignedVB + alignedIB;
@@ -386,6 +401,26 @@ private:
             }
         }
         return UINT32_MAX;
+    }
+
+    bool VertexRangeInUse(uint32_t offset, uint32_t size) const {
+        for (auto& slot : slots_) {
+            if (!slot.used) continue;
+            if (offset < slot.vertexOffset + slot.vertexBytes &&
+                offset + size > slot.vertexOffset)
+                return true;
+        }
+        return false;
+    }
+
+    bool IndexRangeInUse(uint32_t offset, uint32_t size) const {
+        for (auto& slot : slots_) {
+            if (!slot.used) continue;
+            if (offset < slot.indexOffset + slot.indexBytes &&
+                offset + size > slot.indexOffset)
+                return true;
+        }
+        return false;
     }
 
     static void FreeToFreeList(std::vector<FreeBlock>& list, uint32_t offset, uint32_t size) {
