@@ -79,6 +79,7 @@ public:
 	std::shared_ptr<fe::Object<fe::VertexArray>> testCube;
 
 	std::unique_ptr<ChunkManager> chunkManager = std::make_unique<ChunkManager>(6);
+	std::unique_ptr<ChunkBatcher> chunkBatcher_;
 
 	Foxcraft(fe::XRGameOptions options) : fe::EditableGame(options) {
 
@@ -87,9 +88,23 @@ public:
 		if (!options.useVulkan)
 			LoadShaders("resources/shaders/VertexShader.glsl", "resources/shaders/FragmentShader.glsl");
 
+		if (options.useVulkan) {
+			chunkBatcher_ = std::make_unique<ChunkBatcher>(
+				static_cast<VulkanDevice*>(renderDevice.get()));
+			chunkManager->SetBatcher(chunkBatcher_.get());
+		}
+
 		LoadModels();
 
 		GetPhysicsEngine()->EnableGravity();
+	}
+
+	void OnDraw() override {
+		fe::EditableGameBase::OnDraw();
+		if (chunkBatcher_ && useVulkan) {
+			chunkBatcher_->Update(camera->GetPos(), camera->front, farPlane);
+			chunkBatcher_->Draw();
+		}
 	}
 
 	void RebuildPlayerPhysicsBody() {

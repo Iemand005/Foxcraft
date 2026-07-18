@@ -1,5 +1,6 @@
 #include "Chunk.hpp"
 #include "ChunkMesher.hpp"
+#include "ChunkBatcher.hpp"
 
 void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, bool createPhysics) {
 
@@ -14,10 +15,15 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, b
 
 			RemovePhysics();
 
-			sceneObject->meshes[0].gpuBuffers.reset();
-			sceneObject->meshes[0].vertices = std::move(mesh.vertices);
-			sceneObject->meshes[0].indices = std::move(mesh.indices);
-			sceneObject->meshes[0].init();
+			if (batcher_ && batcherSlot_ != UINT32_MAX) {
+				batcher_->RemoveChunk({batcherSlot_});
+			}
+			batcherSlot_ = UINT32_MAX;
+
+			if (batcher_) {
+				auto handle = batcher_->UploadChunk(mesh.vertices, mesh.indices, GetWorldPosition());
+				batcherSlot_ = handle.index;
+			}
 
 			if (createPhysics)
 				AddPhysics(physicsEngine);
@@ -26,50 +32,57 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, b
 		return;
 	}
 
-	if (createPhysics && !mesh.vertices.empty() && !mesh.indices.empty()) {
+	if (!mesh.vertices.empty() && !mesh.indices.empty()) {
 		std::cout << "Uploading chunk (" << coord.x << ", " << coord.y << "): " << "Vertices: " << mesh.vertices.size() << " Indices: " << mesh.indices.size() << std::endl;
 
-		std::vector<glm::vec3> colliderVertices;
-		colliderVertices.reserve(mesh.vertices.size());
-		for (const auto& vertex : mesh.vertices)
-			colliderVertices.push_back(vertex.position);
+		if (batcher_) {
+			auto handle = batcher_->UploadChunk(mesh.vertices, mesh.indices, GetWorldPosition());
+			batcherSlot_ = handle.index;
+		}
 
-		std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
+		if (createPhysics) {
+			std::vector<glm::vec3> colliderVertices;
+			colliderVertices.reserve(mesh.vertices.size());
+			for (const auto& vertex : mesh.vertices)
+				colliderVertices.push_back(vertex.position);
 
-		auto physobj = physicsEngine->CreateObject(colliderVertices, colliderIndices);
-		if (physobj)
-			physobj->SetPosition(GetWorldPosition());
-		mesh.SetPhysicsObject(std::move(physobj));
+			std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
+
+			auto physobj = physicsEngine->CreateObject(colliderVertices, colliderIndices);
+			if (physobj)
+				physobj->SetPosition(GetWorldPosition());
+			mesh.SetPhysicsObject(std::move(physobj));
+		}
 	}
 
-	mesh.loadTextureArray(ChunkMesher::BlockTextures(), fe::TextureScaling::Nearest);
-
-	sceneObject = std::make_shared<fe::Object<fe::VertexArray>>(std::move(mesh));
+	sceneObject = std::make_shared<fe::Object<fe::VertexArray>>();
 	sceneObject->name = "Chunk";
 	sceneObject->state.position = GetWorldPosition();
 	sceneObject->isStatic = true;
 	sceneObject->boundingCenterOffset = {WIDTH / 2.0f, HEIGHT / 2.0f, DEPTH / 2.0f};
 	sceneObject->boundingRadius = glm::length(sceneObject->boundingCenterOffset);
 
+	if (mesh.physicsObject)
+		sceneObject->SetPhysicsObject(std::move(mesh.physicsObject));
+
 	scene->AddObject(sceneObject);
 	state = ChunkState::InScene;
 }
 
 void Chunk::AddPhysics(fe::PhysicsFactory* physicsEngine) {
-	if (!sceneObject || sceneObject->meshes.empty())
+	if (!sceneObject)
 		return;
-	auto& m = sceneObject->meshes[0];
-	if (m.vertices.empty() || m.indices.empty())
+	if (mesh.vertices.empty() || mesh.indices.empty())
 		return;
 	if (sceneObject->physicsObject)
 		return;
 
 	std::vector<glm::vec3> colliderVertices;
-	colliderVertices.reserve(m.vertices.size());
-	for (const auto& v : m.vertices)
+	colliderVertices.reserve(mesh.vertices.size());
+	for (const auto& v : mesh.vertices)
 		colliderVertices.push_back(v.position);
 
-	std::vector<uint32_t> colliderIndices(m.indices.begin(), m.indices.end());
+	std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
 
 	auto physobj = physicsEngine->CreateObject(colliderVertices, colliderIndices);
 	if (physobj)

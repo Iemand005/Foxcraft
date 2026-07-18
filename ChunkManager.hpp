@@ -11,6 +11,7 @@
 #include <glm/glm.hpp>
 
 #include "Chunk.hpp"
+#include "ChunkBatcher.hpp"
 
 #include <Scene.hpp>
 
@@ -268,6 +269,9 @@ private:
 		if (chunk->state == ChunkState::ScheduledForRemoval || chunk->state == ChunkState::RemovalPending)
 			return;
 
+		if (!chunk->batcher_ && batcher_)
+			chunk->SetBatcher(batcher_);
+
 		bool createPhysics = true;
 		if (physicsDist >= 0) {
 			int dx = chunk->coord.x - center.x;
@@ -281,14 +285,17 @@ private:
 
 	bool RemoveFromScene(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
 		chunk->state = ChunkState::RemovalPending;
+
+		if (chunk->batcher_ && chunk->batcherSlot_ != UINT32_MAX) {
+			chunk->batcher_->RemoveChunk({chunk->batcherSlot_});
+			chunk->batcherSlot_ = UINT32_MAX;
+		}
+
 		auto sco = chunk->GetSceneObject();
 		bool removed = scene->RemoveObject(sco);
 		if (sco) {
 			if (sco->physicsObject)
 				sco->physicsObject->Destroy();
-			for (auto& m : sco->meshes) {
-				m.RemoveFromGPU();
-			}
 		}
 
 		if (!removed) {
@@ -322,4 +329,8 @@ private:
 	std::vector<std::thread> workers;
 	std::atomic<bool> running;
 	fe::Scene* scene;
+	ChunkBatcher* batcher_ = nullptr;
+
+public:
+	void SetBatcher(ChunkBatcher* b) { batcher_ = b; }
 };

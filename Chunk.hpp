@@ -19,6 +19,8 @@
 #include <Object.hpp>
 #include <Scene.hpp>
 
+class ChunkBatcher;
+
 enum class BlockType : short {
 	Air = 0,
 	Stone = 1,
@@ -51,6 +53,10 @@ class Chunk {
 	std::string name;
 	
 public:
+	ChunkBatcher* batcher_ = nullptr;
+	uint32_t batcherSlot_ = UINT32_MAX;
+
+	void SetBatcher(ChunkBatcher* b) { batcher_ = b; }
 	static constexpr int WIDTH = 32, HEIGHT = 128, DEPTH = 32;
 	glm::ivec2 coord;
 	std::atomic<ChunkState> state;
