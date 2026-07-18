@@ -4,6 +4,8 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include <cmath>
+#include <cstdint>
+#include <fstream>
 #include <memory>
 #include <atomic>
 #include <format>
@@ -93,11 +95,14 @@ public:
 	}
 
 	void Save() {
-		
+		std::ofstream file(name, std::ios::binary);
+		file.write(reinterpret_cast<const char*>(blocks.data()), blocks.size() * sizeof(BlockType));
 	}
 
 	void Load() {
-
+		std::ifstream file(name, std::ios::binary);
+		if (!file) return;
+		file.read(reinterpret_cast<char*>(blocks.data()), blocks.size() * sizeof(BlockType));
 	}
 
 	void Generate() {
