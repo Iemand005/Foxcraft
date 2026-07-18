@@ -43,6 +43,8 @@ class Chunk {
 	std::vector<BlockType> blocks;
 	
 	std::shared_ptr<fe::Object<fe::VertexArray>> sceneObject;
+
+	std::string name = "Chunk";
 	
 public:
 	static constexpr int WIDTH = 32, HEIGHT = 128, DEPTH = 32;
