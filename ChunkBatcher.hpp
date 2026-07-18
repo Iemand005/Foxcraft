@@ -61,48 +61,65 @@ public:
                            const glm::vec3& worldOffset) {
         uint32_t vertexBytes = static_cast<uint32_t>(vertices.size() * sizeof(fe::VertexArray));
         uint32_t indexBytes = static_cast<uint32_t>(indices.size() * sizeof(uint32_t));
+        uint32_t alignedVB = AlignUp(vertexBytes, 4);
+        uint32_t alignedIB = AlignUp(indexBytes, 4);
 
         std::vector<fe::VertexArray> worldVerts = vertices;
         for (auto& v : worldVerts) {
             v.position += worldOffset;
         }
 
-        uint32_t vOff = nextVertexOffset_;
-        uint32_t iOff = nextIndexOffset_;
+        uint32_t vOff = AllocFromFreeList(freeVertexBlocks_, alignedVB);
+        if (vOff == UINT32_MAX) {
+            vOff = nextVertexOffset_;
+            nextVertexOffset_ += alignedVB;
+        }
+
+        uint32_t iOff = AllocFromFreeList(freeIndexBlocks_, alignedIB);
+        if (iOff == UINT32_MAX) {
+            iOff = nextIndexOffset_;
+            nextIndexOffset_ += alignedIB;
+        }
+
+        if (vOff + alignedVB > maxVertexBytes_ || iOff + alignedIB > maxIndexBytes_)
+            throw std::runtime_error("ChunkBatcher vertex/index buffer full");
 
         uint32_t frame = device_->GetCurrentFrame();
-        uint32_t totalBytes = AlignUp(vertexBytes, 4) + AlignUp(indexBytes, 4);
+        uint32_t totalBytes = alignedVB + alignedIB;
         if (stagingCursor_[frame] + totalBytes > kStagingSize)
             throw std::runtime_error("ChunkBatcher staging buffer overflow");
 
         uint8_t* base = static_cast<uint8_t*>(stagingMapped_[frame]) + stagingCursor_[frame];
         std::memcpy(base, worldVerts.data(), vertexBytes);
-        std::memcpy(base + AlignUp(vertexBytes, 4), indices.data(), indexBytes);
+        std::memcpy(base + alignedVB, indices.data(), indexBytes);
 
         pendingCopies_[frame].push_back({vertexBuffer_, vOff, stagingCursor_[frame], vertexBytes});
-        pendingCopies_[frame].push_back({indexBuffer_, iOff, stagingCursor_[frame] + AlignUp(vertexBytes, 4), indexBytes});
+        pendingCopies_[frame].push_back({indexBuffer_, iOff, stagingCursor_[frame] + alignedVB, indexBytes});
 
         stagingCursor_[frame] += totalBytes;
 
         Slot slot;
         slot.vertexOffset = vOff;
+        slot.vertexBytes = alignedVB;
         slot.vertexCount = static_cast<uint32_t>(vertices.size());
         slot.indexOffset = iOff;
+        slot.indexBytes = alignedIB;
         slot.indexCount = static_cast<uint32_t>(indices.size());
         slot.center = worldOffset + glm::vec3(16.0f, 64.0f, 16.0f);
         slot.used = true;
-
-        nextVertexOffset_ += AlignUp(vertexBytes, 4);
-        nextIndexOffset_ += AlignUp(indexBytes, 4);
 
         slots_.push_back(slot);
         return { static_cast<uint32_t>(slots_.size() - 1) };
     }
 
     void RemoveChunk(SlotHandle handle) {
-        if (handle.index < slots_.size()) {
-            slots_[handle.index].used = false;
-        }
+        if (handle.index >= slots_.size()) return;
+        auto& slot = slots_[handle.index];
+        if (!slot.used) return;
+
+        slot.used = false;
+        FreeToFreeList(freeVertexBlocks_, slot.vertexOffset, slot.vertexBytes);
+        FreeToFreeList(freeIndexBlocks_, slot.indexOffset, slot.indexBytes);
     }
 
     void SetFrustumCullingEnabled(bool enabled) { enableFrustumCulling_ = enabled; }
@@ -161,8 +178,10 @@ public:
 private:
     struct Slot {
         uint32_t vertexOffset;
+        uint32_t vertexBytes;
         uint32_t vertexCount;
         uint32_t indexOffset;
+        uint32_t indexBytes;
         uint32_t indexCount;
         glm::vec3 center{};
         bool used = false;
@@ -348,6 +367,47 @@ private:
         stagingCursor_[frame] = 0;
     }
 
+    struct FreeBlock {
+        uint32_t offset;
+        uint32_t size;
+    };
+
+    static uint32_t AllocFromFreeList(std::vector<FreeBlock>& list, uint32_t alignedSize) {
+        for (auto it = list.begin(); it != list.end(); ++it) {
+            if (it->size >= alignedSize) {
+                uint32_t offset = it->offset;
+                if (it->size > alignedSize) {
+                    it->offset += alignedSize;
+                    it->size -= alignedSize;
+                } else {
+                    list.erase(it);
+                }
+                return offset;
+            }
+        }
+        return UINT32_MAX;
+    }
+
+    static void FreeToFreeList(std::vector<FreeBlock>& list, uint32_t offset, uint32_t size) {
+        if (size == 0) return;
+        for (auto it = list.begin(); it != list.end(); ++it) {
+            if (it->offset + it->size == offset) {
+                it->size += size;
+                auto next = it + 1;
+                if (next != list.end() && it->offset + it->size == next->offset) {
+                    it->size += next->size;
+                    list.erase(next);
+                }
+                return;
+            } else if (offset + size == it->offset) {
+                it->offset = offset;
+                it->size += size;
+                return;
+            }
+        }
+        list.push_back({offset, size});
+    }
+
     VulkanDevice* device_;
     VkDeviceSize maxVertexBytes_;
     VkDeviceSize maxIndexBytes_;
@@ -372,6 +432,9 @@ private:
 
     std::vector<Slot> slots_;
     std::vector<VkDrawIndexedIndirectCommand> cmds_;
+
+    std::vector<FreeBlock> freeVertexBlocks_;
+    std::vector<FreeBlock> freeIndexBlocks_;
 
     static constexpr VkDeviceSize kStagingSize = 8ull * 1024 * 1024;
 
