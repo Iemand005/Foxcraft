@@ -57,10 +57,11 @@ public:
 	std::atomic<bool> paused{false};
 	fe::Mesh<fe::VertexArray> mesh;
 
-	Chunk() : blocks(WIDTH * HEIGHT * DEPTH, BlockType::Air) {}
+	Chunk() : blocks(WIDTH * HEIGHT * DEPTH, BlockType::Air) {
+		name = "Chunk_" + std::to_string(coord.x) + "_" + std::to_string(coord.y);;
+	}
 	Chunk(glm::ivec2 position) : Chunk() {
 		coord = position;
-		name = "Chunk_" + std::to_string(coord.x) + "_" + std::to_string(coord.y);;
 	}
 	Chunk(int x, int y) : Chunk(glm::ivec2{x, y}) {}
 
