@@ -153,6 +153,7 @@ public:
 					if (event.button.button == SDL_BUTTON_LEFT && !io.WantCaptureMouse) {
 						window->StartMouseCapture();
 					}
+					if (window->C)
 					break;
 				case SDL_EVENT_WINDOW_RESIZED:
 				case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
