@@ -39,8 +39,7 @@ public:
 		std::lock_guard<std::mutex> lock(chunksMutex);
 		if (chunks.count(coord)) return;
 
-		auto chunk = std::make_shared<Chunk>();
-		chunk->coord = coord;
+		auto chunk = std::make_shared<Chunk>(coord);
 		chunk->state = ChunkState::TerrainPending;
 		chunks[coord] = chunk;
 
