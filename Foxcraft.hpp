@@ -4,10 +4,6 @@
 #define NOMINMAX
 
 #include <algorithm>
-#include <cstdio>
-#include <fstream>
-#include <iostream>
-#include <map>
 #include <string>
 
 #include <glm/glm.hpp>
@@ -79,7 +75,7 @@ public:
 
 	std::shared_ptr<fe::Object<fe::VertexArray>> testCube;
 
-		std::unique_ptr<ChunkManager> chunkManager = std::make_unique<ChunkManager>(6);
+	std::unique_ptr<ChunkManager> chunkManager = std::make_unique<ChunkManager>(6);
 	std::unique_ptr<ChunkBatcher> chunkBatcher_;
 	bool useBatcherPath_ = false;
 
