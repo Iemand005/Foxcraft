@@ -140,7 +140,28 @@ public:
 	}
 
 	void SetBlock() {
-		glm::
+		glm::vec3 cameraPos = camera.GetPosition();
+		glm::vec3 rayDir = glm::normalize(camera.GetFront());
+		float reachDistance = 5.0f;
+		float stepSize = 0.1f;
+
+		glm::vec3 selectedBlockPos = glm::vec3(0.0f);
+		glm::vec3 previousBlockPos = glm::vec3(0.0f);
+		bool blockFound = false;
+
+		for (float i = 0.0f; i < reachDistance; i += stepSize) {
+			glm::vec3 samplePoint = cameraPos + rayDir * i;
+			glm::vec3 currentBlock = glm::floor(samplePoint);
+
+			if (IsBlockSolid(currentBlock)) {
+				selectedBlockPos = currentBlock;
+				blockFound = true;
+				break;
+			}
+			
+			previousBlockPos = currentBlock;
+		}
+
 	}
 
 	void ProcessInput() {
