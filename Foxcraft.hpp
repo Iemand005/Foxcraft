@@ -72,7 +72,7 @@ public:
 	float motionAmount = 1.2f;
 	float tunnelRoundness = 0.0f;
 	float animationSpeed = 1.0f;
-	float farPlane = 500.0f;
+	float farPlane = 1200.0f;
 	bool freeCamera = false;
 	float freeCamSpeed = 15.0f;
 	float segmentLength = 12.0f;
