@@ -188,7 +188,7 @@ public:
 	}
 
 	BlockType GetBlock(int worldX, int y, int worldZ) {
-
+		return GetBlock({worldX, y, worldZ});
 	}
 
 	bool IsBlockSolid(glm::ivec3 position) {
