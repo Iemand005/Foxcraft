@@ -14,6 +14,7 @@
 #include <fstream>
 #include <sstream>
 #include <chrono>
+#include <Graphics/VulkanDevice.hpp>
 
 void LogToFile(const std::string& message)
 {
@@ -39,6 +40,9 @@ int main() {
 
 	try {
 		LogToFile("Creating Foxcraft game instance...");
+
+		VulkanDevice::SetPreferIntegratedGPU(true);
+
 		fe::XRGameOptions options(1000, 1000);
 		options.useVulkan = true;
 		Foxcraft game(options);
