@@ -44,7 +44,7 @@ class Chunk {
 	
 	std::shared_ptr<fe::Object<fe::VertexArray>> sceneObject;
 
-	std::string name = "Chunk";
+	std::string name;
 	
 public:
 	static constexpr int WIDTH = 32, HEIGHT = 128, DEPTH = 32;
@@ -54,9 +54,11 @@ public:
 	fe::Mesh<fe::VertexArray> mesh;
 
 	Chunk() : blocks(WIDTH * HEIGHT * DEPTH, BlockType::Air) {}
-	Chunk(int x, int y) : Chunk() {
-		coord = {x, y};
+	Chunk(glm::ivec2 position) : Chunk() {
+		coord = position;
+		name = "Chunk"
 	}
+	Chunk(int x, int y) : Chunk({x, y}) {}
 
 	BlockType GetBlock(int x, int y, int z) const {
 		if(x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT || z < 0 || z >= DEPTH)
