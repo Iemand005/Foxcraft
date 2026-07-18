@@ -16,6 +16,7 @@
 class ChunkBatcher {
 public:
     ChunkBatcher(VulkanDevice* device,
+                 const std::vector<std::string>& texturePaths,
                  VkDeviceSize maxVertexBytes = 128ull * 1024 * 1024,
                  VkDeviceSize maxIndexBytes = 64ull * 1024 * 1024,
                  uint32_t maxChunks = 10000)
@@ -27,7 +28,7 @@ public:
         CreateGiantBuffers();
         CreateIndirectBuffers();
         AllocateDescriptorSets();
-        InitTexture();
+        InitTexture(texturePaths);
     }
 
     ~ChunkBatcher() {
@@ -226,14 +227,14 @@ private:
         }
     }
 
-    void InitTexture() {
+    void InitTexture(const std::vector<std::string>& texturePaths) {
         chunkTexture_ = std::make_unique<fe::VulkanGPUTexture>();
         chunkTexture_->uploadTextureArray(
             device_->GetDevice(),
             device_->GetPhysicalDevice(),
             device_->GetCommandPool(),
             device_->GetGraphicsQueue(),
-            ChunkMesher::BlockTextures(),
+            texturePaths,
             fe::TextureScaling::Nearest);
     }
 

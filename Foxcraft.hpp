@@ -25,6 +25,7 @@
 #include <ScreenSaverMode.hpp>
 
 #include "ChunkManager.hpp"
+#include "ChunkMesher.hpp"
 
 class Foxcraft : public fe::EditableGame {
 public:
@@ -90,7 +91,8 @@ public:
 
 		if (options.useVulkan) {
 			chunkBatcher_ = std::make_unique<ChunkBatcher>(
-				static_cast<VulkanDevice*>(renderDevice.get()));
+				static_cast<VulkanDevice*>(renderDevice.get()),
+				ChunkMesher::BlockTextures());
 			chunkManager->SetBatcher(chunkBatcher_.get());
 		}
 
