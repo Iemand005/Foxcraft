@@ -20,7 +20,7 @@ public:
 			int worldX = chunk->coord.x * Chunk::WIDTH + pos.x;
 			int worldZ = chunk->coord.y * Chunk::DEPTH + pos.z;
 			auto neighborCoord = manager->WorldToChunkCoord(worldX, worldZ);
-			auto  neighbor = manager->GetChunk(neighborCoord).get();
+			auto neighbor = manager->GetChunk(neighborCoord);
 			if (!neighbor) return BlockType::Air;
 			int localX = worldX - neighborCoord.x * Chunk::WIDTH;
 			int localZ = worldZ - neighborCoord.y * Chunk::DEPTH;
