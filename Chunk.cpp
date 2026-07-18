@@ -65,7 +65,8 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, b
 	if (mesh.physicsObject)
 		sceneObject->SetPhysicsObject(std::move(mesh.physicsObject));
 
-	scene->AddObject(sceneObject);
+	if (addToScene)
+		scene->AddObject(sceneObject);
 	state = ChunkState::InScene;
 }
 

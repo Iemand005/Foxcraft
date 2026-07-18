@@ -51,6 +51,10 @@ void ChunkManager::WorkerLoop() {
 				continue;
 
 			chunk->state = ChunkState::TerrainReady;
+			{
+				std::lock_guard<std::mutex> lock(terrainReadyMutex_);
+				terrainReadyQueue_.push_back(chunk);
+			}
 		} else {
 			ChunkState expected = ChunkState::MeshPending;
 			if (!chunk->state.compare_exchange_strong(expected, ChunkState::MeshGenerating))

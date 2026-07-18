@@ -280,7 +280,7 @@ private:
 				createPhysics = false;
 		}
 
-		chunk->UploadToScene(physicsEngine, scene, createPhysics);
+		chunk->UploadToScene(physicsEngine, scene, createPhysics, !useBatcherPath_);
 	}
 
 	bool RemoveFromScene(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
@@ -289,6 +289,13 @@ private:
 		if (chunk->batcher_ && chunk->batcherSlot_ != UINT32_MAX) {
 			chunk->batcher_->RemoveChunk({chunk->batcherSlot_});
 			chunk->batcherSlot_ = UINT32_MAX;
+		}
+
+		if (useBatcherPath_) {
+			auto sco = chunk->GetSceneObject();
+			if (sco && sco->physicsObject)
+				sco->physicsObject->Destroy();
+			return true;
 		}
 
 		auto sco = chunk->GetSceneObject();
@@ -323,6 +330,10 @@ private:
 	std::mutex queueMutex;
 	std::condition_variable queueCV;
 
+	std::deque<std::shared_ptr<Chunk>> terrainReadyQueue_;
+	std::mutex terrainReadyMutex_;
+	std::vector<glm::ivec2> pendingRemovals_;
+
 	std::queue<std::shared_ptr<Chunk>> completedQueue;
 	std::mutex completedMutex;
 
@@ -330,7 +341,9 @@ private:
 	std::atomic<bool> running;
 	fe::Scene* scene;
 	ChunkBatcher* batcher_ = nullptr;
+	bool useBatcherPath_ = false;
 
 public:
 	void SetBatcher(ChunkBatcher* b) { batcher_ = b; }
+	void SetUseBatcherPath(bool v) { useBatcherPath_ = v; }
 };

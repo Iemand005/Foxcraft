@@ -79,8 +79,9 @@ public:
 
 	std::shared_ptr<fe::Object<fe::VertexArray>> testCube;
 
-	std::unique_ptr<ChunkManager> chunkManager = std::make_unique<ChunkManager>(6);
+		std::unique_ptr<ChunkManager> chunkManager = std::make_unique<ChunkManager>(6);
 	std::unique_ptr<ChunkBatcher> chunkBatcher_;
+	bool useBatcherPath_ = false;
 
 	Foxcraft(fe::XRGameOptions options) : fe::EditableGame(options) {
 
@@ -90,10 +91,12 @@ public:
 			LoadShaders("resources/shaders/VertexShader.glsl", "resources/shaders/FragmentShader.glsl");
 
 		if (options.useVulkan) {
+			useBatcherPath_ = true;
 			chunkBatcher_ = std::make_unique<ChunkBatcher>(
 				static_cast<VulkanDevice*>(renderDevice.get()),
 				ChunkMesher::BlockTextures());
 			chunkManager->SetBatcher(chunkBatcher_.get());
+			chunkManager->SetUseBatcherPath(true);
 		}
 
 		LoadModels();
