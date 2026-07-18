@@ -163,6 +163,9 @@ public:
 			previousBlockPos = currentBlock;
 		}
 
+		if (blockFound) {
+			chunkManager->SetBlock(selectedBlockPos, BlockType::Cobblestone); 
+		}
 	}
 
 	void ProcessInput() {
