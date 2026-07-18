@@ -132,7 +132,7 @@ public:
 
     void SetFrustumCullingEnabled(bool enabled) { enableFrustumCulling_ = enabled; }
 
-    void Update(const glm::vec3& cameraPos, const glm::vec3& cameraFront, float farPlane) {
+    void Update(const glm::vec3& cameraPos, const glm::vec3& cameraFront) {
         FlushUploads();
 
         cmds_.clear();
@@ -144,8 +144,6 @@ public:
 
             if (enableFrustumCulling_) {
                 glm::vec3 toCenter = slot.center - cameraPos;
-                float dist = glm::length(toCenter);
-                if (dist > farPlane) continue;
                 if (glm::dot(glm::normalize(toCenter), camDir) < -0.2f) continue;
             }
 
