@@ -352,7 +352,7 @@ private:
     VkDeviceSize maxVertexBytes_;
     VkDeviceSize maxIndexBytes_;
     uint32_t maxChunks_;
-    bool enableFrustumCulling_ = true;
+    bool enableFrustumCulling_ = false;
 
     VkBuffer vertexBuffer_ = VK_NULL_HANDLE;
     VkDeviceMemory vertexMemory_ = VK_NULL_HANDLE;
