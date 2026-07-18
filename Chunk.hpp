@@ -20,6 +20,7 @@
 #include <Scene.hpp>
 
 class ChunkBatcher;
+struct FoxcraftPackedVertex;
 
 enum class BlockType : short {
 	Air = 0,
@@ -61,7 +62,7 @@ public:
 	glm::ivec2 coord;
 	std::atomic<ChunkState> state;
 	std::atomic<bool> paused{false};
-	fe::Mesh<fe::VertexArray> mesh;
+	fe::Mesh<FoxcraftPackedVertex> mesh;
 
 	Chunk() : blocks(WIDTH * HEIGHT * DEPTH, BlockType::Air) {}
 	Chunk(glm::ivec2 position) : Chunk() {

@@ -12,6 +12,7 @@
 #include <Graphics/VulkanDevice.hpp>
 #include <Graphics/VulkanGPUTexture.hpp>
 #include <Vertex.hpp>
+#include "PackedVertex.hpp"
 
 class ChunkBatcher {
 public:
@@ -56,17 +57,19 @@ public:
         uint32_t index;
     };
 
-    SlotHandle UploadChunk(const std::vector<fe::VertexArray>& vertices,
+    SlotHandle UploadChunk(const std::vector<FoxcraftPackedVertex>& vertices,
                            const std::vector<uint32_t>& indices,
                            const glm::vec3& worldOffset) {
-        uint32_t vertexBytes = static_cast<uint32_t>(vertices.size() * sizeof(fe::VertexArray));
+        uint32_t vertexBytes = static_cast<uint32_t>(vertices.size() * sizeof(FoxcraftPackedVertex));
         uint32_t indexBytes = static_cast<uint32_t>(indices.size() * sizeof(uint32_t));
         uint32_t alignedVB = AlignUp(vertexBytes, 4);
         uint32_t alignedIB = AlignUp(indexBytes, 4);
 
-        std::vector<fe::VertexArray> worldVerts = vertices;
+        std::vector<FoxcraftPackedVertex> worldVerts = vertices;
         for (auto& v : worldVerts) {
-            v.position += worldOffset;
+            v.x += static_cast<int16_t>(worldOffset.x);
+            v.y += static_cast<int16_t>(worldOffset.y);
+            v.z += static_cast<int16_t>(worldOffset.z);
         }
 
         auto allocOffset = [&](uint32_t alignedSize, uint32_t& nextOff, uint32_t maxBytes,
@@ -150,7 +153,7 @@ public:
             cmd.indexCount = slot.indexCount;
             cmd.instanceCount = 1;
             cmd.firstIndex = slot.indexOffset / sizeof(uint32_t);
-            cmd.vertexOffset = slot.vertexOffset / sizeof(fe::VertexArray);
+            cmd.vertexOffset = slot.vertexOffset / sizeof(FoxcraftPackedVertex);
             cmd.firstInstance = 0;
             cmds_.push_back(cmd);
         }

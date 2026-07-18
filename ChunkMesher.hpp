@@ -3,11 +3,34 @@
 #include <Mesh.hpp>
 #include "Chunk.hpp"
 #include "ChunkManager.hpp"
+#include "PackedVertex.hpp"
+
+static int EncodeNormal(const glm::vec3& n) {
+    if (n.x > 0) return 0;
+    if (n.x < 0) return 1;
+    if (n.y > 0) return 2;
+    if (n.y < 0) return 3;
+    if (n.z > 0) return 4;
+    return 5;
+}
+
+static FoxcraftPackedVertex MakePackedVertex(const glm::vec3& pos, const glm::vec3& normal,
+                                               float u, float v, float layer) {
+    FoxcraftPackedVertex vtx{};
+    vtx.x = static_cast<int16_t>(pos.x);
+    vtx.y = static_cast<int16_t>(pos.y);
+    vtx.z = static_cast<int16_t>(pos.z);
+    vtx.normal = static_cast<uint8_t>(EncodeNormal(normal));
+    vtx.u = static_cast<uint8_t>(u);
+    vtx.v = static_cast<uint8_t>(v);
+    vtx.layer = static_cast<uint8_t>(layer);
+    return vtx;
+}
 
 class ChunkMesher {
 public:
 	static void BuildMesh(std::shared_ptr<Chunk> chunk, ChunkManager *manager, bool cullBottomFaces = true) {
-		std::vector<fe::VertexArray> allVertices;
+		std::vector<FoxcraftPackedVertex> allVertices;
 		std::vector<unsigned int> allIndices;
 		allVertices.reserve(4096);
 		allIndices.reserve(6144);
@@ -104,32 +127,36 @@ public:
 							float fh = static_cast<float>(h);
 							float fw = static_cast<float>(w);
 
-							fe::VertexArray v0, v1, v2, v3;
-							v0.position = origin;             v0.normal = normal;
-							v1.position = origin + du;        v1.normal = normal;
-							v2.position = origin + du + dv;   v2.normal = normal;
-							v3.position = origin + dv;        v3.normal = normal;
-
-							if (axis == 2) {
-								v0.texCoord = {0.0f, 0.0f, layer};
-								v1.texCoord = {fh,   0.0f, layer};
-								v2.texCoord = {fh,   fw,   layer};
-								v3.texCoord = {0.0f, fw,   layer};
-							} else {
-								v0.texCoord = {0.0f, 0.0f, layer};
-								v1.texCoord = {0.0f, fh,   layer};
-								v2.texCoord = {fw,   fh,   layer};
-								v3.texCoord = {fw,   0.0f, layer};
-							}
-
 							unsigned int vo = static_cast<unsigned int>(allVertices.size());
 
-							if (!backFace) {
-								allVertices.push_back(v0); allVertices.push_back(v1);
-								allVertices.push_back(v2); allVertices.push_back(v3);
+							auto addV = [&](const glm::vec3& p, float tu, float tv) {
+								allVertices.push_back(MakePackedVertex(p, normal, tu, tv, layer));
+							};
+
+							if (axis == 2) {
+								if (!backFace) {
+									addV(origin,            0.0f, 0.0f);
+									addV(origin + du,       fh,   0.0f);
+									addV(origin + du + dv,  fh,   fw);
+									addV(origin + dv,       0.0f, fw);
+								} else {
+									addV(origin,            0.0f, 0.0f);
+									addV(origin + dv,       0.0f, fw);
+									addV(origin + du + dv,  fh,   fw);
+									addV(origin + du,       fh,   0.0f);
+								}
 							} else {
-								allVertices.push_back(v0); allVertices.push_back(v3);
-								allVertices.push_back(v2); allVertices.push_back(v1);
+								if (!backFace) {
+									addV(origin,            0.0f, 0.0f);
+									addV(origin + du,       0.0f, fh);
+									addV(origin + du + dv,  fw,   fh);
+									addV(origin + dv,       fw,   0.0f);
+								} else {
+									addV(origin,            0.0f, 0.0f);
+									addV(origin + dv,       fw,   0.0f);
+									addV(origin + du + dv,  fw,   fh);
+									addV(origin + du,       0.0f, fh);
+								}
 							}
 
 							allIndices.push_back(vo + 0);
@@ -150,7 +177,7 @@ public:
 			}
 		}
 
-		chunk->mesh = fe::Mesh<fe::VertexArray>(std::move(allVertices), std::move(allIndices));
+		chunk->mesh = fe::Mesh<FoxcraftPackedVertex>(std::move(allVertices), std::move(allIndices));
 	}
 
 	static int GetBlockTextureLayer(BlockType type, fe::PlaneDirection direction) {
