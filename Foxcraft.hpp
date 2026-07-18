@@ -140,8 +140,8 @@ public:
 	}
 
 	void SetBlock() {
-		glm::vec3 cameraPos = camera.GetPosition();
-		glm::vec3 rayDir = glm::normalize(camera.GetFront());
+		glm::vec3 cameraPos = camera->GetPos();
+		glm::vec3 rayDir = glm::normalize(camera->front);
 		float reachDistance = 5.0f;
 		float stepSize = 0.1f;
 
@@ -153,7 +153,8 @@ public:
 			glm::vec3 samplePoint = cameraPos + rayDir * i;
 			glm::vec3 currentBlock = glm::floor(samplePoint);
 
-			if (IsBlockSolid(currentBlock)) {
+			
+			if (chunkManager->IsBlockSolid(currentBlock)) {
 				selectedBlockPos = currentBlock;
 				blockFound = true;
 				break;

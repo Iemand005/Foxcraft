@@ -187,6 +187,10 @@ public:
 		return chunk->GetBlock(localX, y, localZ);
 	}
 
+	bool IsBlockSolid(glm::ivec3 position) {
+		return GetBlock(position.x, position.y, position.z) != BlockType::Air;
+	}
+
 	glm::ivec2 WorldToChunkCoord(int worldX, int worldZ) {
 		int chunkX = static_cast<int>(std::floor(static_cast<float>(worldX) / Chunk::WIDTH));
 		int chunkZ = static_cast<int>(std::floor(static_cast<float>(worldZ) / Chunk::DEPTH));
