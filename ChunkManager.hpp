@@ -219,6 +219,7 @@ public:
 		int localZ = position.z - coord.y * Chunk::DEPTH;
 		chunk->SetBlock(localX, position.y, localZ, type);
 
+		chunk->Save();
 		RequestChunkRemesh(chunk);
 	}
 

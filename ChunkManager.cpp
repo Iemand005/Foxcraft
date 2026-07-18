@@ -44,7 +44,8 @@ void ChunkManager::WorkerLoop() {
 			if (!chunk->state.compare_exchange_strong(expected, ChunkState::TerrainGenerating))
 				continue;
 
-			chunk->Generate();
+			if (!chunk->Load())
+				chunk->Generate();
 
 			if (chunk->state != ChunkState::TerrainGenerating)
 				continue;

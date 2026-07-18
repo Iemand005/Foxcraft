@@ -99,10 +99,11 @@ public:
 		file.write(reinterpret_cast<const char*>(blocks.data()), blocks.size() * sizeof(BlockType));
 	}
 
-	void Load() {
+	bool Load() {
 		std::ifstream file(name, std::ios::binary);
-		if (!file) return;
+		if (!file) return false;
 		file.read(reinterpret_cast<char*>(blocks.data()), blocks.size() * sizeof(BlockType));
+		return true;
 	}
 
 	void Generate() {
