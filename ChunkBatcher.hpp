@@ -396,7 +396,7 @@ private:
     VkDeviceSize maxVertexBytes_;
     VkDeviceSize maxIndexBytes_;
     uint32_t maxChunks_;
-    bool enableFrustumCulling_ = false;
+    bool enableFrustumCulling_ = true;
 
     VkBuffer vertexBuffer_ = VK_NULL_HANDLE;
     VkDeviceMemory vertexMemory_ = VK_NULL_HANDLE;
@@ -416,9 +416,6 @@ private:
 
     std::vector<Slot> slots_;
     std::vector<VkDrawIndexedIndirectCommand> cmds_;
-
-    std::vector<FreeBlock> freeVertexBlocks_;
-    std::vector<FreeBlock> freeIndexBlocks_;
 
     static constexpr VkDeviceSize kStagingSize = 8ull * 1024 * 1024;
 
