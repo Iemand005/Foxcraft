@@ -95,6 +95,8 @@ public:
 
 			{
 				std::lock_guard<std::mutex> qlock(terrainReadyMutex_);
+
+				std::deque<std::shared_ptr<Chunk>> remaining;
 				while (!terrainReadyQueue_.empty()) {
 					auto chunk = terrainReadyQueue_.front();
 					terrainReadyQueue_.pop_front();
@@ -105,10 +107,14 @@ public:
 					glm::ivec2 coord = chunk->coord;
 					int dx = coord.x - center.x;
 					int dz = coord.y - center.y;
-					if (dx * dx + dz * dz > meshDistSq)
+					if (dx * dx + dz * dz > meshDistSq) {
+						remaining.push_back(chunk);
 						continue;
-					if (!AllNeighborsPresent(coord))
+					}
+					if (!AllNeighborsPresent(coord)) {
+						remaining.push_back(chunk);
 						continue;
+					}
 
 					chunk->state = ChunkState::MeshPending;
 					{
@@ -117,6 +123,7 @@ public:
 					}
 					queueCV.notify_one();
 				}
+				terrainReadyQueue_.swap(remaining);
 			}
 
 			for (auto& [coord, chunk] : chunks) {
