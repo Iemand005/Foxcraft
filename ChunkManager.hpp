@@ -220,6 +220,15 @@ public:
 
 		chunk->Save();
 		RequestChunkRemesh(chunk);
+
+		if (localX == 0)
+			if (auto n = GetChunk(coord + glm::ivec2{-1, 0})) RequestChunkRemesh(n);
+		if (localX == Chunk::WIDTH - 1)
+			if (auto n = GetChunk(coord + glm::ivec2{1, 0})) RequestChunkRemesh(n);
+		if (localZ == 0)
+			if (auto n = GetChunk(coord + glm::ivec2{0, -1})) RequestChunkRemesh(n);
+		if (localZ == Chunk::DEPTH - 1)
+			if (auto n = GetChunk(coord + glm::ivec2{0, 1})) RequestChunkRemesh(n);
 	}
 
 	bool IsBlockSolid(const glm::ivec3& position) {

@@ -154,7 +154,10 @@ public:
 	}
 
 	static int GetBlockTextureLayer(BlockType type, fe::PlaneDirection direction) {
-		if (type == BlockType::Grass) {
+
+		switch (type) {
+			
+		case (type == BlockType::Grass): {
 			if (direction == fe::PlaneDirection::Top) {
 				return 1;
 			} else if (direction == fe::PlaneDirection::Bottom) {
@@ -162,11 +165,14 @@ public:
 			} else {
 				return 2;
 			}
-		} else if (type == BlockType::Dirt) {
+		
+		case type == BlockType::Dirt:
 			return 0;
-		} else if (type == BlockType::Stone) {
+		case type == BlockType::Stone:
 			return 4;
-		} else if (type == BlockType::Bedrock) {
+		case type == BlockType::Bedrock: {\\
+			return 3;
+		case type == BlockType::Bedrock: {\\
 			return 3;
 		}
 		return 0;
