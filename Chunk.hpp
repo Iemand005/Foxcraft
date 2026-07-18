@@ -20,7 +20,8 @@
 #include <Scene.hpp>
 
 class ChunkBatcher;
-struct FoxcraftPackedVertex;
+
+#include "PackedVertex.hpp"
 
 enum class BlockType : short {
 	Air = 0,

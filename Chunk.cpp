@@ -1,6 +1,7 @@
 #include "Chunk.hpp"
 #include "ChunkMesher.hpp"
 #include "ChunkBatcher.hpp"
+#include "PackedVertex.hpp"
 
 void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, bool createPhysics, bool addToScene) {
 
@@ -44,7 +45,7 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, b
 			std::vector<glm::vec3> colliderVertices;
 			colliderVertices.reserve(mesh.vertices.size());
 			for (const auto& vertex : mesh.vertices)
-				colliderVertices.push_back(vertex.position);
+				colliderVertices.push_back(glm::vec3(vertex.x, vertex.y, vertex.z));
 
 			std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
 
@@ -81,7 +82,7 @@ void Chunk::AddPhysics(fe::PhysicsFactory* physicsEngine) {
 	std::vector<glm::vec3> colliderVertices;
 	colliderVertices.reserve(mesh.vertices.size());
 	for (const auto& v : mesh.vertices)
-		colliderVertices.push_back(v.position);
+		colliderVertices.push_back(glm::vec3(v.x, v.y, v.z));
 
 	std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
 
