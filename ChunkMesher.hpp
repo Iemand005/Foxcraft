@@ -14,16 +14,13 @@ static int EncodeNormal(const glm::vec3& n) {
     return 5;
 }
 
-static FoxcraftPackedVertex MakePackedVertex(const glm::vec3& pos, const glm::vec3& normal,
-                                               float u, float v, float layer) {
+static FoxcraftPackedVertex MakePackedVertex(const glm::vec3& pos, const glm::vec3& normal, float layer) {
     FoxcraftPackedVertex vtx{};
     vtx.x = static_cast<int16_t>(pos.x);
     vtx.y = static_cast<int16_t>(pos.y);
     vtx.z = static_cast<int16_t>(pos.z);
-    vtx.normal = static_cast<uint8_t>(EncodeNormal(normal));
-    vtx.u = static_cast<uint8_t>(u);
-    vtx.v = static_cast<uint8_t>(v);
-    vtx.layer = static_cast<uint8_t>(layer);
+    uint8_t faceIdx = static_cast<uint8_t>(EncodeNormal(normal));
+    vtx.normalLayer = faceIdx | (static_cast<uint8_t>(layer) << 3);
     return vtx;
 }
 
@@ -123,39 +120,37 @@ public:
 							glm::vec3 normal(0.0f);
 							normal[axis] = backFace ? -1.0f : 1.0f;
 
-							float layer = GetBlockTextureLayer(type, direction);
-							float fh = static_cast<float>(h);
-							float fw = static_cast<float>(w);
+							float layer = static_cast<float>(GetBlockTextureLayer(type, direction));
 
 							unsigned int vo = static_cast<unsigned int>(allVertices.size());
 
-							auto addV = [&](const glm::vec3& p, float tu, float tv) {
-								allVertices.push_back(MakePackedVertex(p, normal, tu, tv, layer));
+							auto addV = [&](const glm::vec3& p) {
+								allVertices.push_back(MakePackedVertex(p, normal, layer));
 							};
 
 							if (axis == 2) {
 								if (!backFace) {
-									addV(origin,            0.0f, 0.0f);
-									addV(origin + du,       fh,   0.0f);
-									addV(origin + du + dv,  fh,   fw);
-									addV(origin + dv,       0.0f, fw);
+									addV(origin);
+									addV(origin + du);
+									addV(origin + du + dv);
+									addV(origin + dv);
 								} else {
-									addV(origin,            0.0f, 0.0f);
-									addV(origin + dv,       0.0f, fw);
-									addV(origin + du + dv,  fh,   fw);
-									addV(origin + du,       fh,   0.0f);
+									addV(origin);
+									addV(origin + dv);
+									addV(origin + du + dv);
+									addV(origin + du);
 								}
 							} else {
 								if (!backFace) {
-									addV(origin,            0.0f, 0.0f);
-									addV(origin + du,       0.0f, fh);
-									addV(origin + du + dv,  fw,   fh);
-									addV(origin + dv,       fw,   0.0f);
+									addV(origin);
+									addV(origin + du);
+									addV(origin + du + dv);
+									addV(origin + dv);
 								} else {
-									addV(origin,            0.0f, 0.0f);
-									addV(origin + dv,       fw,   0.0f);
-									addV(origin + du + dv,  fw,   fh);
-									addV(origin + du,       0.0f, fh);
+									addV(origin);
+									addV(origin + dv);
+									addV(origin + du + dv);
+									addV(origin + du);
 								}
 							}
 
