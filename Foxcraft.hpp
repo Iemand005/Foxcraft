@@ -139,7 +139,7 @@ public:
 		camera->SetPos(player->state.position + headOffset);
 	}
 
-	void SetBlock() {
+	void PlaceBlock() {
 		glm::vec3 cameraPos = camera->GetPos();
 		glm::vec3 rayDir = glm::normalize(camera->front);
 		float reachDistance = 5.0f;
@@ -183,7 +183,7 @@ public:
 						window->StartMouseCapture();
 					}
 					if (window->IsCapturingMouse()) {
-						SetBlock();
+						PlaceBlock();
 					}
 					break;
 				case SDL_EVENT_WINDOW_RESIZED:
