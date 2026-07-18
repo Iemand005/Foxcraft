@@ -92,6 +92,14 @@ public:
 
 	}
 
+	void Save() {
+		
+	}
+
+	void Load() {
+
+	}
+
 	void Generate() {
 		float heightAmplitude = 6.0f;
 		float heightFrequency = 0.03f;
