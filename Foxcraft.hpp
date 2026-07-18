@@ -139,6 +139,10 @@ public:
 		camera->SetPos(player->state.position + headOffset);
 	}
 
+	void SetBlock() {
+		glm::
+	}
+
 	void ProcessInput() {
 		SDL_Event event;
 		fe::SDLWindow *window = (fe::SDLWindow*)this->window.get();
@@ -153,7 +157,9 @@ public:
 					if (event.button.button == SDL_BUTTON_LEFT && !io.WantCaptureMouse) {
 						window->StartMouseCapture();
 					}
-					if (window->C)
+					if (window->IsCapturingMouse()) {
+						SetBlock();
+					}
 					break;
 				case SDL_EVENT_WINDOW_RESIZED:
 				case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
