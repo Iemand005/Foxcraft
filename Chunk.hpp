@@ -58,7 +58,7 @@ public:
 	Chunk() : blocks(WIDTH * HEIGHT * DEPTH, BlockType::Air) {}
 	Chunk(glm::ivec2 position) : Chunk() {
 		coord = position;
-		name = std::format("Chunk_{}_{}", position.x, position.y);
+		name = "Chunk_" + std::to_string(coord.x) + "_" + std::to_string(coord.y);;
 	}
 	Chunk(int x, int y) : Chunk(glm::ivec2{x, y}) {}
 
