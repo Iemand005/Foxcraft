@@ -372,27 +372,6 @@ private:
         stagingCursor_[frame] = 0;
     }
 
-    struct FreeBlock {
-        uint32_t offset;
-        uint32_t size;
-    };
-
-    static uint32_t AllocFromFreeList(std::vector<FreeBlock>& list, uint32_t alignedSize) {
-        for (auto it = list.begin(); it != list.end(); ++it) {
-            if (it->size >= alignedSize) {
-                uint32_t offset = it->offset;
-                if (it->size > alignedSize) {
-                    it->offset += alignedSize;
-                    it->size -= alignedSize;
-                } else {
-                    list.erase(it);
-                }
-                return offset;
-            }
-        }
-        return UINT32_MAX;
-    }
-
     bool VertexRangeInUse(uint32_t offset, uint32_t size) const {
         for (auto& slot : slots_) {
             if (!slot.used) continue;
