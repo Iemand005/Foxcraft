@@ -2,7 +2,7 @@
 #include "ChunkMesher.hpp"
 #include "ChunkBatcher.hpp"
 
-void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, bool createPhysics) {
+void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, bool createPhysics, bool addToScene) {
 
 	if (state == ChunkState::ScheduledForRemoval || state == ChunkState::RemovalPending) {
 		std::cout << "Cancelled chunk upload (" << coord.x << ", " << coord.y << ") due to removal request." << std::endl;

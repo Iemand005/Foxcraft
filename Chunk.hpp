@@ -186,7 +186,7 @@ public:
 		return neighbor == BlockType::Air;
 	}
 
-	void UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, bool createPhysics = true);
+	void UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, bool createPhysics = true, bool addToScene = true);
 	void AddPhysics(fe::PhysicsFactory* physicsEngine);
 	void RemovePhysics();
 

@@ -29,6 +29,7 @@ public:
         CreateIndirectBuffers();
         AllocateDescriptorSets();
         InitTexture(texturePaths);
+        InitStaging();
     }
 
     ~ChunkBatcher() {
@@ -48,6 +49,7 @@ public:
                 vkFreeMemory(dev, indirectMemory_[i], nullptr);
             }
         }
+        CleanupStaging();
     }
 
     struct SlotHandle {
@@ -68,10 +70,19 @@ public:
         uint32_t vOff = nextVertexOffset_;
         uint32_t iOff = nextIndexOffset_;
 
-        UploadBufferData(vertexBuffer_, vertexMemory_, vOff,
-            worldVerts.data(), vertexBytes, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-        UploadBufferData(indexBuffer_, indexMemory_, iOff,
-            indices.data(), indexBytes, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+        uint32_t frame = device_->GetCurrentFrame();
+        uint32_t totalBytes = AlignUp(vertexBytes, 4) + AlignUp(indexBytes, 4);
+        if (stagingCursor_[frame] + totalBytes > kStagingSize)
+            throw std::runtime_error("ChunkBatcher staging buffer overflow");
+
+        uint8_t* base = static_cast<uint8_t*>(stagingMapped_[frame]) + stagingCursor_[frame];
+        std::memcpy(base, worldVerts.data(), vertexBytes);
+        std::memcpy(base + AlignUp(vertexBytes, 4), indices.data(), indexBytes);
+
+        pendingCopies_[frame].push_back({vertexBuffer_, vOff, stagingCursor_[frame], vertexBytes});
+        pendingCopies_[frame].push_back({indexBuffer_, iOff, stagingCursor_[frame] + AlignUp(vertexBytes, 4), indexBytes});
+
+        stagingCursor_[frame] += totalBytes;
 
         Slot slot;
         slot.vertexOffset = vOff;
@@ -95,6 +106,8 @@ public:
     }
 
     void Update(const glm::vec3& cameraPos, const glm::vec3& cameraFront, float farPlane) {
+        FlushUploads();
+
         cmds_.clear();
 
         glm::vec3 camDir = glm::normalize(cameraFront);
@@ -238,59 +251,96 @@ private:
             fe::TextureScaling::Nearest);
     }
 
-    void UploadBufferData(VkBuffer dstBuffer, VkDeviceMemory dstMemory,
-        VkDeviceSize dstOffset, const void* data, VkDeviceSize dataSize,
-        VkBufferUsageFlags usage) {
-        if (dataSize == 0) return;
+    struct PendingCopy {
+        VkBuffer dst;
+        VkDeviceSize dstOffset;
+        VkDeviceSize srcOffset;
+        VkDeviceSize size;
+    };
+
+    void InitStaging() {
         VkDevice dev = device_->GetDevice();
         VkPhysicalDevice physDev = device_->GetPhysicalDevice();
         VkCommandPool cmdPool = device_->GetCommandPool();
+        VkDeviceSize bufSize = kStagingSize;
+
+        for (int i = 0; i < kFrames; i++) {
+            CreateVkBuffer(dev, physDev, bufSize,
+                VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                stagingBuffers_[i], stagingMemory_[i]);
+            vkMapMemory(dev, stagingMemory_[i], 0, bufSize, 0, &stagingMapped_[i]);
+
+            VkCommandBufferAllocateInfo allocInfo{};
+            allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+            allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+            allocInfo.commandPool = cmdPool;
+            allocInfo.commandBufferCount = 1;
+            vkAllocateCommandBuffers(dev, &allocInfo, &stagingCmdBufs_[i]);
+
+            VkFenceCreateInfo finfo{};
+            finfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+            finfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+            vkCreateFence(dev, &finfo, nullptr, &stagingFences_[i]);
+        }
+    }
+
+    void CleanupStaging() {
+        VkDevice dev = device_->GetDevice();
+        for (int i = 0; i < kFrames; i++) {
+            if (stagingBuffers_[i]) {
+                vkDestroyBuffer(dev, stagingBuffers_[i], nullptr);
+                vkFreeMemory(dev, stagingMemory_[i], nullptr);
+                stagingBuffers_[i] = VK_NULL_HANDLE;
+            }
+            if (stagingCmdBufs_[i]) {
+                vkFreeCommandBuffers(dev, device_->GetCommandPool(), 1, &stagingCmdBufs_[i]);
+                stagingCmdBufs_[i] = VK_NULL_HANDLE;
+            }
+            if (stagingFences_[i]) {
+                vkDestroyFence(dev, stagingFences_[i], nullptr);
+                stagingFences_[i] = VK_NULL_HANDLE;
+            }
+        }
+    }
+
+    void FlushUploads() {
+        VkDevice dev = device_->GetDevice();
         VkQueue gfxQueue = device_->GetGraphicsQueue();
+        uint32_t frame = device_->GetCurrentFrame();
 
-        VkBuffer staging;
-        VkDeviceMemory stagingMemory;
-        CreateVkBuffer(dev, physDev, dataSize,
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            staging, stagingMemory);
+        vkWaitForFences(dev, 1, &stagingFences_[frame], VK_TRUE, UINT64_MAX);
+        vkResetFences(dev, 1, &stagingFences_[frame]);
 
-        void* mapped;
-        vkMapMemory(dev, stagingMemory, 0, dataSize, 0, &mapped);
-        memcpy(mapped, data, static_cast<size_t>(dataSize));
-        vkUnmapMemory(dev, stagingMemory);
+        if (pendingCopies_[frame].empty()) {
+            stagingCursor_[frame] = 0;
+            return;
+        }
 
-        VkCommandBufferAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandPool = cmdPool;
-        allocInfo.commandBufferCount = 1;
-
-        VkCommandBuffer cmdBuf;
-        vkAllocateCommandBuffers(dev, &allocInfo, &cmdBuf);
-
+        vkResetCommandBuffer(stagingCmdBufs_[frame], 0);
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-        vkBeginCommandBuffer(cmdBuf, &beginInfo);
+        vkBeginCommandBuffer(stagingCmdBufs_[frame], &beginInfo);
 
-        VkBufferCopy copy{};
-        copy.srcOffset = 0;
-        copy.dstOffset = dstOffset;
-        copy.size = dataSize;
-        vkCmdCopyBuffer(cmdBuf, staging, dstBuffer, 1, &copy);
+        for (auto& copy : pendingCopies_[frame]) {
+            VkBufferCopy bufCopy{};
+            bufCopy.srcOffset = copy.srcOffset;
+            bufCopy.dstOffset = copy.dstOffset;
+            bufCopy.size = copy.size;
+            vkCmdCopyBuffer(stagingCmdBufs_[frame], stagingBuffers_[frame], copy.dst, 1, &bufCopy);
+        }
 
-        vkEndCommandBuffer(cmdBuf);
+        vkEndCommandBuffer(stagingCmdBufs_[frame]);
 
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &cmdBuf;
-        vkQueueSubmit(gfxQueue, 1, &submitInfo, VK_NULL_HANDLE);
-        vkQueueWaitIdle(gfxQueue);
+        submitInfo.pCommandBuffers = &stagingCmdBufs_[frame];
+        vkQueueSubmit(gfxQueue, 1, &submitInfo, stagingFences_[frame]);
 
-        vkFreeCommandBuffers(dev, cmdPool, 1, &cmdBuf);
-        vkDestroyBuffer(dev, staging, nullptr);
-        vkFreeMemory(dev, stagingMemory, nullptr);
+        pendingCopies_[frame].clear();
+        stagingCursor_[frame] = 0;
     }
 
     VulkanDevice* device_;
@@ -316,4 +366,14 @@ private:
 
     std::vector<Slot> slots_;
     std::vector<VkDrawIndexedIndirectCommand> cmds_;
+
+    static constexpr VkDeviceSize kStagingSize = 8ull * 1024 * 1024;
+
+    VkBuffer stagingBuffers_[kFrames] = {};
+    VkDeviceMemory stagingMemory_[kFrames] = {};
+    void* stagingMapped_[kFrames] = {};
+    uint32_t stagingCursor_[kFrames] = {};
+    VkFence stagingFences_[kFrames] = {};
+    VkCommandBuffer stagingCmdBufs_[kFrames] = {};
+    std::vector<PendingCopy> pendingCopies_[kFrames];
 };
