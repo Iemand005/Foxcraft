@@ -6,6 +6,8 @@
 #include <cmath>
 #include <memory>
 #include <atomic>
+#include <format>
+#include <string>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/noise.hpp>
@@ -56,7 +58,7 @@ public:
 	Chunk() : blocks(WIDTH * HEIGHT * DEPTH, BlockType::Air) {}
 	Chunk(glm::ivec2 position) : Chunk() {
 		coord = position;
-		name = "Chunk";
+		name = std::format("Chunk_{}_{}", position.x, position.y);
 	}
 	Chunk(int x, int y) : Chunk(glm::ivec2{x, y}) {}
 
