@@ -211,7 +211,7 @@ public:
 
 	void SetBlock(const glm::ivec3& position, BlockType type) {
 		glm::ivec2 coord = WorldToChunkCoord(position.x, position.z);
-		Chunk* chunk = GetChunk(coord).get();
+		auto chunk = GetChunk(coord);
 
 		if (!chunk) return;
 
