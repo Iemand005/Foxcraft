@@ -51,6 +51,18 @@ public:
 		queueCV.notify_one();
 	}
 
+	void RequestChunkRemesh(std::shared_ptr<Chunk> chunk) {
+		std::lock_guard<std::mutex> lock(chunksMutex);
+
+		chunk->state = ChunkState::MeshPending;
+
+		{
+			std::lock_guard<std::mutex> qlock(queueMutex);
+			pendingQueue.push_back(chunk);
+		}
+		queueCV.notify_one();
+	}
+
 	void UnloadChunk(glm::ivec2 coord) {
 		std::lock_guard<std::mutex> lock(chunksMutex);
 		auto it = chunks.find(coord);
