@@ -139,7 +139,7 @@ public:
 		camera->SetPos(player->state.position + headOffset);
 	}
 
-	void PlaceBlock(bool breakBock = false) {
+	void PlaceBlock(bool remove) {
 		glm::vec3 cameraPos = camera->GetPos();
 		glm::vec3 rayDir = glm::normalize(camera->front);
 		float reachDistance = 5.0f;
@@ -164,7 +164,10 @@ public:
 		}
 
 		if (blockFound) {
-			chunkManager->SetBlock(selectedBlockPos, BlockType::Air); 
+			if (remove)
+				chunkManager->SetBlock(selectedBlockPos, BlockType::Air);
+			else
+				chunkManager->SetBlock(previousBlockPos, BlockType::Cobblestone);
 		}
 	}
 
@@ -183,7 +186,10 @@ public:
 						window->StartMouseCapture();
 					}
 					if (window->IsCapturingMouse()) {
-						PlaceBlock();
+						if (event.button.button == SDL_BUTTON_LEFT)
+							PlaceBlock(true);
+						else if (event.button.button == SDL_BUTTON_RIGHT)
+							PlaceBlock(false);
 					}
 					break;
 				case SDL_EVENT_WINDOW_RESIZED:
