@@ -219,7 +219,7 @@ public:
 		int localZ = position.z - coord.y * Chunk::DEPTH;
 		chunk->SetBlock(localX, position.y, localZ, type);
 
-		RequestChunkRemesh(chunk)
+		RequestChunkRemesh(chunk);
 	}
 
 	bool IsBlockSolid(const glm::ivec3& position) {
