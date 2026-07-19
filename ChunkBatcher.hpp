@@ -20,7 +20,7 @@ public:
                  const std::vector<std::string>& texturePaths,
                  VkDeviceSize maxVertexBytes = 32ull * 1024 * 1024,
                  VkDeviceSize maxIndexBytes = 16ull * 1024 * 1024,
-                 uint32_t maxChunks = 10000)
+                 uint32_t maxChunks = 50000)
         : device_(device)
         , maxVertexBytes_(maxVertexBytes)
         , maxIndexBytes_(maxIndexBytes)
@@ -163,8 +163,11 @@ public:
 
         uint32_t frame = device_->GetCurrentFrame();
         if (frame < kFrames && indirectMapped_[frame] && !cmds_.empty()) {
+            uint32_t count = std::min(static_cast<uint32_t>(cmds_.size()), maxChunks_);
             memcpy(indirectMapped_[frame], cmds_.data(),
-                   cmds_.size() * sizeof(VkDrawIndexedIndirectCommand));
+                   count * sizeof(VkDrawIndexedIndirectCommand));
+            if (count < cmds_.size())
+                cmds_.resize(count);
         }
     }
 
