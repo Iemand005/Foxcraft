@@ -18,8 +18,8 @@ class ChunkBatcher {
 public:
     ChunkBatcher(VulkanDevice* device,
                  const std::vector<std::string>& texturePaths,
-                 VkDeviceSize maxVertexBytes = 128ull * 1024 * 1024,
-                 VkDeviceSize maxIndexBytes = 64ull * 1024 * 1024,
+                 VkDeviceSize maxVertexBytes = 256ull * 1024 * 1024,
+                 VkDeviceSize maxIndexBytes = 128ull * 1024 * 1024,
                  uint32_t maxChunks = 50000)
         : device_(device)
         , maxVertexBytes_(maxVertexBytes)
@@ -62,7 +62,7 @@ public:
                            const glm::vec3& worldOffset) {
         uint32_t vertexBytes = static_cast<uint32_t>(vertices.size() * sizeof(FoxcraftPackedVertex));
         uint32_t indexBytes = static_cast<uint32_t>(indices.size() * sizeof(uint32_t));
-        uint32_t alignedVB = AlignUp(vertexBytes, 4);
+        uint32_t alignedVB = AlignUp(vertexBytes, 28);
         uint32_t alignedIB = AlignUp(indexBytes, 4);
 
         std::vector<FoxcraftPackedVertex> worldVerts = vertices;
