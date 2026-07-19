@@ -260,6 +260,7 @@ public:
 	}
 
 	std::shared_ptr<Chunk> GetChunk(glm::ivec2 coord) {
+        std::lock_guard<std::mutex> lock(chunksMutex);
         auto it = chunks.find(coord);
         if (it == chunks.end())
             return nullptr;
