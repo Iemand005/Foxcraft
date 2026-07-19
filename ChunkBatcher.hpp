@@ -62,7 +62,11 @@ public:
                            const glm::vec3& worldOffset) {
         uint32_t vertexBytes = static_cast<uint32_t>(vertices.size() * sizeof(FoxcraftPackedVertex));
         uint32_t indexBytes = static_cast<uint32_t>(indices.size() * sizeof(uint32_t));
-        uint32_t alignedVB = AlignUp(vertexBytes, 28);
+        uint32_t alignedVB = vertexBytes;
+        uint32_t mod7 = alignedVB % 7;
+        if (mod7) alignedVB += 7 - mod7;
+        uint32_t mod4 = alignedVB % 4;
+        if (mod4) alignedVB += 4 - mod4;
         uint32_t alignedIB = AlignUp(indexBytes, 4);
 
         std::vector<FoxcraftPackedVertex> worldVerts = vertices;
