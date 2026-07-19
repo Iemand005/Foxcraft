@@ -84,7 +84,7 @@ public:
 		SetClearColor(0.1f, 0.3f, 1);
 
 		if (!options.useVulkan)
-			LoadShaders("resources/shaders/VertexShader.glsl", "resources/shaders/FragmentShader.glsl");
+			LoadShaders("resources/shaders/VertexShader_foxcraft.glsl", "resources/shaders/FragmentShader.glsl");
 
 		if (options.useVulkan) {
 			useBatcherPath_ = true;
