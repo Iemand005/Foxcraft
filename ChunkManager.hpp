@@ -180,8 +180,7 @@ public:
 					if (std::max(std::abs(dx), std::abs(dz)) != d) continue;
 					if (dx * dx + dz * dz > distSq) continue;
 					if (useDirection) {
-						glm::vec2 offset = glm::vec2(dx, dz);
-						if (glm::dot(offset, forward) < 0.0f)
+						if (glm::dot(glm::vec2(dx, dz), forward) < 0.0f)
 							continue;
 					}
 					RequestChunk(center + glm::ivec2{dx, dz});
