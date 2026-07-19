@@ -164,7 +164,7 @@ public:
 		{
 			std::lock_guard<std::mutex> lock(chunksMutex);
 			for (auto& [coord, chunk] : chunks) {
-				glm::vec2 offset = glm::vec2(coord.x - center.x, coord.y - center.y);
+				glm::vec2 offset = coord - center;
 				chunk->paused = glm::dot(offset, forward) < 0.0f;
 			}
 		}
