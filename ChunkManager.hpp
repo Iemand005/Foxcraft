@@ -244,13 +244,10 @@ public:
 		glm::ivec2 offsets[] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 		bool conditions[] = {localX == 0, localX == Chunk::WIDTH - 1, localZ == 0, localZ == Chunk::DEPTH - 1};
 
-		for (int i = 0; i < 4; ++i) {
-			if (conditions[i]) {
-				if (auto n = GetChunk(coord + offsets[i])) {
+		for (int i = 0; i < 4; ++i)
+			if (conditions[i])
+				if (auto n = GetChunk(coord + offsets[i]))
 					RequestChunkRemesh(n);
-				}
-			}
-		}
 
 	}
 
