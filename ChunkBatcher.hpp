@@ -75,18 +75,17 @@ public:
         auto allocOffset = [&](uint32_t alignedSize, uint32_t& nextOff, uint32_t maxBytes,
                                bool isVertex) -> uint32_t {
             uint32_t off = nextOff;
-            if (off + alignedSize > maxBytes) {
-                off = 0;
-                nextOff = 0;
-            }
+            bool wrapped = false;
             while (true) {
                 bool inUse = isVertex ? VertexRangeInUse(off, alignedSize) : IndexRangeInUse(off, alignedSize);
                 if (!inUse) break;
                 off += alignedSize;
-                if (off + alignedSize > maxBytes)
+                if (off + alignedSize > maxBytes) {
                     off = 0;
-                if (off == nextOff)
-                    throw std::runtime_error("ChunkBatcher vertex/index buffer full");
+                    if (wrapped)
+                        throw std::runtime_error("ChunkBatcher vertex/index buffer full");
+                    wrapped = true;
+                }
             }
             nextOff = off + alignedSize;
             return off;
