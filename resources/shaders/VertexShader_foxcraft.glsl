@@ -4,7 +4,7 @@ layout (location = 1) in uint aNormalLayer;
 
 out vec3 Normal;
 out vec3 FragPos;
-out vec3 TexCoord;
+out vec2 TexCoord;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -37,5 +37,5 @@ void main()
     mat3 normalMat = transpose(inverse(mat3(model)));
     Normal = normalMat * aNormal;
     FragPos = worldPos.xyz;
-    TexCoord = vec3(uv, float(layer));
+    TexCoord = uv;
 }
