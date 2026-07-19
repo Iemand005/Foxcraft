@@ -23,7 +23,7 @@ class ChunkBatcher;
 
 #include "PackedVertex.hpp"
 
-enum class BlockType : short {
+enum class BlockType : uint8_t {
 	Air = 0,
 	Stone = 1,
 	Dirt = 2,

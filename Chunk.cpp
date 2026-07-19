@@ -54,6 +54,8 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, b
 				physobj->SetPosition(GetWorldPosition());
 			mesh.SetPhysicsObject(std::move(physobj));
 		}
+
+		mesh.FreeCpuData();
 	}
 
 	sceneObject = std::make_shared<fe::Object<fe::VertexArray>>();

@@ -18,8 +18,8 @@ class ChunkBatcher {
 public:
     ChunkBatcher(VulkanDevice* device,
                  const std::vector<std::string>& texturePaths,
-                 VkDeviceSize maxVertexBytes = 128ull * 1024 * 1024,
-                 VkDeviceSize maxIndexBytes = 64ull * 1024 * 1024,
+                 VkDeviceSize maxVertexBytes = 32ull * 1024 * 1024,
+                 VkDeviceSize maxIndexBytes = 16ull * 1024 * 1024,
                  uint32_t maxChunks = 10000)
         : device_(device)
         , maxVertexBytes_(maxVertexBytes)
@@ -121,6 +121,12 @@ public:
         slot.center = worldOffset + glm::vec3(16.0f, 64.0f, 16.0f);
         slot.used = true;
 
+        for (uint32_t i = 0; i < slots_.size(); i++) {
+            if (!slots_[i].used) {
+                slots_[i] = slot;
+                return { i };
+            }
+        }
         slots_.push_back(slot);
         return { static_cast<uint32_t>(slots_.size() - 1) };
     }
