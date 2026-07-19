@@ -44,7 +44,7 @@ int main() {
 		VulkanDevice::SetPreferIntegratedGPU(true);
 
 		fe::XRGameOptions options(1000, 1000);
-		options.useVulkan =true;
+		options.useVulkan =false;
 		Foxcraft game(options);
 
 		LogToFile("Running game...");
