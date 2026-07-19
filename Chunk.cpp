@@ -49,7 +49,7 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, b
 					vaVerts.emplace_back(pos.x, pos.y, pos.z, normal.x, normal.y, normal.z, uv.x, uv.y, static_cast<float>(layer));
 				}
 				convertedMesh = std::make_shared<fe::Mesh<fe::VertexArray>>(std::move(vaVerts), std::vector<unsigned int>(mesh.indices.begin(), mesh.indices.end()));
-				convertedMesh->loadTexture(ChunkMesher::BlockTextures()[0]);
+				convertedMesh->loadTextureArray({ChunkMesher::BlockTextures()[0]});
 			}
 
 			if (convertedMesh) {
@@ -95,7 +95,7 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, b
 				vaVerts.emplace_back(pos.x, pos.y, pos.z, normal.x, normal.y, normal.z, uv.x, uv.y, static_cast<float>(layer));
 			}
 			convertedMesh = std::make_shared<fe::Mesh<fe::VertexArray>>(std::move(vaVerts), std::vector<unsigned int>(mesh.indices.begin(), mesh.indices.end()));
-			convertedMesh->loadTexture(ChunkMesher::BlockTextures()[0]);
+			convertedMesh->loadTextureArray({ChunkMesher::BlockTextures()[0]});
 		}
 
 		if (createPhysics) {
