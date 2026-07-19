@@ -103,7 +103,7 @@ public:
 	void OnDraw() override {
 		fe::EditableGameBase::OnDraw();
 		if (chunkBatcher_ && useVulkan) {
-			chunkBatcher_->Update(camera->GetPos(), camera->front);
+			chunkBatcher_->Update(camera->GetPos());
 			chunkBatcher_->Draw();
 		}
 	}

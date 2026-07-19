@@ -120,6 +120,7 @@ public:
         slot.indexBytes = alignedIB;
         slot.indexCount = static_cast<uint32_t>(indices.size());
         slot.center = worldOffset + glm::vec3(16.0f, 64.0f, 16.0f);
+        slot.radius = glm::length(glm::vec3(16.0f, 64.0f, 16.0f));
         slot.used = true;
 
         for (uint32_t i = 0; i < slots_.size(); i++) {
@@ -139,19 +140,47 @@ public:
 
     void SetFrustumCullingEnabled(bool enabled) { enableFrustumCulling_ = enabled; }
 
-    void Update(const glm::vec3& cameraPos, const glm::vec3& cameraFront) {
+    void Update(const glm::vec3& cameraPos) {
         FlushUploads();
 
         cmds_.clear();
 
-        glm::vec3 camDir = glm::normalize(cameraFront);
+        glm::mat4 vp = device_->GetProjectionMatrix() * device_->GetViewMatrix();
+
+        struct Plane { glm::vec3 n; float d; };
+        Plane planes[6];
+        {
+            const float* m = &vp[0][0];
+            auto extract = [&](int row, float sign) {
+                Plane p;
+                p.n = glm::vec3(m[3*4+0] + sign * m[row*4+0],
+                                 m[3*4+1] + sign * m[row*4+1],
+                                 m[3*4+2] + sign * m[row*4+2]);
+                p.d = m[3*4+3] + sign * m[row*4+3];
+                float len = glm::length(p.n);
+                if (len > 0.0f) { p.n /= len; p.d /= len; }
+                return p;
+            };
+            planes[0] = extract(0,  1.0f); // left
+            planes[1] = extract(0, -1.0f); // right
+            planes[2] = extract(1,  1.0f); // bottom
+            planes[3] = extract(1, -1.0f); // top
+            planes[4] = extract(2,  1.0f); // near
+            planes[5] = extract(2, -1.0f); // far
+        }
 
         for (auto& slot : slots_) {
             if (!slot.used) continue;
 
             if (enableFrustumCulling_) {
-                glm::vec3 toCenter = slot.center - cameraPos;
-                if (glm::dot(glm::normalize(toCenter), camDir) < -0.2f) continue;
+                bool inside = true;
+                for (auto& p : planes) {
+                    if (glm::dot(p.n, slot.center) + p.d < -slot.radius) {
+                        inside = false;
+                        break;
+                    }
+                }
+                if (!inside) continue;
             }
 
             VkDrawIndexedIndirectCommand cmd{};
@@ -203,6 +232,7 @@ private:
         uint32_t indexBytes;
         uint32_t indexCount;
         glm::vec3 center{};
+        float radius = 0.0f;
         bool used = false;
     };
 
