@@ -151,12 +151,12 @@ public:
         Plane planes[6];
         {
             const float* m = &vp[0][0];
-            auto extract = [&](int row, float sign) {
+            auto extract = [&](int coord, float sign) {
                 Plane p;
-                p.n = glm::vec3(m[3*4+0] + sign * m[row*4+0],
-                                 m[3*4+1] + sign * m[row*4+1],
-                                 m[3*4+2] + sign * m[row*4+2]);
-                p.d = m[3*4+3] + sign * m[row*4+3];
+                p.n = glm::vec3(sign * m[coord] + m[3],
+                                 sign * m[4 + coord] + m[7],
+                                 sign * m[8 + coord] + m[11]);
+                p.d = sign * m[12 + coord] + m[15];
                 float len = glm::length(p.n);
                 if (len > 0.0f) { p.n /= len; p.d /= len; }
                 return p;
