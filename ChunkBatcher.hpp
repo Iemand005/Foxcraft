@@ -18,8 +18,8 @@ class ChunkBatcher {
 public:
     ChunkBatcher(VulkanDevice* device,
                  const std::vector<std::string>& texturePaths,
-                 VkDeviceSize maxVertexBytes = 32ull * 1024 * 1024,
-                 VkDeviceSize maxIndexBytes = 16ull * 1024 * 1024,
+                 VkDeviceSize maxVertexBytes = 128ull * 1024 * 1024,
+                 VkDeviceSize maxIndexBytes = 64ull * 1024 * 1024,
                  uint32_t maxChunks = 50000)
         : device_(device)
         , maxVertexBytes_(maxVertexBytes)
@@ -175,6 +175,9 @@ public:
         VkDevice dev = device_->GetDevice();
         VkCommandBuffer cmd = device_->GetCurrentCommandBuffer();
         if (!cmd || cmds_.empty()) return;
+
+        if (cmds_.size() > maxChunks_)
+            cmds_.resize(maxChunks_);
 
         uint32_t frame = device_->GetCurrentFrame();
         if (frame >= kFrames) return;
