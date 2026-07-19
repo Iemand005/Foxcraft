@@ -241,14 +241,17 @@ public:
 		chunk->Save();
 		RequestChunkRemesh(chunk);
 
-		if (localX == 0)
-			if (auto n = GetChunk(coord + glm::ivec2{-1, 0})) RequestChunkRemesh(n);
-		if (localX == Chunk::WIDTH - 1)
-			if (auto n = GetChunk(coord + glm::ivec2{1, 0})) RequestChunkRemesh(n);
-		if (localZ == 0)
-			if (auto n = GetChunk(coord + glm::ivec2{0, -1})) RequestChunkRemesh(n);
-		if (localZ == Chunk::DEPTH - 1)
-			if (auto n = GetChunk(coord + glm::ivec2{0, 1})) RequestChunkRemesh(n);
+		glm::ivec2 offsets[] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+		bool conditions[] = {localX == 0, localX == Chunk::WIDTH - 1, localZ == 0, localZ == Chunk::DEPTH - 1};
+
+		for (int i = 0; i < 4; ++i) {
+			if (conditions[i]) {
+				if (auto n = GetChunk(coord + offsets[i])) {
+					RequestChunkRemesh(n);
+				}
+			}
+		}
+
 	}
 
 	bool IsBlockSolid(const glm::ivec3& position) {
