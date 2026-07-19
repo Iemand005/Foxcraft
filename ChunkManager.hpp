@@ -194,10 +194,9 @@ public:
 		int distSq = loadDistance * loadDistance;
 		std::lock_guard<std::mutex> lock(chunksMutex);
 		for (auto& [coord, chunk] : chunks) {
-			int dx = coord.x - center.x;
-			int dz = coord.y - center.y;
+			auto d = coord - center;
 
-			if (dx * dx + dz * dz > distSq && chunk->state != ChunkState::ScheduledForRemoval) {
+			if (d.x * d.x + d.y * d.y > distSq && chunk->state != ChunkState::ScheduledForRemoval) {
 				chunk->state = ChunkState::ScheduledForRemoval;
 				pendingRemovals_.push_back(coord);
 			}
