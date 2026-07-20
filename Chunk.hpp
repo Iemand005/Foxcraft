@@ -8,7 +8,6 @@
 #include <fstream>
 #include <memory>
 #include <atomic>
-#include <format>
 #include <string>
 
 #include <glm/glm.hpp>
