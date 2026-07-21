@@ -49,7 +49,7 @@ class Chunk {
 	private:
 	std::vector<BlockType> blocks;
 	
-	std::shared_ptr<fe::Object<fe::VertexArray>> sceneObject;
+	std::shared_ptr<fe::Object> sceneObject;
 
 	std::string name;
 	
@@ -191,5 +191,5 @@ public:
 	void AddPhysics(fe::PhysicsFactory* physicsEngine);
 	void RemovePhysics();
 
-	std::shared_ptr<fe::Object<fe::VertexArray>> GetSceneObject() { return this->sceneObject; }
+	std::shared_ptr<fe::Object> GetSceneObject() { return this->sceneObject; }
 };

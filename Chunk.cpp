@@ -2,8 +2,10 @@
 #include "ChunkMesher.hpp"
 #include "ChunkBatcher.hpp"
 #include "PackedVertex.hpp"
+#include "Mesh.hpp"
+#include "physics/PhysicsEngine.hpp"
 
-static std::shared_ptr<fe::Mesh<fe::VertexArray>> ConvertFoxcraftPackedMesh(
+static std::unique_ptr<fe::Mesh<fe::VertexArray>> ConvertFoxcraftPackedMesh(
     const std::vector<FoxcraftPackedVertex>& vertices,
     const std::vector<uint32_t>& indices)
 {
@@ -29,7 +31,7 @@ static std::shared_ptr<fe::Mesh<fe::VertexArray>> ConvertFoxcraftPackedMesh(
         else uv = glm::vec2(static_cast<float>(v.x), static_cast<float>(v.y));
         vaVerts.emplace_back(pos.x, pos.y, pos.z, normal.x, normal.y, normal.z, uv.x, uv.y, static_cast<float>(layer));
     }
-    auto out = std::make_shared<fe::Mesh<fe::VertexArray>>(
+    auto out = std::make_unique<fe::Mesh<fe::VertexArray>>(
         std::move(vaVerts),
         std::vector<unsigned int>(indices.begin(), indices.end()));
     out->loadTextureArray(ChunkMesher::BlockTextures(), fe::TextureScaling::Nearest);
@@ -57,7 +59,7 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, b
 
     std::cout << "Vertices: " << mesh.vertices.size() << " Indices: " << mesh.indices.size() << std::endl;
 
-    std::shared_ptr<fe::Mesh<fe::VertexArray>> convertedMesh;
+    std::unique_ptr<fe::Mesh<fe::VertexArray>> convertedMesh;
 
     if (batcher_) {
         auto handle = batcher_->UploadChunk(mesh.vertices, mesh.indices, GetWorldPosition());
@@ -69,12 +71,12 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, b
     if (isRemesh) {
         if (convertedMesh) {
             sceneObject->meshes.clear();
-            sceneObject->meshes.push_back(std::move(*convertedMesh));
+            sceneObject->meshes.push_back(std::move(convertedMesh));
         }
         if (createPhysics)
             AddPhysics(physicsEngine);
     } else {
-        sceneObject = std::make_shared<fe::Object<fe::VertexArray>>();
+        sceneObject = std::make_shared<fe::Object>();
         sceneObject->name = "Chunk";
         sceneObject->state.position = GetWorldPosition();
         sceneObject->isStatic = true;
@@ -82,7 +84,7 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, b
         sceneObject->boundingRadius = glm::length(sceneObject->boundingCenterOffset);
 
         if (convertedMesh)
-            sceneObject->meshes.push_back(std::move(*convertedMesh));
+            sceneObject->meshes.push_back(std::move(convertedMesh));
 
         if (createPhysics)
             AddPhysics(physicsEngine);

@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <vector>
 
+#include <glm/glm.hpp>
+
 #include <Vertex.hpp>
 
 #pragma pack(push, 1)
@@ -19,3 +21,9 @@ struct FoxcraftPackedVertex {
 };
 #pragma pack(pop)
 static_assert(sizeof(FoxcraftPackedVertex) == 7, "FoxcraftPackedVertex must be 7 bytes");
+
+namespace fe::detail {
+    inline glm::vec3 extractPosition(const FoxcraftPackedVertex& v) {
+        return glm::vec3(static_cast<float>(v.x), static_cast<float>(v.y), static_cast<float>(v.z));
+    }
+}
