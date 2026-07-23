@@ -72,7 +72,7 @@ public:
 		}
 	}
 
-	void Update(int maxUploads, fe::PhysicsFactory* physicsEngine, fe::Scene* scene,
+	void Update(int maxUploads, fe::PhysicsFactory* PhysicsFactory, fe::Scene* scene,
 	            glm::ivec2 center, int meshDist, int physicsDist = -1) {
 		int uploaded = 0;
 		while (uploaded < maxUploads) {
@@ -83,7 +83,7 @@ public:
 				chunk = completedQueue.front();
 				completedQueue.pop();
 			}
-			UploadAndInsert(chunk, physicsEngine, scene, center, physicsDist);
+			UploadAndInsert(chunk, PhysicsFactory, scene, center, physicsDist);
 			uploaded++;
 		}
 
@@ -132,7 +132,7 @@ public:
 
 				if (physicsDistSq < 0) {
 					if (!chunk->GetSceneObject()->physicsObject)
-						chunk->AddPhysics(physicsEngine);
+						chunk->AddPhysics(PhysicsFactory);
 					continue;
 				}
 
@@ -141,7 +141,7 @@ public:
 				bool inRange = dx * dx + dz * dz <= physicsDistSq;
 
 				if (inRange && !chunk->GetSceneObject()->physicsObject)
-					chunk->AddPhysics(physicsEngine);
+					chunk->AddPhysics(PhysicsFactory);
 				else if (!inRange && chunk->GetSceneObject()->physicsObject)
 					chunk->RemovePhysics();
 			}
@@ -153,7 +153,7 @@ public:
 				if (it->second->state != ChunkState::ScheduledForRemoval)
 					continue;
 				auto sco = it->second->GetSceneObject();
-				if (!sco || RemoveFromScene(it->second, physicsEngine, scene))
+				if (!sco || RemoveFromScene(it->second, PhysicsFactory, scene))
 					chunks.erase(it);
 			}
 			pendingRemovals_.clear();
@@ -282,7 +282,7 @@ public:
 private:
 	void WorkerLoop();
 
-	void UploadAndInsert(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* physicsEngine, fe::Scene* scene,
+	void UploadAndInsert(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* PhysicsFactory, fe::Scene* scene,
 	                     glm::ivec2 center, int physicsDist) {
 		if (chunk->state == ChunkState::ScheduledForRemoval || chunk->state == ChunkState::RemovalPending)
 			return;
@@ -298,10 +298,10 @@ private:
 				createPhysics = false;
 		}
 
-		chunk->UploadToScene(physicsEngine, scene, createPhysics, !useBatcherPath_);
+		chunk->UploadToScene(PhysicsFactory, scene, createPhysics, !useBatcherPath_);
 	}
 
-	bool RemoveFromScene(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* physicsEngine, fe::Scene* scene) {
+	bool RemoveFromScene(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* PhysicsFactory, fe::Scene* scene) {
 		chunk->state = ChunkState::RemovalPending;
 
 		if (chunk->batcher_ && chunk->batcherSlot_ != UINT32_MAX) {

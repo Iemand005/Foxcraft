@@ -99,7 +99,7 @@ public:
 
 		LoadModels();
 
-		GetPhysicsEngine()->EnableGravity();
+		GetPhysicsFactory()->EnableGravity();
 	}
 
 	void OnDraw() override
@@ -114,12 +114,12 @@ public:
 
 	void RebuildPlayerPhysicsBody()
 	{
-		fe::PhysicsFactory *physicsEngine = GetPhysicsEngine();
-		if (!player || !physicsEngine)
+		fe::PhysicsFactory *PhysicsFactory = GetPhysicsFactory();
+		if (!player || !PhysicsFactory)
 			return;
 
 		const glm::vec3 size = useRectangularPlayerHitbox ? glm::vec3(0.4f, 1.5f, 0.4f) : glm::vec3(1.0f, 1.0f, 1.0f);
-		auto newPhysics = physicsEngine->CreateObject(size, true);
+		auto newPhysics = PhysicsFactory->CreateObject(size, true);
 		if (!newPhysics)
 			return;
 
@@ -314,7 +314,7 @@ public:
 				chunkManager->UpdatePausedState(playerCenter_, forward2D);
 			}
 
-			chunkManager->Update(1, GetPhysicsEngine(), this->scene.get(),
+			chunkManager->Update(1, GetPhysicsFactory(), this->scene.get(),
 								 playerCenter_, CHUNK_LOAD_DISTANCE, physicsDistance);
 
 			if (!freeCamera)

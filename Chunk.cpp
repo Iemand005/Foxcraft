@@ -3,7 +3,7 @@
 #include "ChunkBatcher.hpp"
 #include "PackedVertex.hpp"
 #include "Mesh.hpp"
-#include "physics/PhysicsEngine.hpp"
+#include "physics/PhysicsFactory.hpp"
 
 static std::unique_ptr<fe::Mesh<fe::VertexArray>> ConvertFoxcraftPackedMesh(
     const std::vector<FoxcraftPackedVertex>& vertices,
@@ -38,7 +38,7 @@ static std::unique_ptr<fe::Mesh<fe::VertexArray>> ConvertFoxcraftPackedMesh(
     return out;
 }
 
-void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, bool createPhysics, bool addToScene) {
+void Chunk::UploadToScene(fe::PhysicsFactory* PhysicsFactory, fe::Scene* scene, bool createPhysics, bool addToScene) {
     if (state == ChunkState::ScheduledForRemoval || state == ChunkState::RemovalPending) {
         std::cout << "Cancelled chunk upload (" << coord.x << ", " << coord.y << ") due to removal request." << std::endl;
         return;
@@ -74,7 +74,7 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, b
             sceneObject->meshes.push_back(std::move(convertedMesh));
         }
         if (createPhysics)
-            AddPhysics(physicsEngine);
+            AddPhysics(PhysicsFactory);
     } else {
         sceneObject = std::make_shared<fe::Object>();
         sceneObject->name = "Chunk";
@@ -87,7 +87,7 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, b
             sceneObject->meshes.push_back(std::move(convertedMesh));
 
         if (createPhysics)
-            AddPhysics(physicsEngine);
+            AddPhysics(PhysicsFactory);
 
         mesh.FreeCpuData();
 
@@ -98,7 +98,7 @@ void Chunk::UploadToScene(fe::PhysicsFactory* physicsEngine, fe::Scene* scene, b
     state = ChunkState::InScene;
 }
 
-void Chunk::AddPhysics(fe::PhysicsFactory* physicsEngine) {
+void Chunk::AddPhysics(fe::PhysicsFactory* PhysicsFactory) {
 	if (!sceneObject)
 		return;
 	if (mesh.vertices.empty() || mesh.indices.empty())
@@ -113,7 +113,7 @@ void Chunk::AddPhysics(fe::PhysicsFactory* physicsEngine) {
 
 	std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
 
-	auto physobj = physicsEngine->CreateObject(colliderVertices, colliderIndices);
+	auto physobj = PhysicsFactory->CreateObject(colliderVertices, colliderIndices);
 	if (physobj)
 		physobj->SetPosition(GetWorldPosition());
 	sceneObject->SetPhysicsObject(std::move(physobj));
