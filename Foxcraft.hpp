@@ -23,18 +23,18 @@
 #include "ChunkManager.hpp"
 #include "ChunkMesher.hpp"
 
-class Foxcraft : public fe::EditableGame {
+class Foxcraft : public fe::EditableGame
+{
 public:
-
 	bool showDebugUI = false;
-	
+
 	bool useRectangularPlayerHitbox = true;
 
 	std::vector<glm::vec3> path;
 	int windowStart = 0;
 	float pathIndex = 1.0f;
-	std::vector<std::shared_ptr<fe::Object>> chunkObjects;  // Track loaded chunk objects
-	std::vector<bool> chunksLoaded;  // Track which chunks have been meshed
+	std::vector<std::shared_ptr<fe::Object>> chunkObjects; // Track loaded chunk objects
+	std::vector<bool> chunksLoaded;						   // Track which chunks have been meshed
 	glm::vec3 lastUp = glm::vec3(0, 1, 0);
 	glm::vec3 lastRight = glm::vec3(1, 0, 0);
 	glm::vec3 prevEndForward{0};
@@ -49,7 +49,7 @@ public:
 	int chunkOutgenDistance = 1;
 	int physicsDistance = 2;
 	glm::ivec2 playerCenter_{0, 0};
-	static constexpr int GRID_WIDTH = 1;  // 5x5 grid
+	static constexpr int GRID_WIDTH = 1; // 5x5 grid
 	static constexpr int GRID_HEIGHT = 1;
 
 	int NUM_CHUNKS = 4;
@@ -79,17 +79,19 @@ public:
 	std::unique_ptr<ChunkBatcher> chunkBatcher_;
 	bool useBatcherPath_ = false;
 
-	Foxcraft(fe::XRGameOptions options) : fe::EditableGame(options) {
+	Foxcraft(fe::XRGameOptions options) : fe::EditableGame(options)
+	{
 
 		SetClearColor(0.1f, 0.3f, 1);
 
 		if (!options.useVulkan)
 			LoadShaders("resources/shaders/VertexShader.glsl", "resources/shaders/FragmentShader.glsl");
 
-		if (options.useVulkan) {
+		if (options.useVulkan)
+		{
 			useBatcherPath_ = true;
 			chunkBatcher_ = std::make_unique<ChunkBatcher>(
-				static_cast<VulkanDevice*>(renderDevice.get()),
+				static_cast<VulkanDevice *>(renderDevice.get()),
 				ChunkMesher::BlockTextures());
 			chunkManager->SetBatcher(chunkBatcher_.get());
 			chunkManager->SetUseBatcherPath(true);
@@ -100,29 +102,36 @@ public:
 		GetPhysicsEngine()->EnableGravity();
 	}
 
-	void OnDraw() override {
-		fe::EditableGameBase::OnDraw();
-		if (chunkBatcher_ && useVulkan) {
+	void OnDraw() override
+	{
+		fe::EditableGame::OnDraw();
+		if (chunkBatcher_ && useVulkan)
+		{
 			chunkBatcher_->Update(camera->GetPos());
 			chunkBatcher_->Draw();
 		}
 	}
 
-	void RebuildPlayerPhysicsBody() {
+	void RebuildPlayerPhysicsBody()
+	{
 		fe::PhysicsFactory *physicsEngine = GetPhysicsEngine();
-		if (!player || !physicsEngine) return;
+		if (!player || !physicsEngine)
+			return;
 
 		const glm::vec3 size = useRectangularPlayerHitbox ? glm::vec3(0.4f, 1.5f, 0.4f) : glm::vec3(1.0f, 1.0f, 1.0f);
 		auto newPhysics = physicsEngine->CreateObject(size, true);
-		if (!newPhysics) return;
+		if (!newPhysics)
+			return;
 
 		this->player->SetPhysicsObject(std::move(newPhysics));
-		if (this->player->physicsObject) {
+		if (this->player->physicsObject)
+		{
 			this->player->physicsObject->SetPosition(this->player->state.position);
 		}
 	}
 
-	void LoadModels() {
+	void LoadModels()
+	{
 
 		this->player = std::make_shared<fe::Character>();
 		this->scene->AddObject(player);
@@ -135,7 +144,8 @@ public:
 		UpdateLoadedChunks();
 	}
 
-	void UpdateLoadedChunks() {
+	void UpdateLoadedChunks()
+	{
 		glm::vec3 playerPos = camera->GetPos();
 
 		int playerChunkX = static_cast<int>(std::floor(playerPos.x / static_cast<float>(Chunk::WIDTH)));
@@ -148,14 +158,17 @@ public:
 		chunkManager->UnloadChunksOutsideRange(playerCenter_, terrainDist);
 	}
 
-	void SyncCameraToPlayer() {
-		if (!player || freeCamera) return;
+	void SyncCameraToPlayer()
+	{
+		if (!player || freeCamera)
+			return;
 
 		const glm::vec3 headOffset(0.0f, 1.6f, 0.0f);
 		camera->SetPos(player->state.position + headOffset);
 	}
 
-	void PlaceBlock(bool remove) {
+	void PlaceBlock(bool remove)
+	{
 		glm::vec3 cameraPos = camera->GetPos();
 		glm::vec3 rayDir = glm::normalize(camera->front);
 		float reachDistance = 5.0f;
@@ -165,21 +178,23 @@ public:
 		glm::vec3 previousBlockPos = glm::vec3(0.0f);
 		bool blockFound = false;
 
-		for (float i = 0.0f; i < reachDistance; i += stepSize) {
+		for (float i = 0.0f; i < reachDistance; i += stepSize)
+		{
 			glm::vec3 samplePoint = cameraPos + rayDir * i;
 			glm::vec3 currentBlock = glm::floor(samplePoint);
 
-			
-			if (chunkManager->IsBlockSolid(currentBlock)) {
+			if (chunkManager->IsBlockSolid(currentBlock))
+			{
 				selectedBlockPos = currentBlock;
 				blockFound = true;
 				break;
 			}
-			
+
 			previousBlockPos = currentBlock;
 		}
 
-		if (blockFound) {
+		if (blockFound)
+		{
 			if (remove)
 				chunkManager->SetBlock(selectedBlockPos, BlockType::Air);
 			else
@@ -187,78 +202,98 @@ public:
 		}
 	}
 
-	void ProcessInput() {
+	void ProcessInput()
+	{
 		SDL_Event event;
-		fe::SDLWindow *window = (fe::SDLWindow*)this->window.get();
-		while (window->PollSDLEvent(&event)) {
+		fe::SDLWindow *window = (fe::SDLWindow *)this->window.get();
+		while (window->PollSDLEvent(&event))
+		{
 			ImGui_ImplSDL3_ProcessEvent(&event);
 			auto io = ImGui::GetIO();
-			switch (event.type) {
-				case SDL_EVENT_QUIT:
-					window->PrepareClose();
-					break;
-				case SDL_EVENT_MOUSE_BUTTON_DOWN:
-					if (event.button.button == SDL_BUTTON_LEFT && !io.WantCaptureMouse) {
-						window->StartMouseCapture();
-					}
-					if (window->IsCapturingMouse()) {
-						if (event.button.button == SDL_BUTTON_LEFT)
-							PlaceBlock(true);
-						else if (event.button.button == SDL_BUTTON_RIGHT)
-							PlaceBlock(false);
-					}
-					break;
-				case SDL_EVENT_WINDOW_RESIZED:
-				case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
-					Redraw();
-					break;
-				case SDL_EVENT_MOUSE_MOTION:
+			switch (event.type)
+			{
+			case SDL_EVENT_QUIT:
+				window->PrepareClose();
+				break;
+			case SDL_EVENT_MOUSE_BUTTON_DOWN:
+				if (event.button.button == SDL_BUTTON_LEFT && !io.WantCaptureMouse)
 				{
-					if (!window->IsCapturingMouse()) break;
-					float sensitivity = 0.1f;
-					camera->yaw   += event.motion.xrel * sensitivity;
-					camera->pitch -= event.motion.yrel * sensitivity;
-					camera->UpdateDirection();
-					camera->pitch = std::clamp(camera->pitch, -89.0f, 89.0f);
-					break;
+					window->StartMouseCapture();
 				}
-				case SDL_EVENT_KEY_DOWN:
-					if (event.key.key == SDLK_F11) {
-						window->ToggleFullscreen();
-					}
-					else if (event.key.key == SDLK_F3) {
-						showDebugUI = !showDebugUI;
-					}
-					else if (event.key.key == SDLK_F2) {
-						freeCamera = !freeCamera;
-						window->StartMouseCapture();
-					}
+				if (window->IsCapturingMouse())
+				{
+					if (event.button.button == SDL_BUTTON_LEFT)
+						PlaceBlock(true);
+					else if (event.button.button == SDL_BUTTON_RIGHT)
+						PlaceBlock(false);
+				}
+				break;
+			case SDL_EVENT_WINDOW_RESIZED:
+			case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+				Redraw();
+				break;
+			case SDL_EVENT_MOUSE_MOTION:
+			{
+				if (!window->IsCapturingMouse())
 					break;
+				float sensitivity = 0.1f;
+				camera->yaw += event.motion.xrel * sensitivity;
+				camera->pitch -= event.motion.yrel * sensitivity;
+				camera->UpdateDirection();
+				camera->pitch = std::clamp(camera->pitch, -89.0f, 89.0f);
+				break;
+			}
+			case SDL_EVENT_KEY_DOWN:
+				if (event.key.key == SDLK_F11)
+				{
+					window->ToggleFullscreen();
+				}
+				else if (event.key.key == SDLK_F3)
+				{
+					showDebugUI = !showDebugUI;
+				}
+				else if (event.key.key == SDLK_F2)
+				{
+					freeCamera = !freeCamera;
+					window->StartMouseCapture();
+				}
+				break;
 			}
 		}
 
-		if (!freeCamera) {
-			if (window->IsKeyDown(SDL_SCANCODE_W)) this->player->Move(fe::Direction::Forwards, camera.get());
-			if (window->IsKeyDown(SDL_SCANCODE_A)) this->player->Move(fe::Direction::Left, camera.get());
-			if (window->IsKeyDown(SDL_SCANCODE_S)) this->player->Move(fe::Direction::Backwards, camera.get());
-			if (window->IsKeyDown(SDL_SCANCODE_D)) this->player->Move(fe::Direction::Right, camera.get());
+		if (!freeCamera)
+		{
+			if (window->IsKeyDown(SDL_SCANCODE_W))
+				this->player->Move(fe::Direction::Forwards, camera.get());
+			if (window->IsKeyDown(SDL_SCANCODE_A))
+				this->player->Move(fe::Direction::Left, camera.get());
+			if (window->IsKeyDown(SDL_SCANCODE_S))
+				this->player->Move(fe::Direction::Backwards, camera.get());
+			if (window->IsKeyDown(SDL_SCANCODE_D))
+				this->player->Move(fe::Direction::Right, camera.get());
 
-			if (window->IsKeyDown(SDL_SCANCODE_SPACE)) this->player->Move(fe::Direction::Up, camera.get());
-			if (window->IsKeyDown(SDL_SCANCODE_LSHIFT)) this->player->Move(fe::Direction::Down, camera.get());
+			if (window->IsKeyDown(SDL_SCANCODE_SPACE))
+				this->player->Move(fe::Direction::Up, camera.get());
+			if (window->IsKeyDown(SDL_SCANCODE_LSHIFT))
+				this->player->Move(fe::Direction::Down, camera.get());
 		}
 
-		if (window->IsKeyDown(SDL_SCANCODE_ESCAPE)) window->StopMouseCapture();
-		if (ImGui::GetIO().WantCaptureMouse) window->StopMouseCapture();
+		if (window->IsKeyDown(SDL_SCANCODE_ESCAPE))
+			window->StopMouseCapture();
+		if (ImGui::GetIO().WantCaptureMouse)
+			window->StopMouseCapture();
 	}
 
-	void Run() {
+	void Run()
+	{
 		auto window = this->GetWindow<fe::SDLWindow>();
 		window->Show();
 		window->DisableVSync();
 
 		player->state.position.z = 5;
 		player->state.position.y = 35;
-		if (player->physicsObject) {
+		if (player->physicsObject)
+		{
 			player->physicsObject->SetPosition(player->state.position);
 		}
 		camera->farDist = farPlane;
@@ -267,7 +302,8 @@ public:
 		float elapsedTimeBumpy = 0.0f;
 		float elapsedTime = 0.0f;
 
-		while (!window->ShouldClose()) {
+		while (!window->ShouldClose())
+		{
 
 			ProcessInput();
 
@@ -279,34 +315,47 @@ public:
 			}
 
 			chunkManager->Update(1, GetPhysicsEngine(), this->scene.get(),
-			                     playerCenter_, CHUNK_LOAD_DISTANCE, physicsDistance);
+								 playerCenter_, CHUNK_LOAD_DISTANCE, physicsDistance);
 
-			if (!freeCamera) {
+			if (!freeCamera)
+			{
 				SyncCameraToPlayer();
 			}
 
-			if (freeCamera) {
+			if (freeCamera)
+			{
 				double dt = fpsCounter.deltaTime;
 				float spd = freeCamSpeed * dt;
 				glm::vec3 cp = camera->GetPos();
 				glm::vec3 right = glm::normalize(glm::cross(camera->front, camera->up));
-				if (window->IsKeyDown(SDL_SCANCODE_W)) cp += camera->front * spd;
-				if (window->IsKeyDown(SDL_SCANCODE_S)) cp -= camera->front * spd;
-				if (window->IsKeyDown(SDL_SCANCODE_A)) cp -= right * spd;
-				if (window->IsKeyDown(SDL_SCANCODE_D)) cp += right * spd;
-				if (window->IsKeyDown(SDL_SCANCODE_SPACE)) cp += camera->up * spd;
-				if (window->IsKeyDown(SDL_SCANCODE_LSHIFT)) cp -= camera->up * spd;
+				if (window->IsKeyDown(SDL_SCANCODE_W))
+					cp += camera->front * spd;
+				if (window->IsKeyDown(SDL_SCANCODE_S))
+					cp -= camera->front * spd;
+				if (window->IsKeyDown(SDL_SCANCODE_A))
+					cp -= right * spd;
+				if (window->IsKeyDown(SDL_SCANCODE_D))
+					cp += right * spd;
+				if (window->IsKeyDown(SDL_SCANCODE_SPACE))
+					cp += camera->up * spd;
+				if (window->IsKeyDown(SDL_SCANCODE_LSHIFT))
+					cp -= camera->up * spd;
 				camera->SetPos(cp);
-			} else {
+			}
+			else
+			{
 			}
 
 			Update();
 
-			if (player->physicsObject) {
+			if (player->physicsObject)
+			{
 				glm::vec3 ppos = player->physicsObject->GetPosition();
-				if (ppos.y < -2.0f) {
+				if (ppos.y < -2.0f)
+				{
 					int surface = chunkManager->GetSurfaceHeight(static_cast<int>(ppos.x), static_cast<int>(ppos.z));
-					if (surface > 0) {
+					if (surface > 0)
+					{
 						ppos.y = static_cast<float>(surface) + 1.0f;
 						player->physicsObject->SetPosition(ppos);
 						player->physicsObject->SetLinearVelocity(glm::vec3(0.0f));
@@ -321,9 +370,10 @@ public:
 
 	void InitUI() override {}
 
-
-	void DrawUI() override {
-		if (!showDebugUI) return;
+	void DrawUI() override
+	{
+		if (!showDebugUI)
+			return;
 		BeginFrame();
 
 		ImGui::Begin("Chunks");
