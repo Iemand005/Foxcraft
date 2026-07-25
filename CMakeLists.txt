@@ -112,6 +112,17 @@ set_property(TARGET Foxcraft PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOUR
 
 
 # ---------------------------------------------------------------
+# Copy all runtime resources (glsl shaders, textures) to build output
+# ---------------------------------------------------------------
+set(RESOURCE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/resources)
+set(RESOURCE_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/resources)
+
+add_custom_target(CopyResources_Foxcraft ALL
+	COMMAND ${CMAKE_COMMAND} -E copy_directory ${RESOURCE_SRC_DIR} ${RESOURCE_OUT_DIR}
+	COMMENT "Copying resources to ${RESOURCE_OUT_DIR}"
+)
+
+# ---------------------------------------------------------------
 # GLSL -> SPIR-V shader compilation
 # ---------------------------------------------------------------
 find_program(GLSLC glslc HINTS
