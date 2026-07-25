@@ -14,6 +14,9 @@
 #include <Vertex.hpp>
 #include "PackedVertex.hpp"
 
+using fe::VulkanDevice;
+using fe::kMaxFramesInFlight;
+
 class ChunkBatcher {
 public:
     ChunkBatcher(VulkanDevice* device,
