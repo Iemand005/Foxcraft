@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
+cmake_policy(SET CMP0091 NEW)
 project(Tunnel)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -19,6 +20,7 @@ set(SDL_AUDIO_WASAPI OFF CACHE BOOL "" FORCE)
 set(SDL_WASAPI OFF CACHE BOOL "" FORCE)
 
 # set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 set(KISSFFT_TEST OFF CACHE BOOL "Disable KissFFT tests" FORCE)
 
