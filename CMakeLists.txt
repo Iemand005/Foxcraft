@@ -6,9 +6,17 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Target Windows 7 and above
-add_compile_definitions(WINVER=0x0601)
-add_compile_definitions(_WIN32_WINNT=0x0601)
-add_compile_definitions(NTDDI_VERSION=0x06010000)
+# add_compile_definitions(WINVER=0x0601)
+# add_compile_definitions(_WIN32_WINNT=0x0601)
+# add_compile_definitions(NTDDI_VERSION=0x06010000)
+
+# Target Windows 7 (0x0601)
+add_compile_definitions(
+    _WIN32_WINNT=0x0601
+    WINVER=0x0601
+    NTDDI_VERSION=0x06010000
+)
+
 
 add_compile_definitions(WINVER=0x0601 _WIN32_WINNT=0x0601)
 
@@ -20,7 +28,8 @@ set(SDL_AUDIO_WASAPI OFF CACHE BOOL "" FORCE)
 set(SDL_WASAPI OFF CACHE BOOL "" FORCE)
 
 # set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+# set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 
 set(KISSFFT_TEST OFF CACHE BOOL "Disable KissFFT tests" FORCE)
 
