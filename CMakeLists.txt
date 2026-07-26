@@ -33,7 +33,7 @@ set(SDL_WASAPI OFF CACHE BOOL "" FORCE)
 # set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 # set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 
 set(KISSFFT_TEST OFF CACHE BOOL "Disable KissFFT tests" FORCE)
 
@@ -49,9 +49,9 @@ set(ENGINE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../FenixEngine")
 #     add_subdirectory(${ENGINE_DIR}/external/JoltPhysics/Build ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/jolt)
 # endif()
 
-set(USE_STATIC_MSVC_RUNTIME_LIBRARY ON CACHE BOOL "Use dynamic MSVC runtime to match rest of project" FORCE)
+# set(USE_STATIC_MSVC_RUNTIME_LIBRARY ON CACHE BOOL "Use dynamic MSVC runtime to match rest of project" FORCE)
 
-option(USE_STATIC_MSVC_RUNTIME_LIBRARY "Use the static MSVC runtime" ON)
+# option(USE_STATIC_MSVC_RUNTIME_LIBRARY "Use the static MSVC runtime" ON)
 
 if(CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
