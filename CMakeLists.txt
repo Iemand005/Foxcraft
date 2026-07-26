@@ -9,6 +9,14 @@ add_compile_definitions(WINVER=0x0601)
 add_compile_definitions(_WIN32_WINNT=0x0601)
 add_compile_definitions(NTDDI_VERSION=0x06010000)
 
+add_compile_definitions(WINVER=0x0601 _WIN32_WINNT=0x0601)
+
+# Ensure the Windows SDK exposes modern API structs like AudioClientProperties to SDL3
+add_compile_definitions(AUDIO_CLIENT_PROPERTIES_ENUM_DEFINED) 
+
+# Alternatively, let SDL build with Windows 10 SDK definitions (it uses dynamic loading for Win7 fallback)
+set(SDL_AUDIO_WASAPI ON CACHE BOOL "" FORCE)
+
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 set(KISSFFT_TEST OFF CACHE BOOL "Disable KissFFT tests" FORCE)
