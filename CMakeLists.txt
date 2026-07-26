@@ -4,6 +4,13 @@ project(Tunnel)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Target Windows 7 and above
+add_compile_definitions(WINVER=0x0601)
+add_compile_definitions(_WIN32_WINNT=0x0601)
+add_compile_definitions(NTDDI_VERSION=0x06010000)
+
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 set(KISSFFT_TEST OFF CACHE BOOL "Disable KissFFT tests" FORCE)
 
 set(KISSFFT_STATIC ON CACHE BOOL "Build static library" FORCE)
