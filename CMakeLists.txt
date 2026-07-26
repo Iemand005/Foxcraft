@@ -16,7 +16,9 @@ add_compile_definitions(
     WINVER=0x0601
     NTDDI_VERSION=0x06010000
 )
-
+if(MSVC)
+    set(CMAKE_SYSTEM_VERSION 6.1) # Corresponds to Windows 7 internal version
+endif()
 
 add_compile_definitions(WINVER=0x0601 _WIN32_WINNT=0x0601)
 
