@@ -1,6 +1,8 @@
 #include "Chunk.hpp"
 #include "ChunkMesher.hpp"
+#ifdef FC_INCLUDE_VULKAN
 #include "ChunkBatcher.hpp"
+#endif
 #include "PackedVertex.hpp"
 #include "Mesh.hpp"
 #include "physics/PhysicsFactory.hpp"
@@ -50,7 +52,9 @@ void Chunk::UploadToScene(fe::PhysicsFactory* PhysicsFactory, fe::Scene* scene, 
         std::cout << "Remeshing chunk (" << coord.x << ", " << coord.y << "): ";
         RemovePhysics();
         if (batcher_ && batcherSlot_ != UINT32_MAX) {
+#ifdef FC_INCLUDE_VULKAN
             batcher_->RemoveChunk({batcherSlot_});
+#endif
         }
         batcherSlot_ = UINT32_MAX;
     } else {
@@ -62,7 +66,9 @@ void Chunk::UploadToScene(fe::PhysicsFactory* PhysicsFactory, fe::Scene* scene, 
     std::unique_ptr<fe::Mesh<fe::VertexArray>> convertedMesh;
 
     if (batcher_) {
+#ifdef FC_INCLUDE_VULKAN
         auto handle = batcher_->UploadChunk(mesh.vertices, mesh.indices, GetWorldPosition());
+#endif
         batcherSlot_ = handle.index;
     } else if (!mesh.vertices.empty() && !mesh.indices.empty()) {
         convertedMesh = ConvertFoxcraftPackedMesh(mesh.vertices, mesh.indices);
