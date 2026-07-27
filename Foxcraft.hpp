@@ -303,8 +303,7 @@ public:
 		SyncCameraToPlayer();
 	}
 
-	void Step()
-	{
+	void Step() override {
 		ProcessInput();
 
 		UpdateLoadedChunks();
