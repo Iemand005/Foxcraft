@@ -15,6 +15,7 @@
 #include "ChunkBatcher.hpp"
 #endif
 
+#include "ChunkMesher.hpp"
 #include <Scene.hpp>
 
 
