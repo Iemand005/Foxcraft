@@ -59,11 +59,6 @@ public:
 	float bgColorFreq = 0.3f;
 	float visualizerScale = 8.0f;
 
-	float audioAmplitudeScale = 10.0f;
-	float audioSpeedMultiplier = 0.15f;
-	float baseSpeedElapsedTimeBumpy = 0.0002f;
-	float baseSpeedElapsedTime = 0.0002f;
-
 	float cameraSpeed = 1.0f;
 	float motionAmount = 1.2f;
 	float tunnelRoundness = 0.0f;
@@ -292,8 +287,7 @@ public:
 			window->StopMouseCapture();
 	}
 
-	void Run()
-	{
+	void Init() override {
 		auto window = this->GetWindow<fe::SDLWindow>();
 		window->Show();
 		window->DisableVSync();
@@ -307,73 +301,69 @@ public:
 		camera->farDist = farPlane;
 		camera->SetAspect(camera->aspect);
 		SyncCameraToPlayer();
-		float elapsedTimeBumpy = 0.0f;
-		float elapsedTime = 0.0f;
+	}
 
-		while (!window->ShouldClose())
+	void Step()
+	{
+		ProcessInput();
+
+		UpdateLoadedChunks();
+
 		{
+			glm::vec2 forward2D = glm::normalize(glm::vec2(camera->front.x, camera->front.z));
+			chunkManager->UpdatePausedState(playerCenter_, forward2D);
+		}
 
-			ProcessInput();
+		chunkManager->Update(1, GetPhysicsFactory(), this->scene.get(),
+								playerCenter_, CHUNK_LOAD_DISTANCE, physicsDistance);
 
-			UpdateLoadedChunks();
+		if (!freeCamera)
+		{
+			SyncCameraToPlayer();
+		}
 
+		if (freeCamera)
+		{
+			double dt = fpsCounter.deltaTime;
+			float spd = freeCamSpeed * dt;
+			glm::vec3 cp = camera->GetPos();
+			glm::vec3 right = glm::normalize(glm::cross(camera->front, camera->up));
+			if (window->IsKeyDown(SDL_SCANCODE_W))
+				cp += camera->front * spd;
+			if (window->IsKeyDown(SDL_SCANCODE_S))
+				cp -= camera->front * spd;
+			if (window->IsKeyDown(SDL_SCANCODE_A))
+				cp -= right * spd;
+			if (window->IsKeyDown(SDL_SCANCODE_D))
+				cp += right * spd;
+			if (window->IsKeyDown(SDL_SCANCODE_SPACE))
+				cp += camera->up * spd;
+			if (window->IsKeyDown(SDL_SCANCODE_LSHIFT))
+				cp -= camera->up * spd;
+			camera->SetPos(cp);
+		}
+		else
+		{
+		}
+
+		Update();
+
+		if (player->physicsObject)
+		{
+			glm::vec3 ppos = player->physicsObject->GetPosition();
+			if (ppos.y < -2.0f)
 			{
-				glm::vec2 forward2D = glm::normalize(glm::vec2(camera->front.x, camera->front.z));
-				chunkManager->UpdatePausedState(playerCenter_, forward2D);
-			}
-
-			chunkManager->Update(1, GetPhysicsFactory(), this->scene.get(),
-								 playerCenter_, CHUNK_LOAD_DISTANCE, physicsDistance);
-
-			if (!freeCamera)
-			{
-				SyncCameraToPlayer();
-			}
-
-			if (freeCamera)
-			{
-				double dt = fpsCounter.deltaTime;
-				float spd = freeCamSpeed * dt;
-				glm::vec3 cp = camera->GetPos();
-				glm::vec3 right = glm::normalize(glm::cross(camera->front, camera->up));
-				if (window->IsKeyDown(SDL_SCANCODE_W))
-					cp += camera->front * spd;
-				if (window->IsKeyDown(SDL_SCANCODE_S))
-					cp -= camera->front * spd;
-				if (window->IsKeyDown(SDL_SCANCODE_A))
-					cp -= right * spd;
-				if (window->IsKeyDown(SDL_SCANCODE_D))
-					cp += right * spd;
-				if (window->IsKeyDown(SDL_SCANCODE_SPACE))
-					cp += camera->up * spd;
-				if (window->IsKeyDown(SDL_SCANCODE_LSHIFT))
-					cp -= camera->up * spd;
-				camera->SetPos(cp);
-			}
-			else
-			{
-			}
-
-			Update();
-
-			if (player->physicsObject)
-			{
-				glm::vec3 ppos = player->physicsObject->GetPosition();
-				if (ppos.y < -2.0f)
+				int surface = chunkManager->GetSurfaceHeight(static_cast<int>(ppos.x), static_cast<int>(ppos.z));
+				if (surface > 0)
 				{
-					int surface = chunkManager->GetSurfaceHeight(static_cast<int>(ppos.x), static_cast<int>(ppos.z));
-					if (surface > 0)
-					{
-						ppos.y = static_cast<float>(surface) + 1.0f;
-						player->physicsObject->SetPosition(ppos);
-						player->physicsObject->SetLinearVelocity(glm::vec3(0.0f));
-					}
+					ppos.y = static_cast<float>(surface) + 1.0f;
+					player->physicsObject->SetPosition(ppos);
+					player->physicsObject->SetLinearVelocity(glm::vec3(0.0f));
 				}
 			}
-
-			Redraw();
 		}
-		Destroy();
+
+		Redraw();
 	}
 
 	void InitUI() override {}
