@@ -198,7 +198,7 @@ endif()
 
 include(${CMAKE_SOURCE_DIR}/EmscriptenConfig.cmake)
 if(EMSCRIPTEN)
-    target_link_libraries(Foxcrat PRIVATE emscripten_wasm_settings)
+    target_link_libraries(Foxcraft PRIVATE emscripten_wasm_settings)
     
-    configure_emscripten_target(Foxcrat "${CMAKE_CURRENT_SOURCE_DIR}/resources")
+    configure_emscripten_target(Foxcraft "${CMAKE_CURRENT_SOURCE_DIR}/resources")
 endif()
