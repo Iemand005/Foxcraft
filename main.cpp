@@ -14,7 +14,9 @@
 #include <fstream>
 #include <sstream>
 #include <chrono>
+#ifdef FC_INCLUDE_VULKAN
 #include <Graphics/VulkanDevice.hpp>
+#endif
 
 void LogToFile(const std::string& message)
 {

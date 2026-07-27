@@ -78,7 +78,7 @@ public:
 	std::unique_ptr<ChunkManager> chunkManager = std::make_unique<ChunkManager>(6);
 #ifdef FC_INCLUDE_VULKAN
 	std::unique_ptr<ChunkBatcher> chunkBatcher_;
-#ifdef FC_INCLUDE_VULKAN
+#else
 	bool useBatcherPath_ = false;
 
 	Foxcraft(fe::XRGameOptions options) : fe::EditableGame(options)

@@ -11,7 +11,7 @@
 #include <glm/glm.hpp>
 
 #include "Chunk.hpp"
-#ifndef __EMSCRIPTEN__
+#ifdef FC_INCLUDE_VULKAN
 #include "ChunkBatcher.hpp"
 #endif
 
@@ -306,10 +306,12 @@ private:
 	bool RemoveFromScene(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* PhysicsFactory, fe::Scene* scene) {
 		chunk->state = ChunkState::RemovalPending;
 
+#ifdef FC_INCLUDE_VULKAN
 		if (chunk->batcher_ && chunk->batcherSlot_ != UINT32_MAX) {
 			chunk->batcher_->RemoveChunk({chunk->batcherSlot_});
 			chunk->batcherSlot_ = UINT32_MAX;
 		}
+#endif
 
 		if (useBatcherPath_) {
 			auto sco = chunk->GetSceneObject();
