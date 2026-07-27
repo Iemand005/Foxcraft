@@ -68,8 +68,8 @@ void Chunk::UploadToScene(fe::PhysicsFactory* PhysicsFactory, fe::Scene* scene, 
     if (batcher_) {
 #ifdef FC_INCLUDE_VULKAN
         auto handle = batcher_->UploadChunk(mesh.vertices, mesh.indices, GetWorldPosition());
-#endif
-        batcherSlot_ = handle.index;
+batcherSlot_ = handle.index;
+        #endif
     } else if (!mesh.vertices.empty() && !mesh.indices.empty()) {
         convertedMesh = ConvertFoxcraftPackedMesh(mesh.vertices, mesh.indices);
     }
