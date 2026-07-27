@@ -117,7 +117,7 @@ public:
 			chunkBatcher_->Update(camera->GetPos());
 			chunkBatcher_->Draw();
 		}
-#ifdef FC_INCLUDE_VULKAN
+#endif
 	}
 
 	void RebuildPlayerPhysicsBody()
