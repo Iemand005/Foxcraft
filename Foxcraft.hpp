@@ -304,6 +304,7 @@ public:
 	}
 
 	void Step() override {
+		auto window = GetWindow<fe::SDLWindow>();
 		ProcessInput();
 
 		UpdateLoadedChunks();
