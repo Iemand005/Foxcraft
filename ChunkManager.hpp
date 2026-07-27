@@ -11,7 +11,9 @@
 #include <glm/glm.hpp>
 
 #include "Chunk.hpp"
+#ifndef __EMSCRIPTEN__
 #include "ChunkBatcher.hpp"
+#endif
 
 #include <Scene.hpp>
 
