@@ -81,8 +81,13 @@ public:
 
 		SetClearColor(0.1f, 0.3f, 1);
 
+#ifdef __EMSCRIPTEN__
+		if (!options.useVulkan)
+			LoadShaders("resources/shaders/VertexShader_foxcraft_es.glsl", "resources/shaders/FragmentShader_foxcraft_es.glsl");
+#else
 		if (!options.useVulkan)
 			LoadShaders("resources/shaders/VertexShader.glsl", "resources/shaders/FragmentShader.glsl");
+#endif
 
 #ifdef FC_INCLUDE_VULKAN
 		if (options.useVulkan)

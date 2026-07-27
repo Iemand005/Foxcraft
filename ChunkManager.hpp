@@ -28,14 +28,18 @@ class ChunkManager {
 public:
 	
 	ChunkManager(int numWorkers = 2) : running(true) {
+#ifndef __EMSCRIPTEN__
 		for (int i = 0; i < numWorkers; i++)
 			workers.emplace_back(&ChunkManager::WorkerLoop, this);
+#endif
 	}
 
 	~ChunkManager() {
 		running = false;
 		queueCV.notify_all();
+#ifndef __EMSCRIPTEN__
 		for (auto& t : workers) t.join();
+#endif
 	}
 
 	void RequestChunk(glm::ivec2 coord) {
@@ -76,6 +80,11 @@ public:
 
 	void Update(int maxUploads, fe::PhysicsFactory* PhysicsFactory, fe::Scene* scene,
 	            glm::ivec2 center, int meshDist, int physicsDist = -1) {
+#ifdef __EMSCRIPTEN__
+		for (int i = 0; i < maxUploads; i++)
+			ProcessWorkSingleThreaded();
+#endif
+
 		int uploaded = 0;
 		while (uploaded < maxUploads) {
 			std::shared_ptr<Chunk> chunk;
@@ -283,6 +292,44 @@ public:
 
 private:
 	void WorkerLoop();
+
+#ifdef __EMSCRIPTEN__
+	void ProcessWorkSingleThreaded() {
+		auto processOne = [this](std::deque<std::shared_ptr<Chunk>>& q, bool isMesh) -> bool {
+			for (auto it = q.begin(); it != q.end(); ++it) {
+				if ((*it)->paused) continue;
+				auto chunk = *it;
+				q.erase(it);
+
+				if (!isMesh) {
+					ChunkState expected = ChunkState::TerrainPending;
+					if (!chunk->state.compare_exchange_strong(expected, ChunkState::TerrainGenerating))
+						continue;
+					if (!chunk->Load())
+						chunk->Generate();
+					if (chunk->state != ChunkState::TerrainGenerating)
+						continue;
+					chunk->state = ChunkState::TerrainReady;
+					terrainReadyQueue_.push_back(chunk);
+				} else {
+					ChunkState expected = ChunkState::MeshPending;
+					if (!chunk->state.compare_exchange_strong(expected, ChunkState::MeshGenerating))
+						continue;
+					ChunkMesher::BuildMesh(chunk, this);
+					if (chunk->state != ChunkState::MeshGenerating)
+						continue;
+					chunk->state = ChunkState::MeshReady;
+					completedQueue.push(chunk);
+				}
+				return true;
+			}
+			return false;
+		};
+
+		if (!processOne(pendingQueue, false))
+			processOne(meshQueue, true);
+	}
+#endif
 
 	void UploadAndInsert(std::shared_ptr<Chunk> chunk, fe::PhysicsFactory* PhysicsFactory, fe::Scene* scene,
 	                     glm::ivec2 center, int physicsDist) {
