@@ -76,7 +76,9 @@ public:
 	std::shared_ptr<fe::Object> testCube;
 
 	std::unique_ptr<ChunkManager> chunkManager = std::make_unique<ChunkManager>(6);
+#ifdef FC_INCLUDE_VULKAN
 	std::unique_ptr<ChunkBatcher> chunkBatcher_;
+#ifdef FC_INCLUDE_VULKAN
 	bool useBatcherPath_ = false;
 
 	Foxcraft(fe::XRGameOptions options) : fe::EditableGame(options)
@@ -87,6 +89,7 @@ public:
 		if (!options.useVulkan)
 			LoadShaders("resources/shaders/VertexShader.glsl", "resources/shaders/FragmentShader.glsl");
 
+#ifdef FC_INCLUDE_VULKAN
 		if (options.useVulkan)
 		{
 			LoadArrayShaders("resources/shaders/VertexShader_vk_array.spv", "resources/shaders/FragmentShader_vk_array.spv");
@@ -98,6 +101,7 @@ public:
 			chunkManager->SetBatcher(chunkBatcher_.get());
 			chunkManager->SetUseBatcherPath(true);
 		}
+#endif
 
 		LoadModels();
 
@@ -107,11 +111,13 @@ public:
 	void OnDraw() override
 	{
 		fe::EditableGame::OnDraw();
+#ifdef FC_INCLUDE_VULKAN
 		if (chunkBatcher_ && useVulkan)
 		{
 			chunkBatcher_->Update(camera->GetPos());
 			chunkBatcher_->Draw();
 		}
+#ifdef FC_INCLUDE_VULKAN
 	}
 
 	void RebuildPlayerPhysicsBody()
