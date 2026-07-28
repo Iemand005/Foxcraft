@@ -79,7 +79,7 @@ public:
 	Foxcraft(fe::XRGameOptions options) : fe::EditableGame(options)
 	{
 
-		SetClearColor(0.1f, 0.3f, 1.0f, 0.0f);
+		SetClearColor(0.1f, 0.3f, 1.0f);
 
 #ifdef __EMSCRIPTEN__
 		if (!options.useVulkan)
@@ -284,6 +284,18 @@ public:
 				this->player->Move(fe::Direction::Up, camera.get());
 			if (window->IsKeyDown(SDL_SCANCODE_LSHIFT))
 				this->player->Move(fe::Direction::Down, camera.get());
+
+			if (!joysticks.empty())
+			{
+				glm::vec2 stick = joysticks[0].GetAxis();
+				const float deadzone = 0.15f;
+				if (glm::length(stick) > deadzone)
+				{
+					glm::vec3 horizontalFront = glm::normalize(glm::vec3(camera->front.x, 0.0f, camera->front.z));
+					glm::vec3 right = glm::normalize(glm::cross(horizontalFront, camera->up));
+					this->player->pendingMovement += horizontalFront * -stick.y + right * stick.x;
+				}
+			}
 		}
 
 		if (window->IsKeyDown(SDL_SCANCODE_ESCAPE))
@@ -296,6 +308,7 @@ public:
 		auto window = this->GetWindow<fe::SDLWindow>();
 		window->Show();
 		window->DisableVSync();
+		RefreshJoysticks();
 
 		player->state.position.z = 5;
 		player->state.position.y = 35;
