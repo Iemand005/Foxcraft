@@ -43,8 +43,6 @@ int main() {
 	try {
 		LogToFile("Creating Foxcraft game instance...");
 
-		// VulkanDevice::SetPreferIntegratedGPU(true);
-
 		fe::XRGameOptions options(1200, 800);
 		options.useVulkan = false;
 		Foxcraft game(options);

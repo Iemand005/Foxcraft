@@ -5,11 +5,11 @@ out vec4 FragColor;
 
 in vec3 Normal;
 in vec3 FragPos;
-in vec2 TexCoord;
+in vec3 TexCoord;
 
 uniform sampler2DArray ourTexture;
 
 void main()
 {
-    FragColor = texture(ourTexture, vec3(TexCoord, 0.0));
+    FragColor = texture(ourTexture, TexCoord);
 }
