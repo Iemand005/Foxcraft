@@ -28,8 +28,8 @@ void main()
     vec3 aNormal = decodeNormal(face);
 
     vec2 uv;
-    if (face < 2) uv = pos.zy;
-    else if (face < 4) uv = pos.xz;
+    if (face < 2u) uv = pos.zy;
+    else if (face < 4u) uv = pos.xz;
     else uv = pos.xy;
 
     vec4 worldPos = model * vec4(pos, 1.0);

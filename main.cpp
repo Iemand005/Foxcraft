@@ -45,11 +45,12 @@ int main() {
 
 		// VulkanDevice::SetPreferIntegratedGPU(true);
 
-		fe::XRGameOptions options(1000, 1000);
+		fe::XRGameOptions options(1200, 800);
 		options.useVulkan = false;
 		Foxcraft game(options);
 
 		LogToFile("Running game...");
+
 		game.Run();
 
 		LogToFile("Game exited normally");
