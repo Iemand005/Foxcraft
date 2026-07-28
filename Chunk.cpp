@@ -3,42 +3,8 @@
 #ifdef FC_INCLUDE_VULKAN
 #include "ChunkBatcher.hpp"
 #endif
-#include "PackedVertex.hpp"
 #include "Mesh.hpp"
 #include "physics/PhysicsFactory.hpp"
-
-static std::unique_ptr<fe::Mesh<fe::VertexArray>> ConvertFoxcraftPackedMesh(
-    const std::vector<FoxcraftPackedVertex>& vertices,
-    const std::vector<uint32_t>& indices)
-{
-    std::vector<fe::VertexArray> vaVerts;
-    vaVerts.reserve(vertices.size());
-    for (const auto& v : vertices) {
-        glm::vec3 pos(static_cast<float>(v.x), static_cast<float>(v.y), static_cast<float>(v.z));
-        uint8_t face = v.normalLayer & 0x7;
-        uint8_t layer = v.normalLayer >> 3;
-        glm::vec3 normal;
-        switch (face) {
-            case 0: normal = glm::vec3(1, 0, 0); break;
-            case 1: normal = glm::vec3(-1, 0, 0); break;
-            case 2: normal = glm::vec3(0, 1, 0); break;
-            case 3: normal = glm::vec3(0, -1, 0); break;
-            case 4: normal = glm::vec3(0, 0, 1); break;
-            case 5: normal = glm::vec3(0, 0, -1); break;
-            default: normal = glm::vec3(0, 1, 0);
-        }
-        glm::vec2 uv;
-        if (face < 2) uv = glm::vec2(static_cast<float>(v.z), static_cast<float>(v.y));
-        else if (face < 4) uv = glm::vec2(static_cast<float>(v.x), static_cast<float>(v.z));
-        else uv = glm::vec2(static_cast<float>(v.x), static_cast<float>(v.y));
-        vaVerts.emplace_back(pos.x, pos.y, pos.z, normal.x, normal.y, normal.z, uv.x, uv.y, static_cast<float>(layer));
-    }
-    auto out = std::make_unique<fe::Mesh<fe::VertexArray>>(
-        std::move(vaVerts),
-        std::vector<unsigned int>(indices.begin(), indices.end()));
-    out->loadTextureArray(ChunkMesher::BlockTextures(), fe::TextureScaling::Nearest);
-    return out;
-}
 
 void Chunk::UploadToScene(fe::PhysicsFactory* PhysicsFactory, fe::Scene* scene, bool createPhysics, bool addToScene) {
     if (state == ChunkState::ScheduledForRemoval || state == ChunkState::RemovalPending) {
@@ -63,7 +29,7 @@ void Chunk::UploadToScene(fe::PhysicsFactory* PhysicsFactory, fe::Scene* scene, 
 
     std::cout << "Vertices: " << mesh.vertices.size() << " Indices: " << mesh.indices.size() << std::endl;
 
-    std::unique_ptr<fe::Mesh<fe::VertexArray>> convertedMesh;
+    std::unique_ptr<fe::Mesh<fe::VertexArray>> gpuMesh;
 
     if (batcher_) {
 #ifdef FC_INCLUDE_VULKAN
@@ -71,13 +37,16 @@ void Chunk::UploadToScene(fe::PhysicsFactory* PhysicsFactory, fe::Scene* scene, 
         batcherSlot_ = handle.index;
 #endif
     } else if (!mesh.vertices.empty() && !mesh.indices.empty()) {
-        convertedMesh = ConvertFoxcraftPackedMesh(mesh.vertices, mesh.indices);
+        gpuMesh = std::make_unique<fe::Mesh<fe::VertexArray>>(
+            std::vector<fe::VertexArray>(mesh.vertices),
+            std::vector<unsigned int>(mesh.indices));
+        gpuMesh->loadTextureArray(ChunkMesher::BlockTextures(), fe::TextureScaling::Nearest);
     }
 
     if (isRemesh) {
-        if (convertedMesh) {
+        if (gpuMesh) {
             sceneObject->meshes.clear();
-            sceneObject->meshes.push_back(std::move(convertedMesh));
+            sceneObject->meshes.push_back(std::move(gpuMesh));
         }
         if (createPhysics)
             AddPhysics(PhysicsFactory);
@@ -89,8 +58,8 @@ void Chunk::UploadToScene(fe::PhysicsFactory* PhysicsFactory, fe::Scene* scene, 
         sceneObject->boundingCenterOffset = {WIDTH / 2.0f, HEIGHT / 2.0f, DEPTH / 2.0f};
         sceneObject->boundingRadius = glm::length(sceneObject->boundingCenterOffset);
 
-        if (convertedMesh)
-            sceneObject->meshes.push_back(std::move(convertedMesh));
+        if (gpuMesh)
+            sceneObject->meshes.push_back(std::move(gpuMesh));
 
         if (createPhysics)
             AddPhysics(PhysicsFactory);
@@ -115,7 +84,7 @@ void Chunk::AddPhysics(fe::PhysicsFactory* PhysicsFactory) {
 	std::vector<glm::vec3> colliderVertices;
 	colliderVertices.reserve(mesh.vertices.size());
 	for (const auto& v : mesh.vertices)
-		colliderVertices.push_back(glm::vec3(v.x, v.y, v.z));
+		colliderVertices.push_back(v.position);
 
 	std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
 

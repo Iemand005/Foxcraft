@@ -1,9 +1,9 @@
 #include "XRGame.hpp"
-#ifdef _WIN32
+#if defined(_WIN32)
 // #define _WINSOCKAPI_
 // #include <winsock2.h>
 // #include <windows.h>
-#else
+#elif !defined(__EMSCRIPTEN__)
 #include <X11/Xlib.h>
 #endif
 #include <string>
