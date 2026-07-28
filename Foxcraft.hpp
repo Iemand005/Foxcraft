@@ -301,14 +301,14 @@ public:
 				glm::vec2 rightStick(joysticks[0].GetAxis(2), joysticks[0].GetAxis(3));
 				if (glm::length(rightStick) > deadzone)
 				{
-					float sensitivity = 0.03f;
+					float sensitivity = 0.48f;
 					camera->yaw += rightStick.x * sensitivity;
 					camera->pitch -= rightStick.y * sensitivity;
 					camera->UpdateDirection();
 					camera->pitch = std::clamp(camera->pitch, -89.0f, 89.0f);
 				}
 
-				if (joysticks[0].GetButton(2))
+				if (joysticks[0].GetButton(0))
 					this->player->Move(fe::Direction::Up, camera.get());
 			}
 		}
