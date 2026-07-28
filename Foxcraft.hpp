@@ -79,7 +79,7 @@ public:
 	Foxcraft(fe::XRGameOptions options) : fe::EditableGame(options)
 	{
 
-		SetClearColor(0.1f, 0.3f, 1);
+		SetClearColor(0.1f, 0.3f, 1.0f, 0.0f);
 
 #ifdef __EMSCRIPTEN__
 		if (!options.useVulkan)
