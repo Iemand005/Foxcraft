@@ -227,6 +227,7 @@ public:
 				if (event.button.button == SDL_BUTTON_LEFT && !io.WantCaptureMouse)
 				{
 					window->StartMouseCapture();
+					RefreshJoysticks();
 				}
 				if (window->IsCapturingMouse())
 				{
@@ -264,6 +265,7 @@ public:
 				{
 					freeCamera = !freeCamera;
 					window->StartMouseCapture();
+					RefreshJoysticks();
 				}
 				break;
 			}
@@ -295,6 +297,19 @@ public:
 					glm::vec3 right = glm::normalize(glm::cross(horizontalFront, camera->up));
 					this->player->pendingMovement += horizontalFront * -stick.y + right * stick.x;
 				}
+
+				glm::vec2 rightStick(joysticks[0].GetAxis(2), joysticks[0].GetAxis(3));
+				if (glm::length(rightStick) > deadzone)
+				{
+					float sensitivity = 0.03f;
+					camera->yaw += rightStick.x * sensitivity;
+					camera->pitch -= rightStick.y * sensitivity;
+					camera->UpdateDirection();
+					camera->pitch = std::clamp(camera->pitch, -89.0f, 89.0f);
+				}
+
+				if (joysticks[0].GetButton(2))
+					this->player->Move(fe::Direction::Up, camera.get());
 			}
 		}
 
