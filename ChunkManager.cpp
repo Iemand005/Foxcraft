@@ -72,3 +72,41 @@ void ChunkManager::WorkerLoop() {
 		}
 	}
 }
+
+#ifdef __EMSCRIPTEN__
+void ChunkManager::ProcessWorkSingleThreaded() {
+	auto processOne = [this](std::deque<std::shared_ptr<Chunk>>& q, bool isMesh) -> bool {
+		for (auto it = q.begin(); it != q.end(); ++it) {
+			if ((*it)->paused) continue;
+			auto chunk = *it;
+			q.erase(it);
+
+			if (!isMesh) {
+				ChunkState expected = ChunkState::TerrainPending;
+				if (!chunk->state.compare_exchange_strong(expected, ChunkState::TerrainGenerating))
+					continue;
+				if (!chunk->Load())
+					chunk->Generate();
+				if (chunk->state != ChunkState::TerrainGenerating)
+					continue;
+				chunk->state = ChunkState::TerrainReady;
+				terrainReadyQueue_.push_back(chunk);
+			} else {
+				ChunkState expected = ChunkState::MeshPending;
+				if (!chunk->state.compare_exchange_strong(expected, ChunkState::MeshGenerating))
+					continue;
+				ChunkMesher::BuildMesh(chunk, this);
+				if (chunk->state != ChunkState::MeshGenerating)
+					continue;
+				chunk->state = ChunkState::MeshReady;
+				completedQueue.push(chunk);
+			}
+			return true;
+		}
+		return false;
+	};
+
+	if (!processOne(pendingQueue, false))
+		processOne(meshQueue, true);
+}
+#endif
