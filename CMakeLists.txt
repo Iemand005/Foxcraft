@@ -211,13 +211,19 @@ if(EMSCRIPTEN)
 	)
 
 	# Publish the runnable Foxcraft build to the FenixWeb Pages docs folder.
-	# Runs only on Release builds (custom Foxcraft.html is never overwritten).
-	set(FOXCRAFT_PAGES_DIR ${CMAKE_SOURCE_DIR}/../../FenixWeb/docs/FoxCraft)
+	# Release emscripten builds only; the custom Foxcraft.html is never touched.
+	if(CMAKE_BUILD_TYPE STREQUAL "Release")
+		set(FOXCRAFT_PAGES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../FenixWeb/docs/FoxCraft)
+		set(FOXCRAFT_OUT_DIR $<TARGET_FILE_DIR:Foxcraft>)
 
-	add_custom_command(TARGET Foxcraft POST_BUILD
-		COMMAND $<$<CONFIG:Release>:${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:Foxcraft>/Foxcraft.wasm ${FOXCRAFT_PAGES_DIR}/Foxcraft.wasm>
-		COMMAND $<$<CONFIG:Release>:${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:Foxcraft>/Foxcraft.js ${FOXCRAFT_PAGES_DIR}/Foxcraft.js>
-		COMMAND $<$<CONFIG:Release>:${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:Foxcraft>/Foxcraft.data ${FOXCRAFT_PAGES_DIR}/Foxcraft.data>
-		COMMENT "Publishing Foxcraft build artifacts to ${FOXCRAFT_PAGES_DIR} (Release only)"
-	)
+		add_custom_command(TARGET Foxcraft POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy
+				${FOXCRAFT_OUT_DIR}/Foxcraft.wasm ${FOXCRAFT_PAGES_DIR}/Foxcraft.wasm
+			COMMAND ${CMAKE_COMMAND} -E copy
+				${FOXCRAFT_OUT_DIR}/Foxcraft.js ${FOXCRAFT_PAGES_DIR}/Foxcraft.js
+			COMMAND ${CMAKE_COMMAND} -E copy
+				${FOXCRAFT_OUT_DIR}/Foxcraft.data ${FOXCRAFT_PAGES_DIR}/Foxcraft.data
+			COMMENT "Publishing Foxcraft build artifacts to ${FOXCRAFT_PAGES_DIR} (Release only)"
+		)
+	endif()
 endif()
