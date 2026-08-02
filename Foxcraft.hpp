@@ -148,11 +148,14 @@ public:
 		this->scene->AddObject(player);
 		this->player->state.position = glm::vec3(0.0f, 35.0f, 5.0f);
 		this->player->gravityEnabled = true;
-		this->player->jumpSpeed = 6.4f;
+		this->player->jumpSpeed = 7.0f;
 		this->player->moveSpeed = walkSpeed;
 		RebuildPlayerPhysicsBody();
 		if (this->player->physicsObject)
+		{
+			this->player->physicsObject->SetFriction(0.35f);
 			this->player->physicsObject->SetPosition(this->player->state.position);
+		}
 
 		UpdateLoadedChunks();
 	}
