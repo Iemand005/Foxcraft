@@ -30,6 +30,9 @@ public:
 
 	bool useRectangularPlayerHitbox = true;
 
+	float walkSpeed = 5.0f;
+	float sprintSpeed = 9.0f;
+
 	std::vector<glm::vec3> path;
 	int windowStart = 0;
 	float pathIndex = 1.0f;
@@ -103,9 +106,9 @@ public:
 		}
 #endif
 
-		LoadModels();
+		GetPhysicsFactory()->SetGravity(glm::vec3(0.0f, -20.0f, 0.0f));
 
-		GetPhysicsFactory()->EnableGravity();
+		LoadModels();
 	}
 
 	void OnDraw() override
@@ -145,6 +148,8 @@ public:
 		this->scene->AddObject(player);
 		this->player->state.position = glm::vec3(0.0f, 35.0f, 5.0f);
 		this->player->gravityEnabled = true;
+		this->player->jumpSpeed = 6.4f;
+		this->player->moveSpeed = walkSpeed;
 		RebuildPlayerPhysicsBody();
 		if (this->player->physicsObject)
 			this->player->physicsObject->SetPosition(this->player->state.position);
@@ -273,6 +278,9 @@ public:
 
 		if (!freeCamera)
 		{
+			bool sprinting = window->IsKeyDown(SDL_SCANCODE_LCTRL) || window->IsKeyDown(SDL_SCANCODE_RCTRL);
+			this->player->moveSpeed = sprinting ? sprintSpeed : walkSpeed;
+
 			if (window->IsKeyDown(SDL_SCANCODE_W))
 				this->player->Move(fe::Direction::Forwards, camera.get());
 			if (window->IsKeyDown(SDL_SCANCODE_A))
