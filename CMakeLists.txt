@@ -209,4 +209,15 @@ if(EMSCRIPTEN)
 	setup_emscripten_target(Foxcraft
 		RESOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/resources
 	)
+
+	# Publish the runnable Foxcraft build to the FenixWeb Pages docs folder.
+	# Runs only on Release builds (custom Foxcraft.html is never overwritten).
+	set(FOXCRAFT_PAGES_DIR ${CMAKE_SOURCE_DIR}/../../FenixWeb/docs/FoxCraft)
+
+	add_custom_command(TARGET Foxcraft POST_BUILD
+		COMMAND $<$<CONFIG:Release>:${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:Foxcraft>/Foxcraft.wasm ${FOXCRAFT_PAGES_DIR}/Foxcraft.wasm>
+		COMMAND $<$<CONFIG:Release>:${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:Foxcraft>/Foxcraft.js ${FOXCRAFT_PAGES_DIR}/Foxcraft.js>
+		COMMAND $<$<CONFIG:Release>:${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:Foxcraft>/Foxcraft.data ${FOXCRAFT_PAGES_DIR}/Foxcraft.data>
+		COMMENT "Publishing Foxcraft build artifacts to ${FOXCRAFT_PAGES_DIR} (Release only)"
+	)
 endif()
