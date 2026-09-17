@@ -13,9 +13,8 @@ endif()
 # Ensure the Windows SDK exposes modern API structs like AudioClientProperties to SDL3
 add_compile_definitions(AUDIO_CLIENT_PROPERTIES_ENUM_DEFINED) 
 
-# Alternatively, let SDL build with Windows 10 SDK definitions (it uses dynamic loading for Win7 fallback)
-set(SDL_AUDIO_WASAPI OFF CACHE BOOL "" FORCE)
-set(SDL_WASAPI OFF CACHE BOOL "" FORCE)
+# NOTE: SDL's WASAPI driver stays enabled on desktop. Forcing it off here (as a
+# cached FORCE value) leaked into every sibling project and killed audio capture.
 
 # set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 # set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
