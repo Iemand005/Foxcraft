@@ -23,6 +23,7 @@
 #ifdef __ANDROID__
 #include <SDL3/SDL_system.h>
 #include <SDL3/SDL_filesystem.h>
+#include <SDL3/SDL_log.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #endif
@@ -81,9 +82,14 @@ static void AndroidCopyFile(AAssetManager* assets, const std::string& destRoot, 
 static void AndroidExtractDir(AAssetManager* assets, const std::string& destRoot, const std::string& relDir)
 {
 	AAssetDir* dir = AAssetManager_openDir(assets, relDir.c_str());
-	if (!dir) return;
+	if (!dir) {
+		SDL_Log("AndroidExtractDir: openDir failed for '%s'", relDir.empty() ? "(root)" : relDir.c_str());
+		return;
+	}
+	int count = 0;
 	const char* name;
 	while ((name = AAssetDir_getNextFileName(dir)) != NULL) {
+		++count;
 		std::string rel = relDir.empty() ? std::string(name) : relDir + "/" + std::string(name);
 
 		// Open as a file; if we get NULL it's a directory, so recurse into it.
@@ -96,33 +102,38 @@ static void AndroidExtractDir(AAssetManager* assets, const std::string& destRoot
 		}
 	}
 	AAssetDir_close(dir);
+	SDL_Log("AndroidExtractDir: '%s' -> %d entries", relDir.empty() ? "(root)" : relDir.c_str(), count);
 }
 
 static bool AndroidExtractAssets()
 {
+	SDL_Log("AndroidExtractAssets: begin");
 	JNIEnv* env = (JNIEnv*)SDL_GetAndroidJNIEnv();
-	if (!env) return false;
+	if (!env) { SDL_Log("AndroidExtractAssets: no JNI env"); return false; }
 	jobject activity = (jobject)SDL_GetAndroidActivity();
-	if (!activity) return false;
+	if (!activity) { SDL_Log("AndroidExtractAssets: no activity"); return false; }
 	jclass activityClass = env->GetObjectClass(activity);
 	jmethodID getAssets = env->GetMethodID(activityClass, "getAssets", "()Landroid/content/res/AssetManager;");
-	if (!getAssets) return false;
+	if (!getAssets) { SDL_Log("AndroidExtractAssets: no getAssets method"); return false; }
 	jobject assetManager = env->CallObjectMethod(activity, getAssets);
-	if (!assetManager) return false;
+	if (!assetManager) { SDL_Log("AndroidExtractAssets: no assetManager"); return false; }
 
 	AAssetManager* mgr = AAssetManager_fromJava(env, assetManager);
 	env->DeleteLocalRef(assetManager);
-	if (!mgr) return false;
+	if (!mgr) { SDL_Log("AndroidExtractAssets: no native manager"); return false; }
 
 	const char* internalPath = SDL_GetAndroidInternalStoragePath();
-	if (!internalPath) return false;
+	if (!internalPath) { SDL_Log("AndroidExtractAssets: no internal path"); return false; }
 	std::string destRoot(internalPath);
+	SDL_Log("AndroidExtractAssets: internal path = %s", internalPath);
 
 	AndroidExtractDir(mgr, destRoot, "resources");
 
 	if (chdir(destRoot.c_str()) != 0) {
+		SDL_Log("AndroidExtractAssets: chdir failed (%s)", strerror(errno));
 		return false;
 	}
+	SDL_Log("AndroidExtractAssets: done, cwd=%s", destRoot.c_str());
 	return true;
 }
 #endif
