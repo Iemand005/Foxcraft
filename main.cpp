@@ -79,30 +79,38 @@ static void AndroidCopyFile(AAssetManager* assets, const std::string& destRoot, 
 	AAsset_close(asset);
 }
 
-static void AndroidExtractDir(AAssetManager* assets, const std::string& destRoot, const std::string& relDir)
+static void AndroidExtractDir(JNIEnv* env, jobject assetManager, jmethodID listMethod, AAssetManager* assets, const std::string& destRoot, const std::string& relDir)
 {
-	AAssetDir* dir = AAssetManager_openDir(assets, relDir.c_str());
-	if (!dir) {
-		__android_log_print(ANDROID_LOG_INFO, "FOXCRAFT", "openDir failed for '%s'", relDir.empty() ? "(root)" : relDir.c_str());
+	jstring jrel = env->NewStringUTF(relDir.c_str());
+	jobjectArray arr = (jobjectArray)env->CallObjectMethod(assetManager, listMethod, jrel);
+	env->DeleteLocalRef(jrel);
+	if (!arr) {
+		__android_log_print(ANDROID_LOG_INFO, "FOXCRAFT", "list failed for '%s'", relDir.empty() ? "(root)" : relDir.c_str());
 		return;
 	}
-	int count = 0;
-	const char* name;
-	while ((name = AAssetDir_getNextFileName(dir)) != NULL) {
-		++count;
-		std::string rel = relDir.empty() ? std::string(name) : relDir + "/" + std::string(name);
+	jsize n = env->GetArrayLength(arr);
+	int files = 0;
+	for (jsize i = 0; i < n; ++i) {
+		jstring jname = (jstring)env->GetObjectArrayElement(arr, i);
+		const char* name = env->GetStringUTFChars(jname, NULL);
+		if (name) {
+			std::string rel = relDir.empty() ? std::string(name) : relDir + "/" + std::string(name);
 
-		// Open as a file; if we get NULL it's a directory, so recurse into it.
-		AAsset* probe = AAssetManager_open(assets, rel.c_str(), AASSET_MODE_UNKNOWN);
-		if (probe) {
-			AAsset_close(probe);
-			AndroidCopyFile(assets, destRoot, rel);
-		} else {
-			AndroidExtractDir(assets, destRoot, rel);
+			// Open as a file; if we get NULL it's a directory, so recurse into it.
+			AAsset* probe = AAssetManager_open(assets, rel.c_str(), AASSET_MODE_UNKNOWN);
+			if (probe) {
+				AAsset_close(probe);
+				AndroidCopyFile(assets, destRoot, rel);
+				++files;
+			} else {
+				AndroidExtractDir(env, assetManager, listMethod, assets, destRoot, rel);
+			}
+			env->ReleaseStringUTFChars(jname, name);
 		}
+		env->DeleteLocalRef(jname);
 	}
-	AAssetDir_close(dir);
-	__android_log_print(ANDROID_LOG_INFO, "FOXCRAFT", "'%s' -> %d entries", relDir.empty() ? "(root)" : relDir.c_str(), count);
+	env->DeleteLocalRef(arr);
+	__android_log_print(ANDROID_LOG_INFO, "FOXCRAFT", "'%s' -> %d entries, %d files", relDir.empty() ? "(root)" : relDir.c_str(), n, files);
 }
 
 static bool AndroidExtractAssets()
@@ -118,6 +126,10 @@ static bool AndroidExtractAssets()
 	jobject assetManager = env->CallObjectMethod(activity, getAssets);
 	if (!assetManager) { __android_log_print(ANDROID_LOG_INFO, "FOXCRAFT", "no assetManager"); return false; }
 
+	jclass assetManagerClass = env->GetObjectClass(assetManager);
+	jmethodID list = env->GetMethodID(assetManagerClass, "list", "(Ljava/lang/String;)[Ljava/lang/String;");
+	if (!list) { __android_log_print(ANDROID_LOG_INFO, "FOXCRAFT", "no list method"); return false; }
+
 	AAssetManager* mgr = AAssetManager_fromJava(env, assetManager);
 	env->DeleteLocalRef(assetManager);
 	if (!mgr) { __android_log_print(ANDROID_LOG_INFO, "FOXCRAFT", "no native manager"); return false; }
@@ -127,7 +139,7 @@ static bool AndroidExtractAssets()
 	std::string destRoot(internalPath);
 	__android_log_print(ANDROID_LOG_INFO, "FOXCRAFT", "internal path = %s", internalPath);
 
-	AndroidExtractDir(mgr, destRoot, "resources");
+	AndroidExtractDir(env, assetManager, list, mgr, destRoot, "resources");
 
 	if (chdir(destRoot.c_str()) != 0) {
 		__android_log_print(ANDROID_LOG_INFO, "FOXCRAFT", "chdir failed (%s)", strerror(errno));
