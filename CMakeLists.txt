@@ -90,6 +90,7 @@ if(ANDROID)
 	# library named "main" (libmain.so) that must export SDL_main.
 	add_library(main SHARED ${FOXCRAFT_SOURCES})
 	set(FOXCRAFT_TARGET main)
+	target_link_libraries(${FOXCRAFT_TARGET} PRIVATE android log)
 else()
 	add_executable(Foxcraft
 		WIN32
