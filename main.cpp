@@ -100,7 +100,7 @@ static void AndroidExtractDir(AAssetManager* assets, const std::string& destRoot
 
 static bool AndroidExtractAssets()
 {
-	JNIEnv* env = SDL_GetAndroidJNIEnv();
+	JNIEnv* env = (JNIEnv*)SDL_GetAndroidJNIEnv();
 	if (!env) return false;
 	jobject activity = (jobject)SDL_GetAndroidActivity();
 	if (!activity) return false;
