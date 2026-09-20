@@ -84,7 +84,7 @@ public:
 
 		SetClearColor(0.1f, 0.3f, 1.0f);
 
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) || defined(__ANDROID__)
 		if (!options.useVulkan)
 			LoadShaders("resources/shaders/VertexShader_foxcraft_es.glsl", "resources/shaders/FragmentShader_foxcraft_es.glsl");
 #else

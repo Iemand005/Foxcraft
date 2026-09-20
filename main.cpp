@@ -3,13 +3,19 @@
 // #define _WINSOCKAPI_
 // #include <winsock2.h>
 // #include <windows.h>
-#elif !defined(__EMSCRIPTEN__)
+#elif !defined(__EMSCRIPTEN__) && !defined(__ANDROID__)
 #include <X11/Xlib.h>
 #endif
 #include <string>
 #include <cstring>
 #include <iostream>
 #include "Foxcraft.hpp"
+
+#ifdef __ANDROID__
+// On Android SDL3 renames main -> SDL_main (SDL_MAIN_NEEDED) and the Java glue
+// loads libmain.so and calls the exported SDL_main symbol.
+#include <SDL3/SDL_main.h>
+#endif
 
 #include <fstream>
 #include <sstream>
@@ -36,7 +42,7 @@ void LogToFile(const std::string& message)
 	} catch (...) { }
 }
 
-int main() {
+int main(int argc, char* argv[]) {
 
 	std::cout << "Hiii" << std::endl;
 
@@ -64,7 +70,7 @@ int main() {
 #ifdef _WIN32
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR lpCmdLine, int) {
-	return main();
+	return main(0, nullptr);
 }
 
 #endif

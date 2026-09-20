@@ -78,15 +78,27 @@ file(GLOB_RECURSE IMGUI_SOURCE_FILES
 	${IMGUI_DIR}/imgui_draw.cpp
 )
 
-add_executable(Foxcraft
-	WIN32
+set(FOXCRAFT_SOURCES
 	${IMGUI_SOURCE_FILES}
 	main.cpp
 	ChunkManager.cpp
 	Chunk.cpp
 )
 
-target_include_directories(Foxcraft PRIVATE
+if(ANDROID)
+	# Android: the SDL3 Java glue (SDLActivity / nativeRunMain) loads a shared
+	# library named "main" (libmain.so) that must export SDL_main.
+	add_library(main SHARED ${FOXCRAFT_SOURCES})
+	set(FOXCRAFT_TARGET main)
+else()
+	add_executable(Foxcraft
+		WIN32
+		${FOXCRAFT_SOURCES}
+	)
+	set(FOXCRAFT_TARGET Foxcraft)
+endif()
+
+target_include_directories(${FOXCRAFT_TARGET} PRIVATE
 	include
 	${ENGINE_DIR}
 	${ENGINE_DIR}/include
@@ -97,44 +109,44 @@ target_include_directories(Foxcraft PRIVATE
 	${ENGINE_DIR}/src/Engine
 )
 
-target_link_libraries(Foxcraft PRIVATE
+target_link_libraries(${FOXCRAFT_TARGET} PRIVATE
 	Engine
 )
 
-target_precompile_headers(Foxcraft PRIVATE
+target_precompile_headers(${FOXCRAFT_TARGET} PRIVATE
 	"$<$<COMPILE_LANGUAGE:CXX>:${ENGINE_DIR}/src/Engine/pch.hpp>"
 )
 
-if(NOT WIN32 AND NOT EMSCRIPTEN)
+if(NOT WIN32 AND NOT EMSCRIPTEN AND NOT ANDROID)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(PIPEWIRE REQUIRED libpipewire-0.3)
-target_include_directories(Foxcraft PRIVATE ${PIPEWIRE_INCLUDE_DIRS})
-target_link_libraries(Foxcraft PRIVATE ${PIPEWIRE_LIBRARIES})
-target_compile_options(Foxcraft PRIVATE ${PIPEWIRE_CFLAGS_OTHER})
+target_include_directories(${FOXCRAFT_TARGET} PRIVATE ${PIPEWIRE_INCLUDE_DIRS})
+target_link_libraries(${FOXCRAFT_TARGET} PRIVATE ${PIPEWIRE_LIBRARIES})
+target_compile_options(${FOXCRAFT_TARGET} PRIVATE ${PIPEWIRE_CFLAGS_OTHER})
 
 find_package(X11 REQUIRED)
 
-target_link_libraries(Foxcraft PRIVATE X11::X11)
+target_link_libraries(${FOXCRAFT_TARGET} PRIVATE X11::X11)
 endif()
 
-set_property(TARGET Foxcraft PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+set_property(TARGET ${FOXCRAFT_TARGET} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
-add_custom_command(TARGET Foxcraft POST_BUILD
+add_custom_command(TARGET ${FOXCRAFT_TARGET} POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
 		${CMAKE_CURRENT_SOURCE_DIR}/resources
-		$<TARGET_FILE_DIR:Foxcraft>/resources
+		$<TARGET_FILE_DIR:${FOXCRAFT_TARGET}>/resources
 	COMMENT "Copying Foxcraft resources to build directory..."
 )
 
 if(MSVC)
-	target_compile_options(Foxcraft PRIVATE $<$<CONFIG:Debug>:/Zi>)
+	target_compile_options(${FOXCRAFT_TARGET} PRIVATE $<$<CONFIG:Debug>:/Zi>)
 
-	target_link_options(Foxcraft PRIVATE $<$<CONFIG:Debug>:/DEBUG>)
+	target_link_options(${FOXCRAFT_TARGET} PRIVATE $<$<CONFIG:Debug>:/DEBUG>)
 
 	add_compile_options(/RTC1)
 endif()
 
-set_property(TARGET Foxcraft PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+set_property(TARGET ${FOXCRAFT_TARGET} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 
 # ---------------------------------------------------------------
@@ -156,7 +168,7 @@ find_program(GLSLC glslc HINTS
 	$ENV{VULKAN_SDK}/bin
 )
 
-if(GLSLC)
+if(GLSLC AND NOT ANDROID)
 	message(STATUS "Found glslc: ${GLSLC}")
 
 	set(SHADER_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/resources/shaders)
@@ -193,7 +205,9 @@ if(GLSLC)
 	endforeach()
 
 	add_custom_target(SPIRV_Shaders_Foxcraft ALL DEPENDS ${SPIRV_OUTPUTS})
-	add_dependencies(Foxcraft SPIRV_Shaders_Foxcraft)
+	add_dependencies(${FOXCRAFT_TARGET} SPIRV_Shaders_Foxcraft)
+elseif(ANDROID)
+	message(STATUS "Android build — skipping SPIR-V shader compilation (GLES path)")
 else()
 	message(WARNING "glslc not found — shader compilation skipped. Set VULKAN_SDK environment variable.")
 endif()
