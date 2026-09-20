@@ -20,6 +20,12 @@
 #include <fstream>
 #include <sstream>
 #include <chrono>
+#ifdef __ANDROID__
+#include <SDL3/SDL_system.h>
+#include <SDL3/SDL_filesystem.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#endif
 #ifdef FC_INCLUDE_VULKAN
 #include <Graphics/VulkanDevice.hpp>
 #endif
