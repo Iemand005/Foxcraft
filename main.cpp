@@ -42,6 +42,9 @@ int main(int argc, char* argv[]) {
 
 		fe::XRGameOptions options(1200, 800);
 		options.useVulkan = false;
+#ifdef __ANDROID__
+		options.launchVR = true;
+#endif
 		Foxcraft game(options);
 
 		fe::LogToFile("Running game...");
