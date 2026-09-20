@@ -131,7 +131,6 @@ static bool AndroidExtractAssets()
 	if (!list) { __android_log_print(ANDROID_LOG_INFO, "FOXCRAFT", "no list method"); return false; }
 
 	AAssetManager* mgr = AAssetManager_fromJava(env, assetManager);
-	env->DeleteLocalRef(assetManager);
 	if (!mgr) { __android_log_print(ANDROID_LOG_INFO, "FOXCRAFT", "no native manager"); return false; }
 
 	const char* internalPath = SDL_GetAndroidInternalStoragePath();
