@@ -67,6 +67,9 @@ public:
 	float walkSpeed = 5.0f;
 	float sprintSpeed = 9.0f;
 
+	BlockType placedBlockType = BlockType::Cobblestone;
+	bool smoothLighting = false;
+
 	std::vector<glm::vec3> path;
 	int windowStart = 0;
 	float pathIndex = 1.0f;
@@ -248,7 +251,7 @@ public:
 			if (remove)
 				chunkManager->SetBlock(selectedBlockPos, BlockType::Air);
 			else
-				chunkManager->SetBlock(previousBlockPos, BlockType::Cobblestone);
+				chunkManager->SetBlock(previousBlockPos, placedBlockType);
 		}
 	}
 
@@ -316,6 +319,12 @@ public:
 				else if (event.key.key == SDLK_F5)
 				{
 					CycleDebugView();
+				}
+				else if (event.key.key == SDLK_G)
+				{
+					placedBlockType = (placedBlockType == BlockType::Glowstone)
+						? BlockType::Cobblestone
+						: BlockType::Glowstone;
 				}
 				break;
 			}
@@ -476,6 +485,15 @@ public:
 			ImGui::DragInt("Render Distance", &CHUNK_LOAD_DISTANCE);
 			ImGui::DragInt("Physics Distance", &physicsDistance, 0.5f, 0, 20);
 			ImGui::SliderInt("Terrain Pre-gen", &chunkOutgenDistance, 1, 10);
+
+			if (ImGui::Checkbox("Smooth Lighting", &smoothLighting))
+			{
+				chunkManager->SetSmoothLighting(smoothLighting);
+				chunkManager->RemeshAll();
+			}
+			ImGui::SameLine();
+			ImGui::TextDisabled("(G places %s)",
+				placedBlockType == BlockType::Glowstone ? "Glowstone" : "Cobblestone");
 		}
 		ImGui::End();
 

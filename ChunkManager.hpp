@@ -247,6 +247,7 @@ public:
 		int localZ = position.z - coord.y * Chunk::DEPTH;
 		chunk->SetBlock(localX, position.y, localZ, type);
 
+		chunk->ComputeBlockLight();
 		chunk->Save();
 		RequestChunkRemesh(chunk);
 
@@ -258,6 +259,26 @@ public:
 				if (auto n = GetChunk(coord + offsets[i]))
 					RequestChunkRemesh(n);
 
+	}
+
+	void RemeshAll() {
+		const glm::ivec2 offsets[4] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+		std::vector<std::shared_ptr<Chunk>> toRemesh;
+		{
+			std::lock_guard<std::mutex> lock(chunksMutex);
+			for (auto& [coord, chunk] : chunks) {
+				if (chunk->state != ChunkState::InScene)
+					continue;
+				toRemesh.push_back(chunk);
+				for (auto& o : offsets) {
+					auto it = chunks.find(coord + o);
+					if (it != chunks.end() && it->second->state == ChunkState::InScene)
+						toRemesh.push_back(it->second);
+				}
+			}
+		}
+		for (auto& c : toRemesh)
+			RequestChunkRemesh(c);
 	}
 
 	bool IsBlockSolid(const glm::ivec3& position) {
@@ -377,8 +398,11 @@ private:
 	fe::Scene* scene;
 	ChunkBatcher* batcher_ = nullptr;
 	bool useBatcherPath_ = false;
+	bool smoothLighting_ = false;
 
 public:
 	void SetBatcher(ChunkBatcher* b) { batcher_ = b; }
 	void SetUseBatcherPath(bool v) { useBatcherPath_ = v; }
+	void SetSmoothLighting(bool v) { smoothLighting_ = v; }
+	bool IsSmoothLighting() const { return smoothLighting_; }
 };

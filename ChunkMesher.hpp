@@ -1,13 +1,16 @@
 #pragma once
 
+#include <algorithm>
+#include <deque>
+
 #include <Mesh.hpp>
 #include "Chunk.hpp"
 #include "ChunkManager.hpp"
 
 class ChunkMesher {
 public:
-	static void BuildMesh(std::shared_ptr<Chunk> chunk, ChunkManager *manager, bool cullBottomFaces = true) {
-		std::vector<fe::VertexArray> allVertices;
+	static void BuildMesh(std::shared_ptr<Chunk> chunk, ChunkManager *manager, bool cullBottomFaces = true, bool smoothLighting = false) {
+		std::vector<FoxcraftVertex> allVertices;
 		std::vector<unsigned int> allIndices;
 		allVertices.reserve(4096);
 		allIndices.reserve(6144);
@@ -27,6 +30,99 @@ public:
 			return neighbor->GetBlock(localX, pos.y, localZ);
 		};
 
+		// --- Block-light for this mesh -------------------------------------
+		// Start from this chunk's stored light map, pull light that would flow
+		// in across the four side faces from neighbouring chunks, then flood
+		// fill. We only ever write to the local "meshLight" scratch copy, so
+		// neighbouring worker threads never see in-progress writes.
+		const int strideX = Chunk::HEIGHT * Chunk::DEPTH;
+		const int strideY = Chunk::DEPTH;
+
+		auto lightIndex = [&](int x, int y, int z) { return x * strideX + y * strideY + z; };
+		auto lightInBounds = [&](int x, int y, int z) {
+			return x >= 0 && x < Chunk::WIDTH && y >= 0 && y < Chunk::HEIGHT && z >= 0 && z < Chunk::DEPTH;
+		};
+
+		auto getBlockLightAt = [&](const glm::ivec3& pos) -> uint8_t {
+			if (lightInBounds(pos.x, pos.y, pos.z))
+				return chunk->GetBlockLight(pos.x, pos.y, pos.z);
+			if (pos.y < 0 || pos.y >= Chunk::HEIGHT)
+				return 0;
+			int worldX = chunk->coord.x * Chunk::WIDTH + pos.x;
+			int worldZ = chunk->coord.y * Chunk::DEPTH + pos.z;
+			auto neighborCoord = manager->WorldToChunkCoord(worldX, worldZ);
+			auto neighbor = manager->GetChunk(neighborCoord);
+			if (!neighbor) return 0;
+			int localX = worldX - neighborCoord.x * Chunk::WIDTH;
+			int localZ = worldZ - neighborCoord.y * Chunk::DEPTH;
+			return neighbor->GetBlockLight(localX, pos.y, localZ);
+		};
+
+		std::vector<uint8_t> meshLight = chunk->GetLightMap();
+		std::deque<int> lightQueue;
+
+		auto seedBorder = [&](const glm::ivec3& outside, const glm::ivec3& inside) {
+			uint8_t flow = getBlockLightAt(outside);
+			if (flow <= 1) return;
+			uint8_t value = static_cast<uint8_t>(flow - 1);
+			int ni = lightIndex(inside.x, inside.y, inside.z);
+			if (meshLight[ni] < value) {
+				meshLight[ni] = value;
+				lightQueue.push_back(ni);
+			}
+		};
+
+		for (int y = 0; y < Chunk::HEIGHT; y++) {
+			for (int z = 0; z < Chunk::DEPTH; z++) {
+				seedBorder({ -1, y, z }, { 0, y, z });
+				seedBorder({ Chunk::WIDTH, y, z }, { Chunk::WIDTH - 1, y, z });
+			}
+			for (int x = 0; x < Chunk::WIDTH; x++) {
+				seedBorder({ x, y, -1 }, { x, y, 0 });
+				seedBorder({ x, y, Chunk::DEPTH }, { x, y, Chunk::DEPTH - 1 });
+			}
+		}
+
+		const int dirs[6][3] = {
+			{ 1, 0, 0}, {-1, 0, 0},
+			{ 0, 1, 0}, { 0,-1, 0},
+			{ 0, 0, 1}, { 0, 0,-1},
+		};
+
+		while (!lightQueue.empty()) {
+			int i = lightQueue.front();
+			lightQueue.pop_front();
+
+			uint8_t level = meshLight[i];
+			if (level <= 1) continue;
+
+			int x = i / strideX;
+			int y = (i % strideX) / strideY;
+			int z = i % strideY;
+
+			uint8_t next = static_cast<uint8_t>(level - 1);
+			for (int d = 0; d < 6; d++) {
+				int nx = x + dirs[d][0];
+				int ny = y + dirs[d][1];
+				int nz = z + dirs[d][2];
+				if (!lightInBounds(nx, ny, nz)) continue;
+				if (!Chunk::IsLightTransparent(getBlockAt({ nx, ny, nz }))) continue;
+				int ni = lightIndex(nx, ny, nz);
+				if (meshLight[ni] < next) {
+					meshLight[ni] = next;
+					lightQueue.push_back(ni);
+				}
+			}
+		}
+
+		// Refined light value for a cell: scratch inside the chunk, neighbour's
+		// stored (already finalised) map outside the chunk.
+		auto getMeshLightAt = [&](const glm::ivec3& pos) -> uint8_t {
+			if (lightInBounds(pos.x, pos.y, pos.z))
+				return meshLight[lightIndex(pos.x, pos.y, pos.z)];
+			return getBlockLightAt(pos);
+		};
+
 		const int dims[3] = {Chunk::WIDTH, Chunk::HEIGHT, Chunk::DEPTH};
 
 		for (int axis = 0; axis < 3; axis++) {
@@ -40,11 +136,33 @@ public:
 			glm::ivec3 q(0);
 			q[axis] = 1;
 
+			auto cornerLight = [&](const glm::ivec3& P, int outwardSign) -> float {
+				// Cell immediately in front of the face's plane corner (always
+				// air, since the face is only emitted against an air block),
+				// plus the three slab cells around it. Each sample is clamped
+				// to never be darker than that guaranteed-air cell so solid
+				// diagonal neighbours don't create dark specks.
+				glm::ivec3 n(0), eu(0), ev(0);
+				n[axis] = outwardSign;
+				eu[u] = 1;
+				ev[v] = 1;
+
+				glm::ivec3 base = (outwardSign == -1) ? P + n : P;
+				uint8_t b = getMeshLightAt(base);
+				int sum = b;
+				sum += std::max(getMeshLightAt(base + eu), b);
+				sum += std::max(getMeshLightAt(base + ev), b);
+				sum += std::max(getMeshLightAt(base + eu + ev), b);
+				return static_cast<float>(sum) / 4.0f / static_cast<float>(Chunk::MAX_LIGHT);
+			};
+
 			for (bool backFace : {false, true}) {
 				fe::PlaneDirection direction;
 				if (axis == 0)      direction = backFace ? fe::PlaneDirection::Left   : fe::PlaneDirection::Right;
 				else if (axis == 1) direction = backFace ? fe::PlaneDirection::Bottom : fe::PlaneDirection::Top;
 				else                direction = backFace ? fe::PlaneDirection::Front  : fe::PlaneDirection::Back;
+
+				int outwardSign = backFace ? -1 : 1;
 
 				std::vector<BlockType> mask(uDim * vDim);
 
@@ -102,6 +220,19 @@ public:
 
 							float layer = static_cast<float>(GetBlockTextureLayer(type, direction));
 
+							glm::ivec3 o(0), duI(0), dvI(0);
+							o[axis] = slice + (backFace ? 0 : 1);
+							o[u] = ui;
+							o[v] = vi;
+							duI[u] = h;
+							dvI[v] = w;
+
+							glm::ivec3 corners[4] = { o, o + duI, o + duI + dvI, o + dvI };
+							float quadLight = 0.0f;
+							for (int c = 0; c < 4; c++)
+								quadLight += cornerLight(corners[c], outwardSign);
+							quadLight /= 4.0f;
+
 							unsigned int vo = static_cast<unsigned int>(allVertices.size());
 
 							auto addV = [&](const glm::vec3& p) {
@@ -109,7 +240,12 @@ public:
 								if (axis == 0) uv = glm::vec2(p.z, p.y);
 								else if (axis == 1) uv = glm::vec2(p.x, p.z);
 								else uv = glm::vec2(p.x, p.y);
-								allVertices.emplace_back(p.x, p.y, p.z, normal.x, normal.y, normal.z, uv.x, uv.y, layer);
+
+								float light = smoothLighting
+									? cornerLight(glm::ivec3(glm::round(p)), outwardSign)
+									: quadLight;
+
+								allVertices.emplace_back(p.x, p.y, p.z, normal.x, normal.y, normal.z, uv.x, uv.y, layer, light);
 							};
 
 							if (axis == 2) {
@@ -156,7 +292,7 @@ public:
 			}
 		}
 
-		chunk->mesh = fe::Mesh<fe::VertexArray>(std::move(allVertices), std::move(allIndices));
+		chunk->mesh = fe::Mesh<FoxcraftVertex>(std::move(allVertices), std::move(allIndices));
 	}
 
 	static int GetBlockTextureLayer(BlockType type, fe::PlaneDirection direction) {
@@ -175,23 +311,26 @@ public:
 				return 3;
 			case BlockType::Cobblestone:
 				return 5;
+			case BlockType::Glowstone:
+				return 6;
 			default:
 				return 0;
 		}
 		return 0;
 	}
 
-	static const std::vector<std::string>& BlockTextures() {
-		static const std::vector<std::string> blocks = {
-			"resources/textures/dirt.png",
-			"resources/textures/grass_carried.png",
-			"resources/textures/grass_side_carried.png",
-			"resources/textures/bedrock.png",
-			"resources/textures/stone.png",
-			"resources/textures/cobblestone.png",
-			"resources/textures/cake_bottom.png",
-			"resources/textures/cake_top.png"
-		};
-		return blocks;
-	}
+static const std::vector<std::string>& BlockTextures() {
+			static const std::vector<std::string> blocks = {
+				"resources/textures/dirt.png",
+				"resources/textures/grass_carried.png",
+				"resources/textures/grass_side_carried.png",
+				"resources/textures/bedrock.png",
+				"resources/textures/stone.png",
+				"resources/textures/cobblestone.png",
+				"resources/textures/glowstone.png",
+				"resources/textures/cake_bottom.png",
+				"resources/textures/cake_top.png"
+			};
+			return blocks;
+		}
 };

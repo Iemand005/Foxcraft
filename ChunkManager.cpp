@@ -50,6 +50,8 @@ void ChunkManager::WorkerLoop() {
 			if (chunk->state != ChunkState::TerrainGenerating)
 				continue;
 
+			chunk->ComputeBlockLight();
+
 			chunk->state = ChunkState::TerrainReady;
 			{
 				std::lock_guard<std::mutex> lock(terrainReadyMutex_);
@@ -60,7 +62,7 @@ void ChunkManager::WorkerLoop() {
 			if (!chunk->state.compare_exchange_strong(expected, ChunkState::MeshGenerating))
 				continue;
 
-			ChunkMesher::BuildMesh(chunk, this);
+			ChunkMesher::BuildMesh(chunk, this, true, smoothLighting_);
 
 			if (chunk->state != ChunkState::MeshGenerating)
 				continue;
@@ -89,13 +91,14 @@ void ChunkManager::ProcessWorkSingleThreaded() {
 					chunk->Generate();
 				if (chunk->state != ChunkState::TerrainGenerating)
 					continue;
+				chunk->ComputeBlockLight();
 				chunk->state = ChunkState::TerrainReady;
 				terrainReadyQueue_.push_back(chunk);
 			} else {
 				ChunkState expected = ChunkState::MeshPending;
 				if (!chunk->state.compare_exchange_strong(expected, ChunkState::MeshGenerating))
 					continue;
-				ChunkMesher::BuildMesh(chunk, this);
+				ChunkMesher::BuildMesh(chunk, this, true, smoothLighting_);
 				if (chunk->state != ChunkState::MeshGenerating)
 					continue;
 				chunk->state = ChunkState::MeshReady;

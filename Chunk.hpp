@@ -21,6 +21,7 @@
 class ChunkBatcher;
 
 #include "PackedVertex.hpp"
+#include "FoxcraftVertex.hpp"
 
 enum class BlockType : uint8_t {
 	Air = 0,
@@ -29,6 +30,7 @@ enum class BlockType : uint8_t {
 	Grass = 3,
 	Cobblestone = 4,
 	Bedrock = 5,
+	Glowstone = 6,
 };
 
 enum class ChunkState {
@@ -48,6 +50,7 @@ enum class ChunkState {
 class Chunk {
 	private:
 	std::vector<BlockType> blocks;
+	std::vector<uint8_t> blockLight;
 	
 	std::shared_ptr<fe::Object> sceneObject;
 
@@ -59,12 +62,13 @@ public:
 
 	void SetBatcher(ChunkBatcher* b) { batcher_ = b; }
 	static constexpr int WIDTH = 32, HEIGHT = 128, DEPTH = 32;
+	static constexpr int MAX_LIGHT = 15;
 	glm::ivec2 coord;
 	std::atomic<ChunkState> state;
 	std::atomic<bool> paused{false};
-	fe::Mesh<fe::VertexArray> mesh;
+	fe::Mesh<FoxcraftVertex> mesh;
 
-	Chunk() : blocks(WIDTH * HEIGHT * DEPTH, BlockType::Air) {}
+	Chunk() : blocks(WIDTH * HEIGHT * DEPTH, BlockType::Air), blockLight(WIDTH * HEIGHT * DEPTH, 0) {}
 	Chunk(glm::ivec2 position) : Chunk() {
 		coord = position;
 		name = "Chunk_" + std::to_string(coord.x) + "_" + std::to_string(coord.y);;
@@ -88,6 +92,33 @@ public:
 	BlockType GetBlock(const glm::ivec3& pos) const {
 		return GetBlock(pos.x, pos.y, pos.z);
 	}
+
+	uint8_t GetBlockLight(int x, int y, int z) const {
+		if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT || z < 0 || z >= DEPTH)
+			return 0;
+		return blockLight[x * HEIGHT * DEPTH + y * DEPTH + z];
+	}
+
+	uint8_t GetBlockLight(const glm::ivec3& pos) const {
+		return GetBlockLight(pos.x, pos.y, pos.z);
+	}
+
+	const std::vector<uint8_t>& GetLightMap() const { return blockLight; }
+
+	static int GetLightEmission(BlockType type) {
+		switch (type) {
+			case BlockType::Glowstone:
+				return MAX_LIGHT;
+			default:
+				return 0;
+		}
+	}
+
+	static bool IsLightTransparent(BlockType type) {
+		return type == BlockType::Air;
+	}
+
+	void ComputeBlockLight();
 
 	glm::vec2 GetPosition() {
 		return coord;
