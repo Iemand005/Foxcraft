@@ -10,17 +10,18 @@ in float BlockLight;
 
 uniform sampler2DArray ourTexture;
 
-const float glowStrength = 1.6;
+// The base keeps the flat look but is dimmed slightly so the emissive glow
+// reads as a light filling in; the smoothstep removes the hard lit/unlit
+// step, giving a soft falloff from the glowing block.
+const float baseBrightness = 0.75;
+const float glowStrength = 1.0;
 
 void main()
 {
     vec4 texColor = texture(ourTexture, TexCoord);
 
-    // Keep the basic flat (unlit) look, then add the emissive block-light
-    // glow on top. Light values are baked per vertex, so smooth lighting
-    // interpolates across faces while flat lighting is constant per face.
-    float glow = max(0.0, BlockLight - 0.5) * glowStrength;
-    float brightness = 1.0 + glow;
+    float glow = smoothstep(0.2, 1.0, BlockLight) * glowStrength;
+    float brightness = baseBrightness + glow;
 
     FragColor = vec4(texColor.rgb * brightness, texColor.a);
 }

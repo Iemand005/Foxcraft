@@ -137,23 +137,16 @@ public:
 			q[axis] = 1;
 
 			auto cornerLight = [&](const glm::ivec3& P, int outwardSign) -> float {
-				// Cell immediately in front of the face's plane corner (always
-				// air, since the face is only emitted against an air block),
-				// plus the three slab cells around it. Each sample is clamped
-				// to never be darker than that guaranteed-air cell so solid
-				// diagonal neighbours don't create dark specks.
-				glm::ivec3 n(0), eu(0), ev(0);
+				// The cell immediately in front of the face's plane corner (it
+				// is always air, since the face is only emitted against an air
+				// block). Sampling just this corner-aligned cell keeps the
+				// result symmetric — no poking into cells beyond the face's own
+				// corners — so shared edges between faces always agree.
+				glm::ivec3 n(0);
 				n[axis] = outwardSign;
-				eu[u] = 1;
-				ev[v] = 1;
 
 				glm::ivec3 base = (outwardSign == -1) ? P + n : P;
-				uint8_t b = getMeshLightAt(base);
-				int sum = b;
-				sum += std::max(getMeshLightAt(base + eu), b);
-				sum += std::max(getMeshLightAt(base + ev), b);
-				sum += std::max(getMeshLightAt(base + eu + ev), b);
-				return static_cast<float>(sum) / 4.0f / static_cast<float>(Chunk::MAX_LIGHT);
+				return static_cast<float>(getMeshLightAt(base)) / static_cast<float>(Chunk::MAX_LIGHT);
 			};
 
 			for (bool backFace : {false, true}) {
