@@ -141,17 +141,19 @@ void Chunk::AddPhysics(fe::PhysicsFactory* PhysicsFactory) {
 	if (sceneObject->physicsObject)
 		return;
 
-	// If the CPU mesh is still resident (first upload / remesh), refresh the
-	// cached collider. Otherwise reuse the cache so physics objects can be
-	// recreated after the mesh data was freed.
-	if (colliderVertices_.empty() || colliderIndices_.empty()) {
-		if (mesh.vertices.empty() || mesh.indices.empty())
-			return;
+	// Refresh the cached collider whenever the CPU mesh is resident (first
+	// upload or remesh). After the mesh is freed we fall back to the cache, so
+	// physics objects can be recreated when the player re-enters range.
+	if (!mesh.vertices.empty() && !mesh.indices.empty()) {
+		colliderVertices_.clear();
 		colliderVertices_.reserve(mesh.vertices.size());
 		for (const auto& v : mesh.vertices)
 			colliderVertices_.push_back(v.position);
 		colliderIndices_.assign(mesh.indices.begin(), mesh.indices.end());
 	}
+
+	if (colliderVertices_.empty() || colliderIndices_.empty())
+		return;
 
 	auto physobj = PhysicsFactory->CreateObject(colliderVertices_, colliderIndices_);
 	if (physobj)
