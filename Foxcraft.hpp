@@ -198,19 +198,22 @@ public:
 
 	void RebuildPlayerPhysicsBody()
 	{
-		fe::PhysicsFactory *PhysicsFactory = GetPhysicsFactory();
-		if (!player || !PhysicsFactory)
+		fe::PhysicsFactory *physicsFactory = GetPhysicsFactory();
+		if (!player || !physicsFactory)
 			return;
 
 		const glm::vec3 size = useRectangularPlayerHitbox ? glm::vec3(0.4f, 1.5f, 0.4f) : glm::vec3(1.0f, 1.0f, 1.0f);
-		auto newPhysics = PhysicsFactory->CreateObject(size, true);
-		if (!newPhysics)
+		float radius = std::min(size.x, size.z) * 0.5f;
+
+		auto physicsCharacter = physicsFactory->CreateCharacter(size.y, radius, this->player->state.position);
+		if (!physicsCharacter)
 			return;
 
-		this->player->SetPhysicsObject(std::move(newPhysics));
-		if (this->player->physicsObject)
+		this->player->SetPhysicsCharacter(std::move(physicsCharacter));
+		if (this->player->physicsCharacter)
 		{
-			this->player->physicsObject->SetPosition(this->player->state.position);
+			this->player->physicsCharacter->SetPosition(this->player->state.position);
+			this->player->physicsCharacter->SetJumpSpeed(this->player->jumpSpeed);
 		}
 	}
 
@@ -224,12 +227,6 @@ public:
 		this->player->jumpSpeed = 7.0f;
 		this->player->moveSpeed = walkSpeed;
 		RebuildPlayerPhysicsBody();
-		if (this->player->physicsObject)
-		{
-			this->player->physicsObject->SetFriction(0.35f);
-			this->player->physicsObject->SetPosition(this->player->state.position);
-		}
-
 		UpdateLoadedChunks();
 	}
 
@@ -401,9 +398,12 @@ public:
 				glm::vec2 rightStick = joy.IsGamepad() ? joy.GetRightStick() : glm::vec2(joy.GetAxis(2), joy.GetAxis(3));
 				if (glm::length(rightStick) > deadzone)
 				{
-					float sensitivity = 0.24f;
-					camera->yaw += rightStick.x * sensitivity;
-					camera->pitch -= rightStick.y * sensitivity;
+					// Per-second sensitivity so turning feels the same regardless
+					// of frame rate (e.g. vsync on/off or an open menu).
+					const float sensitivity = 14.4f;
+					float dt = static_cast<float>(std::max(fpsCounter.deltaTime, 0.0001));
+					camera->yaw += rightStick.x * sensitivity * dt;
+					camera->pitch -= rightStick.y * sensitivity * dt;
 					camera->UpdateDirection();
 					camera->pitch = std::clamp(camera->pitch, -89.0f, 89.0f);
 				}
@@ -420,29 +420,30 @@ public:
 
 				if (joy.IsGamepad())
 				{
-					// LB/RB (shoulder buttons) break/place a block, mirroring
-					// the mouse buttons, raised once per press.
-					bool lbDown = joy.GetGamepadButton(SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
-					if (lbDown && !gamepadLeftShoulderWasDown_)
-						PlaceBlock(true);
-					gamepadLeftShoulderWasDown_ = lbDown;
-
-					bool rbDown = joy.GetGamepadButton(SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
-					if (rbDown && !gamepadRightShoulderWasDown_)
-						PlaceBlock(false);
-					gamepadRightShoulderWasDown_ = rbDown;
-
-					// LT/RT (shoulder triggers): switch the hotbar selection
-					// (previous/next block), like the number keys in the game.
+					// The two ANALOG trigger buttons (L2/R2 on the DualShock)
+					// break/place a block, mirroring the mouse buttons, raised
+					// once per press.
 					bool ltDown = joy.GetGamepadAxis(SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > 0.5f;
 					if (ltDown && !gamepadLtWasDown_)
-						SelectPreviousBlock();
+						PlaceBlock(true);
 					gamepadLtWasDown_ = ltDown;
 
 					bool rtDown = joy.GetGamepadAxis(SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > 0.5f;
 					if (rtDown && !gamepadRtWasDown_)
-						SelectNextBlock();
+						PlaceBlock(false);
 					gamepadRtWasDown_ = rtDown;
+
+					// The two PUSH shoulder buttons (L1/R1) switch the hotbar
+					// selection (previous/next block), like the number keys.
+					bool lbDown = joy.GetGamepadButton(SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
+					if (lbDown && !gamepadLeftShoulderWasDown_)
+						SelectPreviousBlock();
+					gamepadLeftShoulderWasDown_ = lbDown;
+
+					bool rbDown = joy.GetGamepadButton(SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
+					if (rbDown && !gamepadRightShoulderWasDown_)
+						SelectNextBlock();
+					gamepadRightShoulderWasDown_ = rbDown;
 
 					// D-pad arrows cycle the debug rendering mode.
 					bool dpadDown = joy.GetGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_UP)
@@ -493,9 +494,9 @@ public:
 
 		player->state.position.z = 5;
 		player->state.position.y = 35;
-		if (player->physicsObject)
+		if (player->physicsCharacter)
 		{
-			player->physicsObject->SetPosition(player->state.position);
+			player->physicsCharacter->SetPosition(player->state.position);
 		}
 		camera->farDist = farPlane;
 		camera->SetAspect(camera->aspect);
@@ -516,11 +517,6 @@ public:
 
 		chunkManager->Update(1, GetPhysicsFactory(), this->scene.get(),
 								playerCenter_, CHUNK_LOAD_DISTANCE, physicsDistance);
-
-		if (!freeCamera)
-		{
-			SyncCameraToPlayer();
-		}
 
 		if (freeCamera)
 		{
@@ -548,19 +544,25 @@ public:
 
 		Update();
 
-		if (player->physicsObject)
+		if (player->physicsCharacter)
 		{
-			glm::vec3 ppos = player->physicsObject->GetPosition();
+			glm::vec3 ppos = player->physicsCharacter->GetPosition();
 			if (ppos.y < -2.0f)
 			{
 				int surface = chunkManager->GetSurfaceHeight(static_cast<int>(ppos.x), static_cast<int>(ppos.z));
 				if (surface > 0)
 				{
 					ppos.y = static_cast<float>(surface) + 1.0f;
-					player->physicsObject->SetPosition(ppos);
-					player->physicsObject->SetLinearVelocity(glm::vec3(0.0f));
+					player->physicsCharacter->SetPosition(ppos);
+					player->physicsCharacter->SetLinearVelocity(glm::vec3(0.0f));
+					player->state.position = ppos;
 				}
 			}
+		}
+
+		if (!freeCamera)
+		{
+			SyncCameraToPlayer();
 		}
 
 		Redraw();
