@@ -20,7 +20,6 @@
 
 class ChunkBatcher;
 
-#include "PackedVertex.hpp"
 #include "FoxcraftVertex.hpp"
 
 enum class BlockType : uint8_t {
