@@ -122,8 +122,8 @@ public:
         slot.indexOffset = iOff;
         slot.indexBytes = alignedIB;
         slot.indexCount = static_cast<uint32_t>(indices.size());
-        slot.center = worldOffset + glm::vec3(16.0f, 64.0f, 16.0f);
-        slot.radius = glm::length(glm::vec3(16.0f, 64.0f, 16.0f));
+        slot.boundsMin = worldOffset;
+        slot.boundsMax = worldOffset + glm::vec3(32.0f, 128.0f, 32.0f);
         slot.used = true;
 
         for (uint32_t i = 0; i < slots_.size(); i++) {
@@ -178,7 +178,14 @@ public:
             if (enableFrustumCulling_) {
                 bool inside = true;
                 for (auto& p : planes) {
-                    if (glm::dot(p.n, slot.center) + p.d < -slot.radius) {
+                    // Cube/AABB-vs-plane test (positive vertex): the chunk is
+                    // outside the plane only when its corner furthest along the
+                    // plane normal is outside it.
+                    glm::vec3 pVertex(
+                        p.n.x > 0.0f ? slot.boundsMax.x : slot.boundsMin.x,
+                        p.n.y > 0.0f ? slot.boundsMax.y : slot.boundsMin.y,
+                        p.n.z > 0.0f ? slot.boundsMax.z : slot.boundsMin.z);
+                    if (glm::dot(p.n, pVertex) + p.d < 0.0f) {
                         inside = false;
                         break;
                     }

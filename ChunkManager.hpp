@@ -176,8 +176,11 @@ public:
 		{
 			std::lock_guard<std::mutex> lock(chunksMutex);
 			for (auto& [coord, chunk] : chunks) {
+				// Chunks behind the camera are only deprioritised, never
+				// blocked: neighbors of the player's chunk must still generate
+				// so the chunk the player is standing in can be meshed.
 				glm::vec2 offset = coord - center;
-				chunk->paused = glm::dot(offset, forward) < 0.0f;
+				chunk->paused = false;
 			}
 		}
 		queueCV.notify_all();
@@ -186,19 +189,33 @@ public:
 	void LoadChunksInsideRange(glm::ivec2 center, int loadDistance, glm::vec2 forward = glm::vec2(0.0f)) {
 		int distSq = loadDistance * loadDistance;
 		bool useDirection = glm::length(forward) > 0.001f;
-		for (int d = 0; d <= loadDistance; d++) {
-			for (int dz = -d; dz <= d; dz++) {
-				for (int dx = -d; dx <= d; dx++) {
-					if (std::max(std::abs(dx), std::abs(dz)) != d) continue;
-					if (dx * dx + dz * dz > distSq) continue;
-					if (useDirection) {
-						if (glm::dot(glm::vec2(dx, dz), forward) < 0.0f)
-							continue;
-					}
-					RequestChunk(center + glm::ivec2{dx, dz});
-				}
+
+		std::vector<glm::ivec2> coords;
+		for (int dz = -loadDistance; dz <= loadDistance; dz++)
+			for (int dx = -loadDistance; dx <= loadDistance; dx++) {
+				if (dx * dx + dz * dz > distSq) continue;
+				coords.push_back({dx, dz});
 			}
-		}
+
+		// Priority: the chunk directly under the player first, then radiates
+		// outward ring by ring. Chunks in front of the camera are requested
+		// before chunks beside/behind it, but nothing is skipped.
+		std::sort(coords.begin(), coords.end(), [&](const glm::ivec2& a, const glm::ivec2& b) {
+			int da = a.x * a.x + a.y * a.y;
+			int db = b.x * b.x + b.y * b.y;
+			if (da != db) return da < db;
+			if (useDirection) {
+				float dotA = glm::dot(glm::vec2(a), forward);
+				float dotB = glm::dot(glm::vec2(b), forward);
+				if ((dotA >= 0.0f) != (dotB >= 0.0f))
+					return dotA >= 0.0f;
+				return dotA > dotB;
+			}
+			return da < db;
+		});
+
+		for (auto& o : coords)
+			RequestChunk(center + o);
 	}
 
 	void UnloadChunksOutsideRange(glm::ivec2 center, int loadDistance) {
