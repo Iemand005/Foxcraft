@@ -311,14 +311,25 @@ public:
 		// TEMP DEBUG: dump the brightest vertex and where it lives.
 		float maxLight = 0.0f;
 		glm::vec3 maxPos(0), maxN(0);
+		int litCount = 0;
+		glm::vec3 bmin(1e9f), bmax(-1e9f);
 		for (const auto& v : chunk->mesh.vertices) {
 			if (v.blockLight > maxLight) { maxLight = v.blockLight; maxPos = v.position; maxN = v.normal; }
+			if (v.blockLight > 0.2f) {
+				litCount++;
+				bmin = glm::min(bmin, v.position);
+				bmax = glm::max(bmax, v.position);
+			}
 		}
 		if (maxLight > 0.0f)
 			fe::LogToFile("MESH chunk(" + std::to_string(chunk->coord.x) + "," + std::to_string(chunk->coord.y) +
 				") maxLight=" + std::to_string(maxLight) +
 				" at local(" + std::to_string((int)maxPos.x) + "," + std::to_string((int)maxPos.y) + "," + std::to_string((int)maxPos.z) +
-				") normal(" + std::to_string((int)maxN.x) + "," + std::to_string((int)maxN.y) + "," + std::to_string((int)maxN.z) + ")");
+				") normal(" + std::to_string((int)maxN.x) + "," + std::to_string((int)maxN.y) + "," + std::to_string((int)maxN.z) +
+				") litVerts=" + std::to_string(litCount) +
+				" bbox x[" + std::to_string((int)bmin.x) + ".." + std::to_string((int)bmax.x) +
+				"] y[" + std::to_string((int)bmin.y) + ".." + std::to_string((int)bmax.y) +
+				"] z[" + std::to_string((int)bmin.z) + ".." + std::to_string((int)bmax.z) + "]");
 	}
 
 	static int GetBlockTextureLayer(BlockType type, fe::PlaneDirection direction) {
