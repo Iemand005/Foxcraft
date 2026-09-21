@@ -226,5 +226,17 @@ public:
 	void AddPhysics(fe::PhysicsFactory* PhysicsFactory);
 	void RemovePhysics();
 
+	// Copies the current CPU mesh into the collider cache so physics objects
+	// can be created later even after the mesh data has been freed.
+	void RefreshColliderCache() {
+		if (mesh.vertices.empty() || mesh.indices.empty())
+			return;
+		colliderVertices_.clear();
+		colliderVertices_.reserve(mesh.vertices.size());
+		for (const auto& v : mesh.vertices)
+			colliderVertices_.push_back(v.position);
+		colliderIndices_.assign(mesh.indices.begin(), mesh.indices.end());
+	}
+
 	std::shared_ptr<fe::Object> GetSceneObject() { return this->sceneObject; }
 };

@@ -91,6 +91,10 @@ void Chunk::UploadToScene(fe::PhysicsFactory* PhysicsFactory, fe::Scene* scene, 
 
     std::cout << "Vertices: " << mesh.vertices.size() << " Indices: " << mesh.indices.size() << std::endl;
 
+    // Keep the collider data around after the CPU mesh is freed, so physics
+    // can be recreated if it is removed/re-added later.
+    RefreshColliderCache();
+
     std::unique_ptr<fe::Mesh<FoxcraftVertex>> gpuMesh;
 
     if (batcher_) {
@@ -141,17 +145,9 @@ void Chunk::AddPhysics(fe::PhysicsFactory* PhysicsFactory) {
 	if (sceneObject->physicsObject)
 		return;
 
-	// Refresh the cached collider whenever the CPU mesh is resident (first
-	// upload or remesh). After the mesh is freed we fall back to the cache, so
-	// physics objects can be recreated when the player re-enters range.
-	if (!mesh.vertices.empty() && !mesh.indices.empty()) {
-		colliderVertices_.clear();
-		colliderVertices_.reserve(mesh.vertices.size());
-		for (const auto& v : mesh.vertices)
-			colliderVertices_.push_back(v.position);
-		colliderIndices_.assign(mesh.indices.begin(), mesh.indices.end());
-	}
-
+	// Uses the cached collider data, which is populated at upload time and
+	// survives the CPU mesh being freed, so physics can be recreated when the
+	// player re-enters range.
 	if (colliderVertices_.empty() || colliderIndices_.empty())
 		return;
 
