@@ -25,7 +25,9 @@
 #endif
 
 #include "ChunkManager.hpp"
+#ifdef FC_INCLUDE_VULKAN
 #include "ChunkMesher.hpp"
+#endif FC_INCLUDE_VULKAN
 
 class Foxcraft : public fe::EditableGame
 {
