@@ -179,7 +179,6 @@ public:
 				// Chunks behind the camera are only deprioritised, never
 				// blocked: neighbors of the player's chunk must still generate
 				// so the chunk the player is standing in can be meshed.
-				glm::vec2 offset = coord - center;
 				chunk->paused = false;
 			}
 		}
