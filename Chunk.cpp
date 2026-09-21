@@ -138,19 +138,22 @@ void Chunk::UploadToScene(fe::PhysicsFactory* PhysicsFactory, fe::Scene* scene, 
 void Chunk::AddPhysics(fe::PhysicsFactory* PhysicsFactory) {
 	if (!sceneObject)
 		return;
-	if (mesh.vertices.empty() || mesh.indices.empty())
-		return;
 	if (sceneObject->physicsObject)
 		return;
 
-	std::vector<glm::vec3> colliderVertices;
-	colliderVertices.reserve(mesh.vertices.size());
-	for (const auto& v : mesh.vertices)
-		colliderVertices.push_back(v.position);
+	// If the CPU mesh is still resident (first upload / remesh), refresh the
+	// cached collider. Otherwise reuse the cache so physics objects can be
+	// recreated after the mesh data was freed.
+	if (colliderVertices_.empty() || colliderIndices_.empty()) {
+		if (mesh.vertices.empty() || mesh.indices.empty())
+			return;
+		colliderVertices_.reserve(mesh.vertices.size());
+		for (const auto& v : mesh.vertices)
+			colliderVertices_.push_back(v.position);
+		colliderIndices_.assign(mesh.indices.begin(), mesh.indices.end());
+	}
 
-	std::vector<uint32_t> colliderIndices(mesh.indices.begin(), mesh.indices.end());
-
-	auto physobj = PhysicsFactory->CreateObject(colliderVertices, colliderIndices);
+	auto physobj = PhysicsFactory->CreateObject(colliderVertices_, colliderIndices_);
 	if (physobj)
 		physobj->SetPosition(GetWorldPosition());
 	sceneObject->SetPhysicsObject(std::move(physobj));

@@ -50,8 +50,13 @@ class Chunk {
 	private:
 	std::vector<BlockType> blocks;
 	std::vector<uint8_t> blockLight;
-	
+
 	std::shared_ptr<fe::Object> sceneObject;
+
+	// Physics collider data, kept after the CPU mesh is freed so that
+	// physics objects can be recreated when the player re-enters range.
+	std::vector<glm::vec3> colliderVertices_;
+	std::vector<uint32_t> colliderIndices_;
 
 	std::string name;
 	
