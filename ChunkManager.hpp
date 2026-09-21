@@ -398,7 +398,7 @@ private:
 	fe::Scene* scene;
 	ChunkBatcher* batcher_ = nullptr;
 	bool useBatcherPath_ = false;
-	bool smoothLighting_ = false;
+	bool smoothLighting_ = true;
 
 public:
 	void SetBatcher(ChunkBatcher* b) { batcher_ = b; }
