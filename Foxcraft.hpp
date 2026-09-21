@@ -20,6 +20,10 @@
 #include <audio/AudioVisualiser.hpp>
 #include <ScreenSaverMode.hpp>
 
+#ifndef EXCLUDE_JOLT
+#include <physics/BasicDebugRenderer.hpp>
+#endif
+
 #include "ChunkManager.hpp"
 #include "ChunkMesher.hpp"
 
@@ -27,6 +31,36 @@ class Foxcraft : public fe::EditableGame
 {
 public:
 	bool showDebugUI = false;
+
+	enum class DebugViewMode { Off, Physics, Full };
+	DebugViewMode debugViewMode = DebugViewMode::Off;
+	bool gamepadStartWasDown_ = false;
+
+	// Cycles through debug views: off -> physics debug -> physics debug + UI.
+	void CycleDebugView()
+	{
+		switch (debugViewMode)
+		{
+			case DebugViewMode::Off:
+				debugViewMode = DebugViewMode::Physics;
+#ifndef EXCLUDE_JOLT
+				BasicDebugRenderer::DebugRenderingEnabled() = true;
+#endif
+				break;
+			case DebugViewMode::Physics:
+				debugViewMode = DebugViewMode::Full;
+				showDebugUI = true;
+				break;
+			case DebugViewMode::Full:
+			default:
+				debugViewMode = DebugViewMode::Off;
+#ifndef EXCLUDE_JOLT
+				BasicDebugRenderer::DebugRenderingEnabled() = false;
+#endif
+				showDebugUI = false;
+				break;
+		}
+	}
 
 	bool useRectangularPlayerHitbox = true;
 
@@ -275,6 +309,14 @@ public:
 					window->StartMouseCapture();
 					RefreshJoysticks();
 				}
+				else if (event.key.key == SDLK_F4)
+				{
+					ToggleXR();
+				}
+				else if (event.key.key == SDLK_F5)
+				{
+					CycleDebugView();
+				}
 				break;
 			}
 		}
@@ -300,7 +342,11 @@ public:
 
 			if (!joysticks.empty())
 			{
-				glm::vec2 stick = joysticks[0].GetAxis();
+				auto& joy = joysticks[0];
+
+				// Prefer the SDL gamepad mapping so stick/button layout stays
+				// consistent no matter how the raw joystick axes are arranged.
+				glm::vec2 stick = joy.IsGamepad() ? joy.GetLeftStick() : joy.GetAxis();
 				const float deadzone = 0.15f;
 				if (glm::length(stick) > deadzone)
 				{
@@ -309,7 +355,7 @@ public:
 					this->player->pendingMovement += horizontalFront * -stick.y + right * stick.x;
 				}
 
-				glm::vec2 rightStick(joysticks[0].GetAxis(2), joysticks[0].GetAxis(3));
+				glm::vec2 rightStick = joy.IsGamepad() ? joy.GetRightStick() : glm::vec2(joy.GetAxis(2), joy.GetAxis(3));
 				if (glm::length(rightStick) > deadzone)
 				{
 					float sensitivity = 0.48f;
@@ -319,8 +365,15 @@ public:
 					camera->pitch = std::clamp(camera->pitch, -89.0f, 89.0f);
 				}
 
-				if (joysticks[0].GetButton(0))
+				if (joy.IsGamepad() ? joy.GetGamepadButton(SDL_GAMEPAD_BUTTON_SOUTH) : joy.GetButton(0))
 					this->player->Move(fe::Direction::Up, camera.get());
+
+				// Gamepad (Start) button toggles the XR session. Useful on
+				// Android where there is no keyboard, and on desktop too.
+				bool startDown = joy.IsGamepad() && joy.GetGamepadButton(SDL_GAMEPAD_BUTTON_START);
+				if (startDown && !gamepadStartWasDown_)
+					xrToggleRequested = true;
+				gamepadStartWasDown_ = startDown;
 			}
 		}
 
