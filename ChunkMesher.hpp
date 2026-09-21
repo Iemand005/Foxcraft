@@ -6,7 +6,6 @@
 #include <Mesh.hpp>
 #include "Chunk.hpp"
 #include "ChunkManager.hpp"
-#include "Log.hpp"
 
 class ChunkMesher {
 public:
