@@ -158,9 +158,11 @@ public:
 				int outwardSign = backFace ? -1 : 1;
 
 				std::vector<BlockType> mask(uDim * vDim);
+				std::vector<float> maskLight(uDim * vDim, 0.0f);
 
 				for (int slice = 0; slice < axisDim; slice++) {
 					std::fill(mask.begin(), mask.end(), BlockType::Air);
+					std::fill(maskLight.begin(), maskLight.end(), 0.0f);
 
 					for (int ui = 0; ui < uDim; ui++) {
 						for (int vi = 0; vi < vDim; vi++) {
@@ -179,6 +181,19 @@ public:
 							if (getBlockAt(neighborPos) != BlockType::Air) continue;
 
 							mask[ui * vDim + vi] = block;
+
+							glm::ivec3 oc(0);
+							oc[axis] = slice + (backFace ? 0 : 1);
+							oc[u] = ui;
+							oc[v] = vi;
+							float cellLight = 0.0f;
+							for (int c = 0; c < 4; c++) {
+								glm::ivec3 cu = oc;
+								if (c & 1) cu[u] += 1;
+								if (c & 2) cu[v] += 1;
+								cellLight += cornerLight(cu, outwardSign);
+							}
+							maskLight[ui * vDim + vi] = cellLight / 4.0f;
 						}
 					}
 
@@ -199,80 +214,89 @@ public:
 								if (!done) h++;
 							}
 
-							glm::vec3 origin(0.0f);
-							origin[axis] = static_cast<float>(slice) + (backFace ? 0.0f : 1.0f);
-							origin[u] = static_cast<float>(ui);
-							origin[v] = static_cast<float>(vi);
-
-							glm::vec3 du(0.0f), dv(0.0f);
-							du[u] = static_cast<float>(h);
-							dv[v] = static_cast<float>(w);
-
-							glm::vec3 normal(0.0f);
-							normal[axis] = backFace ? -1.0f : 1.0f;
-
-							float layer = static_cast<float>(GetBlockTextureLayer(type, direction));
-
-							glm::ivec3 o(0), duI(0), dvI(0);
-							o[axis] = slice + (backFace ? 0 : 1);
-							o[u] = ui;
-							o[v] = vi;
-							duI[u] = h;
-							dvI[v] = w;
-
-							glm::ivec3 corners[4] = { o, o + duI, o + duI + dvI, o + dvI };
-							float quadLight = 0.0f;
-							for (int c = 0; c < 4; c++)
-								quadLight += cornerLight(corners[c], outwardSign);
-							quadLight /= 4.0f;
-
-							unsigned int vo = static_cast<unsigned int>(allVertices.size());
-
-							auto addV = [&](const glm::vec3& p) {
-								glm::vec2 uv;
-								if (axis == 0) uv = glm::vec2(p.z, p.y);
-								else if (axis == 1) uv = glm::vec2(p.x, p.z);
-								else uv = glm::vec2(p.x, p.y);
-
-								float light = smoothLighting
-									? cornerLight(glm::ivec3(glm::round(p)), outwardSign)
-									: quadLight;
-
-								allVertices.emplace_back(p.x, p.y, p.z, normal.x, normal.y, normal.z, uv.x, uv.y, layer, light);
-							};
-
-							if (axis == 2) {
-								if (!backFace) {
-									addV(origin);
-									addV(origin + du);
-									addV(origin + du + dv);
-									addV(origin + dv);
-								} else {
-									addV(origin);
-									addV(origin + dv);
-									addV(origin + du + dv);
-									addV(origin + du);
-								}
-							} else {
-								if (!backFace) {
-									addV(origin);
-									addV(origin + du);
-									addV(origin + du + dv);
-									addV(origin + dv);
-								} else {
-									addV(origin);
-									addV(origin + dv);
-									addV(origin + du + dv);
-									addV(origin + du);
+							// A merged quad can only carry per-vertex light on its
+							// four corners, so linear interpolation would smear
+							// the light of a partially-lit region across a huge
+							// quad. Split into 1x1 cell quads whenever the
+							// region isn't uniformly lit so light bakes locally.
+							float baseLight = maskLight[ui * vDim + vi];
+							bool uniform = true;
+							for (int a = 0; a < h && uniform; a++) {
+								for (int b = 0; b < w; b++) {
+									if (maskLight[(ui + a) * vDim + (vi + b)] != baseLight) { uniform = false; break; }
 								}
 							}
 
-							allIndices.push_back(vo + 0);
-							allIndices.push_back(vo + 1);
-							allIndices.push_back(vo + 2);
-							allIndices.push_back(vo + 0);
-							allIndices.push_back(vo + 2);
-							allIndices.push_back(vo + 3);
+							auto emitQuad = [&](int qh, int qw, int u0, int v0) {
+								glm::vec3 origin(0.0f);
+								origin[axis] = static_cast<float>(slice) + (backFace ? 0.0f : 1.0f);
+								origin[u] = static_cast<float>(u0);
+								origin[v] = static_cast<float>(v0);
+
+								glm::vec3 du(0.0f), dv(0.0f);
+								du[u] = static_cast<float>(qh);
+								dv[v] = static_cast<float>(qw);
+
+								glm::vec3 normal(0.0f);
+								normal[axis] = backFace ? -1.0f : 1.0f;
+
+								float layer = static_cast<float>(GetBlockTextureLayer(type, direction));
+
+								glm::ivec3 o(0), duI(0), dvI(0);
+								o[axis] = slice + (backFace ? 0 : 1);
+								o[u] = u0;
+								o[v] = v0;
+								duI[u] = qh;
+								dvI[v] = qw;
+
+								glm::ivec3 corners[4] = { o, o + duI, o + duI + dvI, o + dvI };
+								float quadLight = 0.0f;
+								for (int c = 0; c < 4; c++)
+									quadLight += cornerLight(corners[c], outwardSign);
+								quadLight /= 4.0f;
+
+								unsigned int vo = static_cast<unsigned int>(allVertices.size());
+
+								auto addV = [&](const glm::vec3& p) {
+									glm::vec2 uv;
+									if (axis == 0) uv = glm::vec2(p.z, p.y);
+									else if (axis == 1) uv = glm::vec2(p.x, p.z);
+									else uv = glm::vec2(p.x, p.y);
+
+									float light = smoothLighting
+										? cornerLight(glm::ivec3(glm::round(p)), outwardSign)
+										: quadLight;
+
+									allVertices.emplace_back(p.x, p.y, p.z, normal.x, normal.y, normal.z, uv.x, uv.y, layer, light);
+								};
+
+								if (!backFace) {
+									addV(origin);
+									addV(origin + du);
+									addV(origin + du + dv);
+									addV(origin + dv);
+								} else {
+									addV(origin);
+									addV(origin + dv);
+									addV(origin + du + dv);
+									addV(origin + du);
+								}
+
+								allIndices.push_back(vo + 0);
+								allIndices.push_back(vo + 1);
+								allIndices.push_back(vo + 2);
+								allIndices.push_back(vo + 0);
+								allIndices.push_back(vo + 2);
+								allIndices.push_back(vo + 3);
+							};
+
+							if (uniform) {
+								emitQuad(h, w, ui, vi);
+							} else {
+								for (int a = 0; a < h; a++)
+									for (int b = 0; b < w; b++)
+										emitQuad(1, 1, ui + a, vi + b);
+							}
 
 							for (int a = 0; a < h; a++)
 								for (int b = 0; b < w; b++)
