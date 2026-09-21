@@ -398,8 +398,6 @@ public:
 				glm::vec2 rightStick = joy.IsGamepad() ? joy.GetRightStick() : glm::vec2(joy.GetAxis(2), joy.GetAxis(3));
 				if (glm::length(rightStick) > deadzone)
 				{
-					// Per-second sensitivity so turning feels the same regardless
-					// of frame rate (e.g. vsync on/off or an open menu).
 					const float sensitivity = 100.4f;
 					float dt = static_cast<float>(std::max(fpsCounter.deltaTime, 0.0001));
 					camera->yaw += rightStick.x * sensitivity * dt;
