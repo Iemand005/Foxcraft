@@ -406,6 +406,7 @@ public:
 		}
 		camera->farDist = farPlane;
 		camera->SetAspect(camera->aspect);
+		player->state.velocity = glm::vec3(0.0f);
 		SyncCameraToPlayer();
 	}
 
