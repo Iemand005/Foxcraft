@@ -137,16 +137,30 @@ public:
 			q[axis] = 1;
 
 			auto cornerLight = [&](const glm::ivec3& P, int outwardSign) -> float {
-				// The cell immediately in front of the face's plane corner (it
-				// is always air, since the face is only emitted against an air
-				// block). Sampling just this corner-aligned cell keeps the
-				// result symmetric — no poking into cells beyond the face's own
-				// corners — so shared edges between faces always agree.
+				// Average the 2x2 block of cells that meet at this corner, on
+				// the side of the face it belongs to. Sampling only the single
+				// corner-aligned cell was peaking the light on ONE vertex of
+				// the emitting block, so the source seemed to sit on its corner
+				// vertex and every block sharing that vertex rendered at the
+				// same level (a square of four equally bright blocks). Spreading
+				// the sample over all four cells that touch the corner makes
+				// the brightness peak across the source block's own footprint
+				// and fall off smoothly from its centre.
 				glm::ivec3 n(0);
 				n[axis] = outwardSign;
 
 				glm::ivec3 base = (outwardSign == -1) ? P + n : P;
-				return static_cast<float>(getMeshLightAt(base)) / static_cast<float>(Chunk::MAX_LIGHT);
+
+				float sum = 0.0f;
+				for (int du = 0; du <= 1; du++) {
+					for (int dv = 0; dv <= 1; dv++) {
+						glm::ivec3 cell = base;
+						cell[u] -= du;
+						cell[v] -= dv;
+						sum += static_cast<float>(getMeshLightAt(cell));
+					}
+				}
+				return sum / (4.0f * static_cast<float>(Chunk::MAX_LIGHT));
 			};
 
 			for (bool backFace : {false, true}) {
