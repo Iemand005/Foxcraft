@@ -241,8 +241,8 @@ private:
         uint32_t indexOffset;
         uint32_t indexBytes;
         uint32_t indexCount;
-        glm::vec3 center{};
-        float radius = 0.0f;
+        glm::vec3 boundsMin{};
+        glm::vec3 boundsMax{};
         bool used = false;
     };
 
