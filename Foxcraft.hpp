@@ -401,7 +401,7 @@ public:
 				glm::vec2 rightStick = joy.IsGamepad() ? joy.GetRightStick() : glm::vec2(joy.GetAxis(2), joy.GetAxis(3));
 				if (glm::length(rightStick) > deadzone)
 				{
-					float sensitivity = 0.48f;
+					float sensitivity = 0.24f;
 					camera->yaw += rightStick.x * sensitivity;
 					camera->pitch -= rightStick.y * sensitivity;
 					camera->UpdateDirection();
