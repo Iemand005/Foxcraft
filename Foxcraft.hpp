@@ -400,7 +400,7 @@ public:
 				{
 					// Per-second sensitivity so turning feels the same regardless
 					// of frame rate (e.g. vsync on/off or an open menu).
-					const float sensitivity = 14.4f;
+					const float sensitivity = 54.4f;
 					float dt = static_cast<float>(std::max(fpsCounter.deltaTime, 0.0001));
 					camera->yaw += rightStick.x * sensitivity * dt;
 					camera->pitch -= rightStick.y * sensitivity * dt;
