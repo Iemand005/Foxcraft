@@ -37,6 +37,13 @@ public:
 	enum class DebugViewMode { Off, Physics, Full };
 	DebugViewMode debugViewMode = DebugViewMode::Off;
 	bool gamepadStartWasDown_ = false;
+	// Edge detection for gamepad one-shot actions (block break/place, hotbar
+	// switching, debug view toggle). Triggered on the rising edge.
+	bool gamepadLtWasDown_ = false;
+	bool gamepadRtWasDown_ = false;
+	bool gamepadDpadWasDown_ = false;
+	bool gamepadLeftShoulderWasDown_ = false;
+	bool gamepadRightShoulderWasDown_ = false;
 
 	// Cycles through debug views: off -> physics debug -> physics debug + UI.
 	void CycleDebugView()
@@ -69,7 +76,34 @@ public:
 	float walkSpeed = 5.0f;
 	float sprintSpeed = 9.0f;
 
+	// Hotbar of placeable block types, cycled with LT/RT (gamepad), the XR grip
+	// buttons (L1/R1) and the G key. Defaults to Cobblestone (index 0).
+	std::vector<BlockType> hotbarBlocks_ = {
+		BlockType::Cobblestone,
+		BlockType::Glowstone,
+		BlockType::Stone,
+		BlockType::Dirt,
+		BlockType::Grass,
+		BlockType::Bedrock,
+	};
+	size_t hotbarIndex_ = 0;
 	BlockType placedBlockType = BlockType::Cobblestone;
+
+	void SelectBlock(size_t index)
+	{
+		if (hotbarBlocks_.empty())
+			return;
+		hotbarIndex_ = index % hotbarBlocks_.size();
+		placedBlockType = hotbarBlocks_[hotbarIndex_];
+	}
+	void SelectPreviousBlock()
+	{
+		SelectBlock((hotbarIndex_ + hotbarBlocks_.size() - 1) % hotbarBlocks_.size());
+	}
+	void SelectNextBlock()
+	{
+		SelectBlock((hotbarIndex_ + 1) % hotbarBlocks_.size());
+	}
 	bool smoothLighting = false;
 
 	std::vector<glm::vec3> path;
@@ -324,9 +358,7 @@ public:
 				}
 				else if (event.key.key == SDLK_G)
 				{
-					placedBlockType = (placedBlockType == BlockType::Glowstone)
-						? BlockType::Cobblestone
-						: BlockType::Glowstone;
+					SelectNextBlock();
 				}
 				break;
 			}
@@ -385,6 +417,42 @@ public:
 				if (startDown && !gamepadStartWasDown_)
 					xrToggleRequested = true;
 				gamepadStartWasDown_ = startDown;
+
+				if (joy.IsGamepad())
+				{
+					// LB/RB (shoulder buttons) break/place a block, mirroring
+					// the mouse buttons, raised once per press.
+					bool lbDown = joy.GetGamepadButton(SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
+					if (lbDown && !gamepadLeftShoulderWasDown_)
+						PlaceBlock(true);
+					gamepadLeftShoulderWasDown_ = lbDown;
+
+					bool rbDown = joy.GetGamepadButton(SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
+					if (rbDown && !gamepadRightShoulderWasDown_)
+						PlaceBlock(false);
+					gamepadRightShoulderWasDown_ = rbDown;
+
+					// LT/RT (shoulder triggers): switch the hotbar selection
+					// (previous/next block), like the number keys in the game.
+					bool ltDown = joy.GetGamepadAxis(SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > 0.5f;
+					if (ltDown && !gamepadLtWasDown_)
+						SelectPreviousBlock();
+					gamepadLtWasDown_ = ltDown;
+
+					bool rtDown = joy.GetGamepadAxis(SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > 0.5f;
+					if (rtDown && !gamepadRtWasDown_)
+						SelectNextBlock();
+					gamepadRtWasDown_ = rtDown;
+
+					// D-pad arrows cycle the debug rendering mode.
+					bool dpadDown = joy.GetGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_UP)
+						|| joy.GetGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_DOWN)
+						|| joy.GetGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_LEFT)
+						|| joy.GetGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
+					if (dpadDown && !gamepadDpadWasDown_)
+						CycleDebugView();
+					gamepadDpadWasDown_ = dpadDown;
+				}
 			}
 		}
 
@@ -392,6 +460,29 @@ public:
 			window->StopMouseCapture();
 		if (ImGui::GetIO().WantCaptureMouse)
 			window->StopMouseCapture();
+
+		// Consume edge-triggered XR action requests. These are raised by
+		// PollActionsAndUpdateMovement during the previous frame's draw.
+		if (xrBreakBlockRequested)
+		{
+			PlaceBlock(true);
+			xrBreakBlockRequested = false;
+		}
+		if (xrPlaceBlockRequested)
+		{
+			PlaceBlock(false);
+			xrPlaceBlockRequested = false;
+		}
+		if (xrPrevBlockRequested)
+		{
+			SelectPreviousBlock();
+			xrPrevBlockRequested = false;
+		}
+		if (xrNextBlockRequested)
+		{
+			SelectNextBlock();
+			xrNextBlockRequested = false;
+		}
 	}
 
 	void Init() override {
@@ -496,7 +587,12 @@ public:
 			}
 			ImGui::SameLine();
 			ImGui::TextDisabled("(G places %s)",
-				placedBlockType == BlockType::Glowstone ? "Glowstone" : "Cobblestone");
+				placedBlockType == BlockType::Glowstone ? "Glowstone"
+				: placedBlockType == BlockType::Stone ? "Stone"
+				: placedBlockType == BlockType::Dirt ? "Dirt"
+				: placedBlockType == BlockType::Grass ? "Grass"
+				: placedBlockType == BlockType::Bedrock ? "Bedrock"
+				: "Cobblestone");
 		}
 		ImGui::End();
 
