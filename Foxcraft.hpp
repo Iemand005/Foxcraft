@@ -85,7 +85,7 @@ public:
 	static constexpr int MAX_CHUNKS = 32;
 	static constexpr int TUNNEL_SEGMENTS = 64;
 	static constexpr int SUBDIVISIONS_PER_SEG = 48;
-	int CHUNK_LOAD_DISTANCE = 2;
+	int CHUNK_LOAD_DISTANCE = 6;
 	int chunkOutgenDistance = 1;
 	int physicsDistance = 2;
 	glm::ivec2 playerCenter_{0, 0};
