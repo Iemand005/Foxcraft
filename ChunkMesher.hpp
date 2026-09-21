@@ -203,25 +203,24 @@ public:
 							BlockType type = mask[ui * vDim + vi];
 							if (type == BlockType::Air) { vi++; continue; }
 
+							// A merged quad only carries light on its four corner
+							// vertices, so greedy must never span lit cells (their
+							// light would be smeared by interpolation). Expansion
+							// stops at any lit cell; every cell with light > 0 is
+							// emitted as its own 1x1 quad.
 							int w = 1;
-							while (vi + w < vDim && mask[ui * vDim + (vi + w)] == type) w++;
+							while (vi + w < vDim && mask[ui * vDim + (vi + w)] == type && maskLight[ui * vDim + (vi + w)] == 0.0f) w++;
 
 							int h = 1;
 							bool done = false;
 							while (ui + h < uDim && !done) {
 								for (int k = 0; k < w; k++) {
-									if (mask[(ui + h) * vDim + (vi + k)] != type) { done = true; break; }
+									if (mask[(ui + h) * vDim + (vi + k)] != type || maskLight[(ui + h) * vDim + (vi + k)] != 0.0f) { done = true; break; }
 								}
 								if (!done) h++;
 							}
 
 							float baseLight = maskLight[ui * vDim + vi];
-
-							// A merged quad only carries light on its four corner
-							// vertices, so even a fully-uniform lit ring would get
-							// its corners sampled from far-away cells and smear.
-							// Emit 1x1 cell quads anywhere there is light; only
-							// truly unlit (light 0) cells are flat enough to merge.
 							bool perCell = baseLight > 0.0f;
 
 							auto emitQuad = [&](int qh, int qw, int u0, int v0) {
