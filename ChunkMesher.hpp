@@ -6,6 +6,7 @@
 #include <Mesh.hpp>
 #include "Chunk.hpp"
 #include "ChunkManager.hpp"
+#include "Log.hpp"
 
 class ChunkMesher {
 public:
@@ -214,18 +215,14 @@ public:
 								if (!done) h++;
 							}
 
-							// A merged quad can only carry per-vertex light on its
-							// four corners, so linear interpolation would smear
-							// the light of a partially-lit region across a huge
-							// quad. Split into 1x1 cell quads whenever the
-							// region isn't uniformly lit so light bakes locally.
 							float baseLight = maskLight[ui * vDim + vi];
-							bool uniform = true;
-							for (int a = 0; a < h && uniform; a++) {
-								for (int b = 0; b < w; b++) {
-									if (maskLight[(ui + a) * vDim + (vi + b)] != baseLight) { uniform = false; break; }
-								}
-							}
+
+							// A merged quad only carries light on its four corner
+							// vertices, so even a fully-uniform lit ring would get
+							// its corners sampled from far-away cells and smear.
+							// Emit 1x1 cell quads anywhere there is light; only
+							// truly unlit (light 0) cells are flat enough to merge.
+							bool perCell = baseLight > 0.0f;
 
 							auto emitQuad = [&](int qh, int qw, int u0, int v0) {
 								glm::vec3 origin(0.0f);
@@ -290,7 +287,7 @@ public:
 								allIndices.push_back(vo + 3);
 							};
 
-							if (uniform) {
+							if (!perCell) {
 								emitQuad(h, w, ui, vi);
 							} else {
 								for (int a = 0; a < h; a++)
@@ -310,6 +307,18 @@ public:
 		}
 
 		chunk->mesh = fe::Mesh<FoxcraftVertex>(std::move(allVertices), std::move(allIndices));
+
+		// TEMP DEBUG: dump the brightest vertex and where it lives.
+		float maxLight = 0.0f;
+		glm::vec3 maxPos(0), maxN(0);
+		for (const auto& v : chunk->mesh.vertices) {
+			if (v.blockLight > maxLight) { maxLight = v.blockLight; maxPos = v.position; maxN = v.normal; }
+		}
+		if (maxLight > 0.0f)
+			fe::LogToFile("MESH chunk(" + std::to_string(chunk->coord.x) + "," + std::to_string(chunk->coord.y) +
+				") maxLight=" + std::to_string(maxLight) +
+				" at local(" + std::to_string((int)maxPos.x) + "," + std::to_string((int)maxPos.y) + "," + std::to_string((int)maxPos.z) +
+				") normal(" + std::to_string((int)maxN.x) + "," + std::to_string((int)maxN.y) + "," + std::to_string((int)maxN.z) + ")");
 	}
 
 	static int GetBlockTextureLayer(BlockType type, fe::PlaneDirection direction) {

@@ -5,6 +5,7 @@
 #endif
 #include "Mesh.hpp"
 #include "physics/PhysicsFactory.hpp"
+#include "Log.hpp"
 
 #include <algorithm>
 #include <deque>
@@ -63,6 +64,21 @@ void Chunk::ComputeBlockLight() {
 			if (blockLight[ni] < next) {
 				blockLight[ni] = next;
 				queue.push_back(ni);
+			}
+		}
+	}
+
+	// TEMP DEBUG: log where light sources are and the light level right beside them.
+	for (int x = 0; x < WIDTH; x++) {
+		for (int y = 0; y < HEIGHT; y++) {
+			for (int z = 0; z < DEPTH; z++) {
+				if (GetLightEmission(GetBlock(x, y, z)) > 0) {
+					fe::LogToFile("LIGHT source chunk(" + std::to_string(coord.x) + "," + std::to_string(coord.y) +
+						") cell(" + std::to_string(x) + "," + std::to_string(y) + "," + std::to_string(z) +
+						") own=" + std::to_string(blockLight[index(x, y, z)]) +
+						" eastAir=" + std::to_string(x + 1 < WIDTH ? blockLight[index(x + 1, y, z)] : 255) +
+						" northAir=" + std::to_string(z + 1 < DEPTH ? blockLight[index(x, y, z + 1)] : 255));
+				}
 			}
 		}
 	}

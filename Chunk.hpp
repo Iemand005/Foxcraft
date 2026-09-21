@@ -193,6 +193,14 @@ public:
 				}
 			}
 		}
+
+		// TEMP DEBUG: sprinkle one glowstone at a known cell per chunk.
+		for (int y = HEIGHT - 1; y >= 0; y--) {
+			if (GetBlock(16, y, 16) != BlockType::Air) {
+				SetBlock(16, y + 1, 16, BlockType::Glowstone);
+				break;
+			}
+		}
 	}
 
 	static glm::ivec3 GetOffsetAt(const glm::ivec3& pos, fe::PlaneDirection direction) {
