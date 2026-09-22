@@ -1,23 +1,15 @@
 #include "XRGame.hpp"
 #if defined(_WIN32)
-// #define _WINSOCKAPI_
-// #include <winsock2.h>
-// #include <windows.h>
 #elif !defined(__EMSCRIPTEN__) && !defined(__ANDROID__)
 #include <X11/Xlib.h>
 #endif
 #include <string>
-#include <cstring>
-#include <iostream>
 #include "Foxcraft.hpp"
 
 #ifdef __ANDROID__
-// On Android SDL3 renames main -> SDL_main (SDL_MAIN_NEEDED) and the Java glue
-// loads libmain.so and calls the exported SDL_main symbol.
 #include <SDL3/SDL_main.h>
 #endif
 
-#include <chrono>
 #include <exception>
 
 #include "Log.hpp"
@@ -32,17 +24,14 @@ int main(int argc, char* argv[]) {
 	fe::LogSetTag("Foxcraft");
 	fe::Log("Foxcraft starting");
 
-	// The engine extracts APK assets + chdir for us inside Game/XRGame
-	// construction, so games don't need any per-platform bootstrap here.
-	// On desktop this is a no-op.
-	fe::AndroidSetupAssets("resources");
-
+	
 	try {
 		fe::LogToFile("Creating Foxcraft game instance...");
-
+		
 		fe::XRGameOptions options(1200, 800);
 		options.useVulkan = false;
 #ifdef __ANDROID__
+		fe::AndroidSetupAssets("resources");
 		options.launchVR = true;
 #endif
 		Foxcraft game(options);
