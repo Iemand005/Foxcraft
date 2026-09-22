@@ -250,7 +250,7 @@ public:
 			return;
 
 		const float characterHeight = player->physicsCharacter ? player->physicsCharacter->GetHeight() : 1.5f;
-		const glm::vec3 headOffset(0.0f, 0.9f * characterHeight, 0.0f);
+		const glm::vec3 headOffset(0.0f, 0.4f * characterHeight, 0.0f);
 		camera->SetPos(player->state.position + headOffset);
 	}
 
