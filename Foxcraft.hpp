@@ -202,7 +202,7 @@ public:
 		if (!player || !physicsFactory)
 			return;
 
-		const glm::vec3 size = useRectangularPlayerHitbox ? glm::vec3(0.4f, 1.5f, 0.4f) : glm::vec3(1.0f, 1.0f, 1.0f);
+		const glm::vec3 size(0.6f, 1.875f, 0.6f);
 		float radius = std::min(size.x, size.z) * 0.5f;
 
 		auto physicsCharacter = physicsFactory->CreateCharacter(size.y, radius, this->player->state.position, useRectangularPlayerHitbox);
