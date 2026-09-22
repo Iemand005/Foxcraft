@@ -249,7 +249,11 @@ public:
 		if (!player || freeCamera)
 			return;
 
-		const glm::vec3 headOffset(0.0f, 1.6f, 0.0f);
+		// Put the camera in the character's head. `player->state.position` is
+		// the center of the physics shape, so eye height sits a little below
+		// the top: (0.9 * height above feet) = (0.4 * height above center).
+		const float characterHeight = player->physicsCharacter ? player->physicsCharacter->GetHeight() : 1.5f;
+		const glm::vec3 headOffset(0.0f, 0.4f * characterHeight, 0.0f);
 		camera->SetPos(player->state.position + headOffset);
 	}
 
