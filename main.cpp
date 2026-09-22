@@ -13,7 +13,9 @@
 #include <exception>
 
 #include "Log.hpp"
+#ifdef __ANDROID__
 #include "Android.hpp"
+#endif
 
 #ifdef FC_INCLUDE_VULKAN
 #include <Graphics/VulkanDevice.hpp>
