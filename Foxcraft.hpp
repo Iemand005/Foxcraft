@@ -224,7 +224,7 @@ public:
 		this->scene->AddObject(player);
 		this->player->state.position = glm::vec3(0.0f, 35.0f, 5.0f);
 		this->player->gravityEnabled = true;
-		this->player->jumpSpeed = 8.5f;
+		this->player->jumpSpeed = 7.07f; // 1.25 blocks at gravity -20
 		this->player->moveSpeed = walkSpeed;
 		RebuildPlayerPhysicsBody();
 		UpdateLoadedChunks();
