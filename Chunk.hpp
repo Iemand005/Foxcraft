@@ -149,8 +149,9 @@ public:
 	}
 
 	void Generate() {
-		float heightAmplitude = 6.0f;
+		float heightAmplitude = 16.0f;
 		float heightFrequency = 0.03f;
+		float mountinFrequency = 0.003f;
 		float heightOffset = 24.0f;
 
 		const int octaves = 4;
@@ -168,6 +169,7 @@ public:
 				float maxAmplitude = 0.0f;
 
 				for (int o = 0; o < octaves; o++) {
+					noiseSum += glm::perlin(glm::vec2(worldX * frequency, worldZ * frequency)) * amplitude;
 					noiseSum += glm::perlin(glm::vec2(worldX * frequency, worldZ * frequency)) * amplitude;
 					maxAmplitude += amplitude;
 					amplitude *= persistence;
