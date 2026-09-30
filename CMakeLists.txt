@@ -78,6 +78,15 @@ file(GLOB_RECURSE IMGUI_SOURCE_FILES
 	${IMGUI_DIR}/imgui_draw.cpp
 )
 
+# Keep every ImGui file in its own translation unit. They define
+# IMGUI_DEFINE_MATH_OPERATORS immediately before including imgui.h, and
+# imgui_internal.h hard-errors when that define did not come first. A unity
+# blob that pulls in main.cpp/Chunk.cpp (which include imgui.h) ahead of them
+# trips that check.
+set_source_files_properties(${IMGUI_SOURCE_FILES} PROPERTIES
+	SKIP_UNITY_BUILD_INCLUSION ON
+)
+
 set(FOXCRAFT_SOURCES
 	${IMGUI_SOURCE_FILES}
 	main.cpp

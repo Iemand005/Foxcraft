@@ -73,8 +73,8 @@ public:
 
 	bool useRectangularPlayerHitbox = true;
 
-	float walkSpeed = 5.0f;
-	float sprintSpeed = 9.0f;
+	float walkSpeed = 25.0f;
+	float sprintSpeed = 40.0f;
 
 	// Hotbar of placeable block types, cycled with LT/RT (gamepad), the XR grip
 	// buttons (L1/R1) and the G key. Defaults to Cobblestone (index 0).
