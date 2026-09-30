@@ -140,8 +140,6 @@ add_custom_command(TARGET ${FOXCRAFT_TARGET} POST_BUILD
 )
 
 if(MSVC)
-	target_compile_options(${FOXCRAFT_TARGET} PRIVATE $<$<CONFIG:Debug>:/Zi>)
-
 	target_link_options(${FOXCRAFT_TARGET} PRIVATE $<$<CONFIG:Debug>:/DEBUG>)
 
 	add_compile_options(/RTC1)
