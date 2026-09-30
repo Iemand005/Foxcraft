@@ -165,12 +165,13 @@ public:
 
 				float noiseSum = 0.0f;
 				float amplitude = 1.0f;
+				float mountainAmp = 3.0f;
 				float frequency = heightFrequency;
 				float maxAmplitude = 0.0f;
 
 				for (int o = 0; o < octaves; o++) {
 					noiseSum += glm::perlin(glm::vec2(worldX * frequency, worldZ * frequency)) * amplitude;
-					noiseSum += glm::perlin(glm::vec2(worldX * frequency, worldZ * frequency)) * amplitude;
+					noiseSum += glm::perlin(glm::vec2(worldX * mountinFrequency, worldZ * mountinFrequency)) * mountainAmp;
 					maxAmplitude += amplitude;
 					amplitude *= persistence;
 					frequency *= lacunarity;
