@@ -30,6 +30,7 @@ enum class BlockType : uint8_t {
 	Cobblestone = 4,
 	Bedrock = 5,
 	Glowstone = 6,
+	Water = 7,
 };
 
 enum class ChunkState {
