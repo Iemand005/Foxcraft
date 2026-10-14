@@ -90,8 +90,6 @@ set_source_files_properties(${IMGUI_SOURCE_FILES} PROPERTIES
 set(FOXCRAFT_SOURCES
 	${IMGUI_SOURCE_FILES}
 	main.cpp
-	ChunkManager.cpp
-	Chunk.cpp
 )
 
 if(ANDROID)
@@ -122,6 +120,14 @@ target_include_directories(${FOXCRAFT_TARGET} PRIVATE
 target_link_libraries(${FOXCRAFT_TARGET} PRIVATE
 	Engine
 )
+
+# The shared voxel system (FenixEngine/src/games/common) and the engine inline
+# headers use FE_HAS_VULKAN consistently. The Engine defines it only inside its
+# own directory, so this sibling target must see the same define to keep the
+# chunk/manager class definitions identical across translation units.
+if(NOT ANDROID AND NOT EMSCRIPTEN AND NOT FE_EXCLUDE_VULKAN)
+	target_compile_definitions(${FOXCRAFT_TARGET} PRIVATE FE_HAS_VULKAN)
+endif()
 
 target_precompile_headers(${FOXCRAFT_TARGET} PRIVATE
 	"$<$<COMPILE_LANGUAGE:CXX>:${ENGINE_DIR}/src/Engine/pch.hpp>"

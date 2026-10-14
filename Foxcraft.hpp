@@ -25,7 +25,7 @@
 #endif
 
 #include "ChunkManager.hpp"
-#ifdef FC_INCLUDE_VULKAN
+#ifdef FE_HAS_VULKAN
 #include "ChunkMesher.hpp"
 #endif
 
@@ -147,7 +147,7 @@ public:
 	std::shared_ptr<fe::Object> testCube;
 
 	std::unique_ptr<ChunkManager> chunkManager = std::make_unique<ChunkManager>(6);
-#ifdef FC_INCLUDE_VULKAN
+#ifdef FE_HAS_VULKAN
 	std::unique_ptr<ChunkBatcher> chunkBatcher_;
 #endif
 	bool useBatcherPath_ = false;
@@ -165,7 +165,7 @@ public:
 			LoadShaders("resources/shaders/VertexShader.glsl", "resources/shaders/FragmentShader.glsl");
 #endif
 
-#ifdef FC_INCLUDE_VULKAN
+#ifdef FE_HAS_VULKAN
 		if (options.useVulkan)
 		{
 			LoadArrayShaders("resources/shaders/VertexShader_vk_array.spv", "resources/shaders/FragmentShader_vk_array.spv");
@@ -187,7 +187,7 @@ public:
 	void OnDraw() override
 	{
 		fe::EditableGame::OnDraw();
-#ifdef FC_INCLUDE_VULKAN
+#ifdef FE_HAS_VULKAN
 		if (chunkBatcher_ && useVulkan)
 		{
 			chunkBatcher_->Update(camera->GetPos());

@@ -17,7 +17,7 @@
 #include "Android.hpp"
 #endif
 
-#ifdef FC_INCLUDE_VULKAN
+#ifdef FE_HAS_VULKAN
 #include <Graphics/VulkanDevice.hpp>
 #endif
 
