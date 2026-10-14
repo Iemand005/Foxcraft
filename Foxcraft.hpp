@@ -173,7 +173,7 @@ public:
 			useBatcherPath_ = true;
 			chunkBatcher_ = std::make_unique<ChunkBatcher>(
 				static_cast<VulkanDevice *>(renderDevice.get()),
-				ChunkMesher::BlockTextures());
+				ChunkMesher::BuildBlockTextureImages());
 			chunkManager->SetBatcher(chunkBatcher_.get());
 			chunkManager->SetUseBatcherPath(true);
 		}
