@@ -16,6 +16,7 @@
 
 #include <EditableGame.hpp>
 #include <Primitives.hpp>
+#include <vr/OpenXR.hpp>
 
 #include <audio/AudioVisualiser.hpp>
 #include <ScreenSaverMode.hpp>
@@ -44,6 +45,9 @@ public:
 	bool gamepadDpadWasDown_ = false;
 	bool gamepadLeftShoulderWasDown_ = false;
 	bool gamepadRightShoulderWasDown_ = false;
+	// Rising-edge detection for the XR grip buttons (break/place).
+	bool xrLeftGripWasDown_ = false;
+	bool xrRightGripWasDown_ = false;
 
 	// Cycles through debug views: off -> physics debug -> physics debug + UI.
 	void CycleDebugView()
@@ -500,28 +504,23 @@ public:
 		if (ImGui::GetIO().WantCaptureMouse)
 			window->StopMouseCapture();
 
-		// Consume edge-triggered XR action requests. These are raised by
-		// PollActionsAndUpdateMovement during the previous frame's draw.
-		if (xrBreakBlockRequested)
-		{
+		// Map the generic XR inputs to game actions. Buttons/poses are
+		// refreshed during the previous frame's RedrawVR.
+		auto &xr = GetOpenXR();
+		const bool xrLeftGrip = xr.IsGripPressed(fe::OpenXR::Hand::Left);
+		if (xrLeftGrip && !xrLeftGripWasDown_)
 			PlaceBlock(true);
-			xrBreakBlockRequested = false;
-		}
-		if (xrPlaceBlockRequested)
-		{
+		xrLeftGripWasDown_ = xrLeftGrip;
+
+		const bool xrRightGrip = xr.IsGripPressed(fe::OpenXR::Hand::Right);
+		if (xrRightGrip && !xrRightGripWasDown_)
 			PlaceBlock(false);
-			xrPlaceBlockRequested = false;
-		}
-		if (xrPrevBlockRequested)
-		{
+		xrRightGripWasDown_ = xrRightGrip;
+
+		if (xr.ConsumeButtonPress(fe::OpenXR::Button::LeftTrigger))
 			SelectPreviousBlock();
-			xrPrevBlockRequested = false;
-		}
-		if (xrNextBlockRequested)
-		{
+		if (xr.ConsumeButtonPress(fe::OpenXR::Button::RightTrigger))
 			SelectNextBlock();
-			xrNextBlockRequested = false;
-		}
 	}
 
 	void Init() override {
