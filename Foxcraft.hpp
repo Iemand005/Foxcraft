@@ -309,7 +309,7 @@ public:
 				if (event.button.button == SDL_BUTTON_LEFT && !io.WantCaptureMouse)
 				{
 					window->StartMouseCapture();
-					RefreshJoysticks();
+					refreshJoysticks();
 				}
 				if (window->IsCapturingMouse())
 				{
@@ -345,7 +345,7 @@ public:
 					if (!window->IsCapturingMouse())
 					{
 						window->StartMouseCapture();
-						RefreshJoysticks();
+						refreshJoysticks();
 					}
 					else
 					{
@@ -384,7 +384,7 @@ public:
 				{
 					freeCamera = !freeCamera;
 					window->StartMouseCapture();
-					RefreshJoysticks();
+					refreshJoysticks();
 				}
 				else if (event.key.key == SDLK_F4)
 				{
@@ -519,7 +519,7 @@ public:
 		auto window = this->GetWindow<fe::SDLWindow>();
 		window->Show();
 		window->DisableVSync();
-		RefreshJoysticks();
+		refreshJoysticks();
 
 		player->state.position.z = 5;
 		player->state.position.y = 35;
