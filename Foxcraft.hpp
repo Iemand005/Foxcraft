@@ -597,9 +597,9 @@ public:
 		Redraw();
 	}
 
-	void InitUI() override {}
+	void initUI() override {}
 
-	void DrawUI() override
+	void drawUI() override
 	{
 		if (!showDebugUI)
 			return;
