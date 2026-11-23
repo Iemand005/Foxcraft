@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
 
 		fe::LogToFile("Running game...");
 
-		game.Run();
+		game.run();
 
 		fe::LogToFile("Game exited normally");
 	} catch (const std::exception& e) {
