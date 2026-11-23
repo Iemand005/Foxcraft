@@ -114,7 +114,7 @@ target_include_directories(${FOXCRAFT_TARGET} PRIVATE
 	${ENGINE_DIR}/external/imgui
 	${ENGINE_DIR}/external/kissfft
 	${ENGINE_DIR}/external/SDL/include
-	${ENGINE_DIR}/src/Engine
+	${ENGINE_DIR}/src
 )
 
 target_link_libraries(${FOXCRAFT_TARGET} PRIVATE
@@ -130,7 +130,7 @@ if(NOT ANDROID AND NOT EMSCRIPTEN AND NOT FE_EXCLUDE_VULKAN)
 endif()
 
 target_precompile_headers(${FOXCRAFT_TARGET} PRIVATE
-	"$<$<COMPILE_LANGUAGE:CXX>:${ENGINE_DIR}/src/Engine/pch.hpp>"
+	"$<$<COMPILE_LANGUAGE:CXX>:${ENGINE_DIR}/src/pch.hpp>"
 )
 
 if(NOT WIN32 AND NOT EMSCRIPTEN AND NOT ANDROID)
