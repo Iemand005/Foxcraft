@@ -293,7 +293,7 @@ public:
 	void ProcessInput()
 	{
 		SDL_Event event;
-		fe::SDLWindow *window = GetWindow<fe::SDLWindow>();
+		fe::SDLWindow *window = getWindow<fe::SDLWindow>();
 		while (window->PollSDLEvent(&event))
 		{
 			ImGui_ImplSDL3_ProcessEvent(&event);
@@ -516,7 +516,7 @@ public:
 	}
 
 	void Init() override {
-		auto window = this->GetWindow<fe::SDLWindow>();
+		auto window = this->getWindow<fe::SDLWindow>();
 		window->Show();
 		window->DisableVSync();
 		refreshJoysticks();
@@ -534,7 +534,7 @@ public:
 	}
 
 	void Step() override {
-		auto window = GetWindow<fe::SDLWindow>();
+		auto window = getWindow<fe::SDLWindow>();
 		ProcessInput();
 
 		UpdateLoadedChunks();
